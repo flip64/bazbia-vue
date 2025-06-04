@@ -22,7 +22,7 @@
           <ul class="header__nav-list">
             <li class="header__nav-item" v-for="item in menuItems" :key="item.id">
               <router-link 
-                :to="item.path" 
+                :to="item.path"  
                 class="header__nav-link"
                 :class="{ 'header__nav-link--active': isActiveRoute(item.path) }"
               >
@@ -331,7 +331,7 @@ const menuItems = ref([
   { id: 2, title: 'محصولات', path: '/products' },
   { id: 3, title: 'دسته‌بندی‌ها', path: '/categories' },
   { id: 4, title: 'تخفیف‌ها', path: '/offers' },
-  { id: 5, title: 'وبلاگ', path: '/blog' },
+  { id: 5, title: 'درباره ما', path: '/about' },
   { id: 6, title: 'تماس با ما', path: '/contact' }
 ])
 

@@ -1,9 +1,19 @@
 import { createApp } from "vue"
 import App from "./App.vue"
 
-import { router } from "@/core/router"
+
+
+import router from "@/core/router"
 import { store } from "@/core/store"
 import { registerPlugins } from "@/core/plugins"
+
+import { useAuthStore } from "@/modules/auth/store/authStore"
+
+const auth = useAuthStore()
+if (auth.token)
+  auth.fetchMe()
+
+
 
 const app = createApp(App)
 

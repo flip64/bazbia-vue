@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router"
+import { setupAuthGuard } from "./guard"
 
 const routes = [
   {
@@ -13,7 +14,11 @@ const routes = [
   }
 ]
 
-export const router = createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+setupAuthGuard(router)
+
+export default router

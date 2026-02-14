@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from "vue"
-import Header from "@/components/layout/header/Header.vue"
+import Header from "@/components/layout/Header/Header.vue"
 import Footer from "@/components/layout/Footer.vue"
 
 /* ---------------- LOADER ---------------- */
@@ -75,7 +75,7 @@ function showToast(msg: string) {
 }
 
 /* ---------------- MODAL ---------------- */
-const modal = reactive({h
+const modal = reactive({
   show: false,
   title: "",
   content: ""

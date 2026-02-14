@@ -75,7 +75,8 @@ function showToast(msg: string) {
 }
 
 /* ---------------- MODAL ---------------- */
-const modal = reactive({h  show: false,
+const modal = reactive({h
+  show: false,
   title: "",
   content: ""
 })

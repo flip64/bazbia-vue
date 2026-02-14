@@ -1,22 +1,35 @@
-import { createRouter, createWebHistory } from "vue-router"
+import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 import { setupAuthGuard } from "./guard"
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "home",
-    component: () => import("@/pages/Home.vue")
+    component: () => import("@/pages/Home.vue"),
+    meta: { requiresAuth: true }
   },
   {
     path: "/login",
     name: "login",
-    component: () => import("@/pages/Login.vue")
+    component: () => import("@/pages/Login.vue"),
+    meta: { guestOnly: true }
+  },
+
+  // 404 page
+  {
+    path: "/:pathMatch(.*)*",
+    name: "not-found",
+    component: () => import("@/pages/NotFound.vue")
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
 setupAuthGuard(router)

@@ -1,99 +1,66 @@
 <template>
-  <header class="sticky top-0 z-50 backdrop-blur bg-white/80 border-b border-gray-200 shadow-sm">
+  <header class="header">
 
-    <div class="max-w-7xl mx-auto px-4">
+    <div class="header__container">
 
-      <!-- Top Row -->
-      <div class="flex items-center justify-between h-16">
+      <!-- logo -->
+      <div class="header__logo" @click="goHome">
+        <div class="header__logoBox">B</div>
+        <span class="header__logoText">{{ logoText }}</span>
+      </div>
 
-        <!-- Logo -->
-        <div
-          @click="goHome"
-          class="flex items-center gap-2 font-bold text-lg cursor-pointer group"
-        >
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center shadow group-hover:scale-105 transition">
-            B
-          </div>
-          <span class="hidden sm:block text-gray-700 group-hover:text-blue-600 transition">
-            {{ logoText }}
+      <!-- search -->
+      <div class="header__search">
+        <input
+          v-model="search"
+          placeholder="جستجوی محصول، برند، دسته‌بندی..."
+          class="header__searchInput"
+        />
+        <span class="header__searchIcon">🔍</span>
+      </div>
+
+      <!-- actions -->
+      <div class="header__actions">
+
+        <button class="header__icon">❤</button>
+
+        <button class="header__icon header__cart">
+          🛒
+          <span v-if="cartCount" class="header__badge">
+            {{ cartCount }}
           </span>
-        </div>
+        </button>
 
-        <!-- Search -->
-        <div class="flex-1 mx-6 hidden md:block">
-          <div class="relative">
+        <button class="header__icon">👤</button>
 
-            <input
-              v-model="search"
-              placeholder="جستجوی محصول، برند، دسته‌بندی..."
-              class="w-full pl-12 pr-4 py-3 rounded-2xl bg-gray-100 focus:bg-white border border-transparent focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition"
-            />
+      </div>
 
-            <!-- icon -->
-            <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
-              <path d="M20 20L17 17" stroke="currentColor" stroke-width="2"/>
-            </svg>
+    </div>
 
+    <!-- nav -->
+    <nav class="header__nav">
+
+      <div
+        v-for="cat in categories"
+        :key="cat.name"
+        class="header__navItem"
+      >
+        {{ cat.icon }} {{ cat.name }}
+
+        <div v-if="cat.children" class="header__dropdown">
+          <div
+            v-for="sub in cat.children"
+            :key="sub"
+            class="header__dropdownItem"
+          >
+            {{ sub }}
           </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-2">
-
-          <!-- Wishlist -->
-          <button class="iconBtn">❤</button>
-
-          <!-- Cart -->
-          <button class="iconBtn relative">
-            🛒
-            <span
-              v-if="cartCount"
-              class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow"
-            >
-              {{ cartCount }}
-            </span>
-          </button>
-
-          <!-- Profile -->
-          <button class="iconBtn">👤</button>
-
         </div>
 
       </div>
 
-      <!-- Categories -->
-      <nav class="hidden md:flex gap-6 pb-3 text-sm font-medium text-gray-700">
+    </nav>
 
-        <div
-          v-for="cat in categories"
-          :key="cat.name"
-          class="relative group"
-        >
-
-          <span class="hover:text-blue-600 cursor-pointer flex items-center gap-1">
-            {{ cat.icon }} {{ cat.name }}
-          </span>
-
-          <!-- Dropdown -->
-          <div
-            v-if="cat.children"
-            class="absolute opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-200 bg-white shadow-xl rounded-2xl top-8 w-48 p-3 border"
-          >
-            <div
-              v-for="sub in cat.children"
-              :key="sub"
-              class="px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition"
-            >
-              {{ sub }}
-            </div>
-          </div>
-
-        </div>
-
-      </nav>
-
-    </div>
   </header>
 </template>
 
@@ -101,46 +68,205 @@
 import { ref, computed } from "vue"
 import { useRouter } from "vue-router"
 
-interface Props {
+const props = withDefaults(defineProps<{
   logoText?: string
   cartItems?: number
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  logoText: "بازبیا",
-  cartItems: 3
+}>(),{
+  logoText:"بازبیا",
+  cartItems:2
 })
 
 const router = useRouter()
-
 const search = ref("")
-const cartCount = computed(() => props.cartItems)
+const cartCount = computed(()=> props.cartItems)
 
-function goHome() {
+function goHome(){
   router.push("/")
 }
 
 const categories = ref([
-  {
-    name: "دیجیتال",
-    icon: "📱",
-    children: ["موبایل", "لپ‌تاپ", "هدفون", "ساعت هوشمند"]
-  },
-  {
-    name: "پوشاک",
-    icon: "👕",
-    children: ["مردانه", "زنانه", "بچگانه"]
-  },
-  { name: "خانه", icon: "🏠" },
-  { name: "کتاب", icon: "📚" },
-  { name: "سرگرمی", icon: "🎮" }
+  {name:"دیجیتال",icon:"📱",children:["موبایل","لپ‌تاپ","هدفون"]},
+  {name:"پوشاک",icon:"👕",children:["مردانه","زنانه"]},
+  {name:"خانه",icon:"🏠"},
+  {name:"کتاب",icon:"📚"}
 ])
 </script>
 
 <style scoped>
-.iconBtn{
-  @apply w-10 h-10 rounded-xl flex items-center justify-center
-  hover:bg-blue-50 text-gray-700 hover:text-blue-600
-  transition duration-200;
+.header{
+  position:sticky;
+  top:0;
+  z-index:999;
+  backdrop-filter:blur(10px);
+  background:rgba(255,255,255,.85);
+  border-bottom:1px solid #e5e7eb;
+  font-family:system-ui;
+}
+
+/* container */
+.header__container{
+  max-width:1200px;
+  margin:auto;
+  padding:0 16px;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* logo */
+.header__logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+}
+
+.header__logoBox{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#2563eb,#60a5fa);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  transition:.25s;
+}
+
+.header__logo:hover .header__logoBox{
+  transform:scale(1.05);
+}
+
+.header__logoText{
+  font-weight:700;
+  color:#374151;
+}
+
+/* search */
+.header__search{
+  flex:1;
+  max-width:520px;
+  position:relative;
+}
+
+.header__searchInput{
+  width:100%;
+  padding:12px 45px 12px 16px;
+  border-radius:16px;
+  border:1px solid transparent;
+  background:#f3f4f6;
+  transition:.25s;
+}
+
+.header__searchInput:focus{
+  outline:none;
+  background:white;
+  border-color:#3b82f6;
+  box-shadow:0 0 0 4px #dbeafe;
+}
+
+.header__searchIcon{
+  position:absolute;
+  right:15px;
+  top:50%;
+  transform:translateY(-50%);
+  opacity:.6;
+}
+
+/* actions */
+.header__actions{
+  display:flex;
+  gap:8px;
+}
+
+.header__icon{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  border:none;
+  background:none;
+  font-size:18px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.header__icon:hover{
+  background:#eff6ff;
+  color:#2563eb;
+}
+
+/* cart badge */
+.header__cart{
+  position:relative;
+}
+
+.header__badge{
+  position:absolute;
+  top:-3px;
+  right:-3px;
+  background:#ef4444;
+  color:white;
+  font-size:11px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* nav */
+.header__nav{
+  max-width:1200px;
+  margin:auto;
+  padding:6px 16px 12px;
+  display:flex;
+  gap:24px;
+  font-size:14px;
+  font-weight:500;
+}
+
+.header__navItem{
+  position:relative;
+  cursor:pointer;
+  color:#374151;
+}
+
+.header__navItem:hover{
+  color:#2563eb;
+}
+
+/* dropdown */
+.header__dropdown{
+  position:absolute;
+  top:30px;
+  background:white;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.08);
+  padding:10px;
+  width:180px;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(10px);
+  transition:.25s;
+}
+
+.header__navItem:hover .header__dropdown{
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0);
+}
+
+.header__dropdownItem{
+  padding:10px;
+  border-radius:10px;
+  transition:.2s;
+}
+
+.header__dropdownItem:hover{
+  background:#eff6ff;
+  color:#2563eb;
 }
 </style>

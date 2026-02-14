@@ -9,8 +9,8 @@
         <span class="header__logoText">{{ logoText }}</span>
       </div>
 
-      <!-- search -->
-      <div class="header__search">
+      <!-- search (desktop only) -->
+      <div class="header__search desktop-only">
         <input
           v-model="search"
           placeholder="جستجوی محصول، برند، دسته‌بندی..."
@@ -33,20 +33,23 @@
 
         <button class="header__icon">👤</button>
 
+        <!-- mobile menu button -->
+        <button class="header__icon mobile-only" @click="menuOpen = !menuOpen">
+          ☰
+        </button>
+
       </div>
 
     </div>
 
     <!-- nav -->
-    <nav class="header__nav">
-
+    <nav :class="['header__nav', menuOpen ? 'open' : '']">
       <div
         v-for="cat in categories"
         :key="cat.name"
         class="header__navItem"
       >
         {{ cat.icon }} {{ cat.name }}
-
         <div v-if="cat.children" class="header__dropdown">
           <div
             v-for="sub in cat.children"
@@ -56,9 +59,7 @@
             {{ sub }}
           </div>
         </div>
-
       </div>
-
     </nav>
 
   </header>
@@ -80,6 +81,7 @@ const props = withDefaults(defineProps<{
 const router = useRouter()
 const search = ref("")
 const cartCount = computed(()=> props.cartItems)
+const menuOpen = ref(false)
 
 function goHome(){
   router.push("/")

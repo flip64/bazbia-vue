@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50">
+  <div class="min-h-screen flex flex-col bg-gray-50 rtl">
 
     <!-- Loader -->
     <div v-if="loading" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
@@ -21,7 +21,7 @@
     <transition name="fade">
       <div
         v-if="toast.show"
-        class="fixed bottom-6 right-6 bg-black text-white px-5 py-3 rounded-lg shadow-lg z-50"
+        class="fixed bottom-6 left-6 bg-black text-white px-5 py-3 rounded-lg shadow-lg z-50"
       >
         {{ toast.message }}
       </div>
@@ -32,7 +32,7 @@
       <div class="bg-white rounded-xl p-6 w-96 shadow-xl relative">
 
         <button
-          class="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
+          class="absolute top-2 left-3 text-gray-500 hover:text-black text-xl"
           @click="closeModal"
         >
           ×
@@ -55,12 +55,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue"
-import Header from "@/components/layout/header/Header.vue"
+import { reactive, ref } from "vue"
+import Header from "@/components/layout/Header/Header.vue"
 import Footer from "@/components/layout/Footer.vue"
 
 /* ---------------- LOADER ---------------- */
-const loading = false
+const loading = ref(false)
 
 /* ---------------- TOAST ---------------- */
 const toast = reactive({
@@ -99,6 +99,11 @@ defineExpose({
 </script>
 
 <style scoped>
+.rtl {
+  direction: rtl;
+  unicode-bidi: embed;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity .3s;

@@ -85,7 +85,7 @@ const loading = ref(true)
 
 const fetchBanners = async () => {
   try {
-    const res = await axios.get("http://127.0.0.1:8000/api/promotions/banners/")
+    const res = await axios.get("https://backend.bazbia.ir/api/promotions/banners/")
     banners.value = res.data
   } catch (err) {
     console.error("Banner API Error:", err)

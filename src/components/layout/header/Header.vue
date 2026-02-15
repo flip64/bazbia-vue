@@ -8,7 +8,7 @@
           <router-link to="/" class="header__logo-link">
             <img 
               :src="logoUrl" 
-              alt="فروشگاه من" 
+              alt=" فروشگاه بازبیا " 
               class="header__logo-img"
               @error="handleImageError"
             >

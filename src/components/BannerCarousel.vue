@@ -1,4 +1,8 @@
 <script setup>
+
+
+
+
 import { ref, onMounted, onUnmounted } from "vue"
 
 const props = defineProps({
@@ -40,6 +44,9 @@ const touchEnd = e => {
   if (diff > 50) prev()
   if (diff < -50) next()
 }
+console.log('🎯 Banner 1 URL:', props.banners[0]?.image)
+console.log('🎯 Banner 2 URL:', props.banners[1]?.image)
+console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 </script>
 
 <template>

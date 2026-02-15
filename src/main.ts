@@ -24,15 +24,6 @@ app.mount("#app")
 
 
 
-// اضافه کردن Eruda فقط در محیط توسعه
-{
-  import('eruda').then(eruda => {
-    eruda.default.init()
-    console.log('✅ Eruda active')
-  })
-}
-
-createApp(App).mount('#app')
 
 
 

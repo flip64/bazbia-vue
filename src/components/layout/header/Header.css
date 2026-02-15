@@ -1,220 +1,325 @@
-.header{
-  position:sticky;
-  top:0;
-  z-index:999;
-  backdrop-filter:blur(10px);
-  background:rgba(255,255,255,.85);
-  border-bottom:1px solid #e5e7eb;
-  font-family:system-ui;
+/* Header.css - استایل‌های کامپوننت هدر */
+
+/* استایل‌های اصلی */
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: relative;
+  z-index: 1000;
+  transition: all 0.3s ease;
 }
 
-/* container */
-.header__container{
-  max-width:1200px;
-  margin:auto;
-  padding:0 16px;
-  height:64px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.header--sticky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease;
 }
 
-/* logo */
-.header__logo{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  cursor:pointer;
-}
-
-.header__logoBox{
-  width:38px;
-  height:38px;
-  border-radius:12px;
-  background:linear-gradient(135deg,#2563eb,#60a5fa);
-  color:white;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:bold;
-  transition:.25s;
-}
-
-.header__logo:hover .header__logoBox{
-  transform:scale(1.05);
-}
-
-.header__logoText{
-  font-weight:700;
-  color:#374151;
-}
-
-/* search */
-.header__search{
-  flex:1;
-  max-width:520px;
-  position:relative;
-}
-
-.header__searchInput{
-  width:100%;
-  padding:12px 45px 12px 16px;
-  border-radius:16px;
-  border:1px solid transparent;
-  background:#f3f4f6;
-  transition:.25s;
-}
-
-.header__searchInput:focus{
-  outline:none;
-  background:white;
-  border-color:#3b82f6;
-  box-shadow:0 0 0 4px #dbeafe;
-}
-
-.header__searchIcon{
-  position:absolute;
-  right:15px;
-  top:50%;
-  transform:translateY(-50%);
-  opacity:.6;
-}
-
-/* actions */
-.header__actions{
-  display:flex;
-  gap:8px;
-}
-
-.header__icon{
-  width:42px;
-  height:42px;
-  border-radius:14px;
-  border:none;
-  background:none;
-  font-size:18px;
-  cursor:pointer;
-  transition:.2s;
-}
-
-.header__icon:hover{
-  background:#eff6ff;
-  color:#2563eb;
-}
-
-/* cart badge */
-.header__cart{
-  position:relative;
-}
-
-.header__badge{
-  position:absolute;
-  top:-3px;
-  right:-3px;
-  background:#ef4444;
-  color:white;
-  font-size:11px;
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* nav */
-.header__nav{
-  max-width:1200px;
-  margin:auto;
-  padding:6px 16px 12px;
-  display:flex;
-  gap:24px;
-  font-size:14px;
-  font-weight:500;
-}
-
-/* dropdown */
-.header__navItem{
-  position:relative;
-  cursor:pointer;
-  color:#374151;
-}
-
-.header__navItem:hover{
-  color:#2563eb;
-}
-
-.header__dropdown{
-  position:absolute;
-  top:30px;
-  background:white;
-  border-radius:16px;
-  box-shadow:0 10px 25px rgba(0,0,0,.08);
-  padding:10px;
-  width:180px;
-  opacity:0;
-  pointer-events:none;
-  transform:translateY(10px);
-  transition:.25s;
-}
-
-.header__navItem:hover .header__dropdown{
-  opacity:1;
-  pointer-events:auto;
-  transform:translateY(0);
-}
-
-.header__dropdownItem{
-  padding:10px;
-  border-radius:10px;
-  transition:.2s;
-}
-
-.header__dropdownItem:hover{
-  background:#eff6ff;
-  color:#2563eb;
-}
-
-/* ==================== MOBILE ==================== */
-@media (max-width:768px){
-
-  .desktop-only{
-    display:none;
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
   }
-
-  .mobile-only{
-    display:flex;
+  to {
+    transform: translateY(0);
   }
+}
 
-  .header__nav{
-    flex-direction:column;
-    gap:0;
-    padding:0 16px 12px;
-    display:none;
-    width:100%;
-    background:#ffffff;
+.header__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+}
+
+/* استایل‌های دسکتاپ */
+.header__desktop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .header__desktop {
+    display: none;
   }
+}
 
-  .header__nav.open{
-    display:flex;
+/* لوگو */
+.header__logo-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: white;
+}
+
+.header__logo-img {
+  height: 40px;
+  width: auto;
+}
+
+.header__logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* منوی ناوبری */
+.header__nav-list {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.header__nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.header__nav-link:hover {
+  color: white;
+}
+
+.header__nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: white;
+  transition: width 0.3s ease;
+}
+
+.header__nav-link:hover::after,
+.header__nav-link--active::after {
+  width: 100%;
+}
+
+/* جستجو */
+.header__search-form {
+  display: flex;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+.header__search-form:focus-within {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.header__search-input {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  color: white;
+  outline: none;
+  width: 250px;
+}
+
+.header__search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.header__search-btn {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.header__search-btn:hover {
+  transform: scale(1.1);
+}
+
+/* آیکون‌های کاربری */
+.header__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.header__action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: white;
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.header__action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.header__badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid white;
+}
+
+/* استایل‌های موبایل */
+.header__mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .header__mobile {
+    display: block;
   }
-
-  .header__navItem{
-    padding:12px 8px;
-    border-bottom:1px solid #e5e7eb;
+  
+  .header__container {
+    padding: 0.5rem 1rem;
   }
+}
 
-  .header__dropdown{
-    position:static;
-    opacity:1;
-    pointer-events:auto;
-    transform:none;
-    box-shadow:none;
-    padding-left:16px;
-  }
+.header__mobile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
 
-  .header__dropdownItem{
-    padding:8px 0;
-  }
+.header__mobile-menu-btn,
+.header__mobile-search-btn,
+.header__mobile-cart {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.header__mobile-menu-btn:hover,
+.header__mobile-search-btn:hover,
+.header__mobile-cart:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.header__mobile-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.header__mobile-menu {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.header__mobile-nav-list {
+  list-style: none;
+  padding: 2rem;
+  margin: 0;
+}
+
+.header__mobile-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  color: white;
+  text-decoration: none;
+  font-size: 1.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  text-align: right;
+}
+
+.header__mobile-nav-link:hover {
+  padding-right: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.header__mobile-search {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0 0 1rem 1rem;
+}
+
+.header__mobile-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.header__mobile-search-input:focus {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.header__mobile-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* انیمیشن‌ها */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(-100%);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }

@@ -68,7 +68,7 @@
           </button>
 
           <router-link to="/" class="header__logo">
-            <img src="/logo.svg" alt="فروشگاه من" class="header__logo-img">
+            <img src="https://bazbia.ir/media/logo/1727100389001.png" alt="فروشگاه من" class="header__logo-img">
           </router-link>
 
           <div class="header__mobile-actions">

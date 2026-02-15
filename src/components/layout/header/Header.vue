@@ -1,80 +1,127 @@
-/* رنگ اصلی هدر */
-.header-bar {
-  background-color: white;
-  color: #333;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: box-shadow 0.3s ease, background-color 0.3s ease;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+<script setup>
+import { ref, onMounted, onUnmounted } from "vue"
+import "./Header.css"
+
+const drawer = ref(false)
+const cartCount = ref(3)
+const userMenu = ref(false)
+
+const menuItems = [
+  {
+    title: "محصولات",
+    subItems: [
+      { title: "موبایل", link: "/products/mobile" },
+      { title: "لپ‌تاپ", link: "/products/laptop" },
+      { title: "ساعت هوشمند", link: "/products/watch" },
+    ],
+  },
+  { title: "دسته‌بندی", link: "/categories" },
+  { title: "برندها", link: "/brands" },
+  { title: "تماس", link: "/contact" },
+]
+
+// scroll shadow effect
+const scrolled = ref(false)
+
+const handleScroll = () => {
+  scrolled.value = window.scrollY > 10
 }
 
-/* افزایش shadow هنگام scroll */
-.header-bar.scrolled {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  background-color: #fff;
-}
+onMounted(() => {
+  window.addEventListener("scroll", handleScroll)
+})
 
-/* لوگو */
-.header-logo {
-  font-weight: bold;
-  font-size: 1.5rem;
-}
+onUnmounted(() => {
+  window.removeEventListener("scroll", handleScroll)
+})
+</script>
 
-/* دکمه‌ها */
-.header-btn {
-  text-transform: none;
-  font-size: 1rem;
-  transition: color 0.2s ease;
-}
+<template>
+  <!-- APP BAR -->
+  <v-app-bar
+    app
+    class="header-bar"
+    :class="{ scrolled }"
+    elevation="3"
+    prominent
+  >
+    <v-app-bar-nav-icon class="mobile-menu" @click="drawer = true" />
 
-.header-btn:hover {
-  color: #1976d2;
-}
+    <v-toolbar-title class="header-logo">BAZBIA</v-toolbar-title>
 
-/* منوی دسکتاپ */
-.desktop-menu {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: relative;
-}
+    <div class="desktop-menu">
+      <v-menu
+        v-for="item in menuItems"
+        :key="item.title"
+        offset-y
+        open-on-hover
+        :close-on-content-click="false"
+      >
+        <template v-slot:activator="{ props }">
+          <v-btn variant="text" class="header-btn" v-bind="props">
+            {{ item.title }}
+          </v-btn>
+        </template>
 
-/* انیمیشن مگا منو */
-.desktop-menu v-menu .v-menu__content {
-  transition: all 0.25s ease;
-}
+        <v-list v-if="item.subItems">
+          <v-list-item
+            v-for="sub in item.subItems"
+            :key="sub.title"
+            :title="sub.title"
+          />
+        </v-list>
+      </v-menu>
+    </div>
 
-/* موبایل منو */
-.mobile-menu {
-  display: none;
-}
+    <v-spacer />
 
-@media (max-width: 960px) {
-  .desktop-menu {
-    display: none;
-  }
-  .mobile-menu {
-    display: flex;
-  }
-}
+    <v-text-field
+      class="header-search desktop-menu"
+      density="compact"
+      variant="outlined"
+      prepend-inner-icon="mdi-magnify"
+      placeholder="جستجو در محصولات..."
+      hide-details
+    />
 
-/* سرچ */
-.header-search {
-  max-width: 250px;
-  transition: width 0.3s ease;
-}
+    <v-btn icon>
+      <v-badge :content="cartCount" color="red" overlap class="header-badge">
+        <v-icon>mdi-cart</v-icon>
+      </v-badge>
+    </v-btn>
 
-.header-search:focus-within {
-  max-width: 300px;
-}
+    <v-menu v-model="userMenu" bottom left>
+      <template v-slot:activator="{ props }">
+        <v-btn icon v-bind="props">
+          <v-icon>mdi-account</v-icon>
+        </v-btn>
+      </template>
 
-/* badge سبد خرید */
-.header-badge {
-  margin-right: 8px;
-}
+      <v-list>
+        <v-list-item title="ورود" />
+        <v-list-item title="ثبت‌نام" />
+        <v-list-item title="پروفایل" />
+      </v-list>
+    </v-menu>
+  </v-app-bar>
 
-/* Drawer انیمیشن */
-.v-navigation-drawer {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+  <!-- موبایل drawer با انیمیشن -->
+  <v-navigation-drawer v-model="drawer" temporary location="left">
+    <v-list>
+      <v-list-item
+        v-for="item in menuItems"
+        :key="item.title"
+      >
+        <v-list-item-title>{{ item.title }}</v-list-item-title>
+        <v-list-group v-if="item.subItems" no-action>
+          <v-list-item
+            v-for="sub in item.subItems"
+            :key="sub.title"
+          >
+            <v-list-item-title>{{ sub.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list-group>
+      </v-list-item>
+    </v-list>
+  </v-navigation-drawer>
+</template>

@@ -6,7 +6,7 @@
         <!-- لوگو -->
         <div class="header__logo">
           <router-link to="/" class="header__logo-link">
-            <img src="https://bazbia.ir/media/logo/bazbialogo.jpg" alt="فروشگاه من" class="header__logo-img">
+            <img src="https://bazbia.ir/media/logo/bazbialogo.gif" alt="فروشگاه من" class="header__logo-img">
             <span class="header__logo-text">فروشگاه من</span>
           </router-link>
         </div>
@@ -68,7 +68,7 @@
           </button>
 
           <router-link to="/" class="header__logo">
-            <img src="https://bazbia.ir/media/logo/bazbialogo.jpg" alt="فروشگاه من" class="header__logo-img">
+            <img src="https://bazbia.ir/media/logo/bazbialogo.gif" alt="فروشگاه من" class="header__logo-img">
           </router-link>
 
           <div class="header__mobile-actions">

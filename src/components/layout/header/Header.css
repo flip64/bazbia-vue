@@ -323,3 +323,252 @@
 .fade-leave-to {
   opacity: 0;
 }
+/* استایل‌های منوی کاربر */
+.header__user-menu {
+  position: relative;
+}
+
+.header__user-btn {
+  position: relative;
+}
+
+.header__user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.header__user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header__user-avatar-text {
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* دراپ‌داون منو */
+.header__dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 280px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  direction: rtl;
+}
+
+.header__dropdown-header {
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header__dropdown-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header__dropdown-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  overflow: hidden;
+}
+
+.header__dropdown-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header__dropdown-info {
+  flex: 1;
+}
+
+.header__dropdown-name {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.header__dropdown-email {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.header__dropdown-menu {
+  list-style: none;
+  padding: 0.5rem 0;
+  margin: 0;
+}
+
+.header__dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: right;
+}
+
+.header__dropdown-link:hover {
+  background: #f5f5f5;
+}
+
+.header__dropdown-link--logout {
+  color: #ef4444;
+}
+
+.header__dropdown-link--logout:hover {
+  background: #fef2f2;
+}
+
+.header__dropdown-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+.header__dropdown-badge {
+  margin-right: auto;
+  background: #ef4444;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 9999px;
+}
+
+.header__dropdown-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0.5rem 0;
+}
+
+/* استایل‌های موبایل برای کاربر */
+.header__mobile-user {
+  padding: 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.header__mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header__mobile-user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: white;
+  color: #667eea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  overflow: hidden;
+}
+
+.header__mobile-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header__mobile-user-details {
+  flex: 1;
+}
+
+.header__mobile-user-name {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.header__mobile-user-email {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.header__mobile-auth {
+  margin-bottom: 1rem;
+}
+
+.header__mobile-auth-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.header__mobile-auth-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.header__mobile-auth-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.header__mobile-nav-icon {
+  width: 18px;
+  height: 18px;
+  margin-left: 8px;
+  opacity: 0.8;
+}
+
+.header__mobile-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 1rem 0;
+}
+
+.header__mobile-nav-link--logout {
+  color: #fecaca !important;
+}
+
+/* انیمیشن برای دراپ‌داون */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}

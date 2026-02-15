@@ -21,11 +21,11 @@ if (auth.token)
 
 app.mount("#app")
 
-import { createApp } from 'vue'
-import App from './App.vue'
+
+
 
 // اضافه کردن Eruda فقط در محیط توسعه
-if (import.meta.env.DEV) {
+{
   import('eruda').then(eruda => {
     eruda.default.init()
     console.log('✅ Eruda active')

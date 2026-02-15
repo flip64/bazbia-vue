@@ -3,19 +3,56 @@
     <div class="auth-container">
       <div class="auth-card">
         <div class="auth-header">
-          <h1 class="auth-title">ورود به فروشگاه</h1>
-          <p class="auth-subtitle">برای استفاده از امکانات فروشگاه وارد شوید</p>
+          <h1 class="auth-title">ثبت‌نام در فروشگاه</h1>
+          <p class="auth-subtitle">برای استفاده از امکانات فروشگاه ثبت‌نام کنید</p>
         </div>
 
-        <form @submit.prevent="handleLogin" class="auth-form">
-          <!-- ایمیل یا موبایل -->
+        <form @submit.prevent="handleRegister" class="auth-form">
+          <!-- نام و نام خانوادگی -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="firstName">نام</label>
+              <input 
+                type="text" 
+                id="firstName"
+                v-model="form.firstName"
+                placeholder="نام خود را وارد کنید"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="lastName">نام خانوادگی</label>
+              <input 
+                type="text" 
+                id="lastName"
+                v-model="form.lastName"
+                placeholder="نام خانوادگی خود را وارد کنید"
+                required
+              >
+            </div>
+          </div>
+
+          <!-- ایمیل -->
           <div class="form-group">
-            <label for="username">ایمیل یا شماره موبایل</label>
+            <label for="email">ایمیل</label>
             <input 
-              type="text" 
-              id="username"
-              v-model="form.username"
-              placeholder="example@email.com یا ۰۹۱۲۳۴۵۶۷۸۹"
+              type="email" 
+              id="email"
+              v-model="form.email"
+              placeholder="example@email.com"
+              required
+            >
+          </div>
+
+          <!-- شماره موبایل -->
+          <div class="form-group">
+            <label for="phone">شماره موبایل</label>
+            <input 
+              type="tel" 
+              id="phone"
+              v-model="form.phone"
+              placeholder="۰۹۱۲۳۴۵۶۷۸۹"
               required
             >
           </div>
@@ -27,49 +64,57 @@
               type="password" 
               id="password"
               v-model="form.password"
-              placeholder="رمز عبور خود را وارد کنید"
+              placeholder="حداقل ۸ کاراکتر"
               required
             >
           </div>
 
-          <!-- مرا به خاطر بسپار -->
+          <!-- تکرار رمز عبور -->
+          <div class="form-group">
+            <label for="confirmPassword">تکرار رمز عبور</label>
+            <input 
+              type="password" 
+              id="confirmPassword"
+              v-model="form.confirmPassword"
+              placeholder="رمز عبور را مجدد وارد کنید"
+              required
+            >
+          </div>
+
+          <!-- شرط و قوانین -->
           <div class="form-check">
             <input 
               type="checkbox" 
-              id="remember"
-              v-model="form.remember"
+              id="terms"
+              v-model="form.acceptTerms"
+              required
             >
-            <label for="remember">مرا به خاطر بسپار</label>
+            <label for="terms">
+              <a href="/terms" target="_blank">قوانین و مقررات</a> را می‌پذیرم
+            </label>
           </div>
 
-          <!-- دکمه ورود -->
+          <!-- دکمه ثبت‌نام -->
           <button 
             type="submit" 
             class="auth-btn"
             :disabled="loading"
           >
-            <span v-if="!loading">ورود</span>
-            <span v-else>در حال ورود...</span>
+            <span v-if="!loading">ثبت‌نام</span>
+            <span v-else>در حال ثبت‌نام...</span>
           </button>
         </form>
-
-        <!-- لینک فراموشی رمز -->
-        <div class="auth-forgot">
-          <router-link to="/forgot-password" class="auth-link">
-            رمز عبور را فراموش کرده‌اید؟
-          </router-link>
-        </div>
 
         <!-- خط جداکننده -->
         <div class="auth-divider">
           <span>یا</span>
         </div>
 
-        <!-- لینک ثبت‌نام -->
+        <!-- لینک ورود -->
         <div class="auth-footer">
-          <p>حساب کاربری ندارید؟</p>
-          <router-link to="/register" class="auth-link">
-            ثبت‌نام کنید
+          <p>قبلاً ثبت‌نام کرده‌اید؟</p>
+          <router-link to="/login" class="auth-link">
+            وارد شوید
           </router-link>
         </div>
       </div>
@@ -85,27 +130,42 @@ const router = useRouter()
 const loading = ref(false)
 
 const form = ref({
-  username: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
   password: '',
-  remember: false
+  confirmPassword: '',
+  acceptTerms: false
 })
 
-const handleLogin = async () => {
+const handleRegister = async () => {
+  // اعتبارسنجی
+  if (form.value.password !== form.value.confirmPassword) {
+    alert('رمز عبور و تکرار آن یکسان نیستند')
+    return
+  }
+
+  if (form.value.password.length < 8) {
+    alert('رمز عبور باید حداقل ۸ کاراکتر باشد')
+    return
+  }
+
   loading.value = true
 
   try {
     // شبیه‌سازی درخواست به سرور
     await new Promise(resolve => setTimeout(resolve, 1500))
     
-    console.log('ورود با اطلاعات:', form.value)
+    console.log('ثبت‌نام با اطلاعات:', form.value)
     
-    // هدایت به صفحه اصلی
-    alert('ورود موفقیت‌آمیز بود')
-    router.push('/')
+    // هدایت به صفحه ورود
+    alert('ثبت‌نام با موفقیت انجام شد')
+    router.push('/login')
     
   } catch (error) {
-    console.error('خطا در ورود:', error)
-    alert('نام کاربری یا رمز عبور اشتباه است')
+    console.error('خطا در ثبت‌نام:', error)
+    alert('خطا در ثبت‌نام. لطفا دوباره تلاش کنید')
   } finally {
     loading.value = false
   }
@@ -113,7 +173,6 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-/* استایل‌ها مثل Register.vue */
 .auth-page {
   min-height: calc(100vh - 200px);
   display: flex;
@@ -125,7 +184,7 @@ const handleLogin = async () => {
 
 .auth-container {
   width: 100%;
-  max-width: 450px;
+  max-width: 500px;
 }
 
 .auth-card {
@@ -157,6 +216,12 @@ const handleLogin = async () => {
   gap: 1.2rem;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -184,10 +249,16 @@ const handleLogin = async () => {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.form-group input::placeholder {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
 .form-check {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin: 0.5rem 0;
 }
 
 .form-check input[type="checkbox"] {
@@ -200,6 +271,15 @@ const handleLogin = async () => {
   color: #4b5563;
   font-size: 0.9rem;
   cursor: pointer;
+}
+
+.form-check a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.form-check a:hover {
+  text-decoration: underline;
 }
 
 .auth-btn {
@@ -223,11 +303,6 @@ const handleLogin = async () => {
 .auth-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.auth-forgot {
-  text-align: left;
-  margin: 1rem 0;
 }
 
 .auth-divider {
@@ -279,8 +354,16 @@ const handleLogin = async () => {
 }
 
 @media (max-width: 640px) {
+  .auth-page {
+    padding: 1rem;
+  }
+
   .auth-card {
     padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
   }
 
   .auth-title {

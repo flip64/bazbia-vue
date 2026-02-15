@@ -6,7 +6,7 @@
         <!-- لوگو -->
         <div class="header__logo">
           <router-link to="/" class="header__logo-link">
-            <img src="/logo.svg" alt="فروشگاه من" class="header__logo-img">
+            <img src="https://bazbia.ir/media/logo/1727100389001.png" alt="فروشگاه من" class="header__logo-img">
             <span class="header__logo-text">فروشگاه من</span>
           </router-link>
         </div>

@@ -11,6 +11,7 @@ import type { ProductDetail, Variant } from '@/types/product.types'
 
 const route = useRoute()
 const router = useRouter()
+console.log('slug:', route.params.slug)  // باید چیزی مثل "iphone-14" باشه
 
 // stateها
 const loading = ref(false)

@@ -281,7 +281,7 @@
 <script setup>
 
 import { ShoppingCart } from 'lucide-vue-next'
-import { useCartStore } from '@/stores/cartStore'
+import { useCartStore } from '@/core/store/cartStore'
 
 const cartStore = useCartStore()
 

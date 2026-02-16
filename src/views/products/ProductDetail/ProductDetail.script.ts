@@ -3,6 +3,38 @@ import { useRoute, useRouter } from 'vue-router'
 import { productService } from '@/services/product.service'
 import type { ProductDetail, Variant } from '@/types/product.types'
 
+
+console.log('🔥🔥🔥 PRODUCT DETAIL COMPONENT LOADED 🔥🔥🔥')
+console.log('🕐 Time:', new Date().toISOString())
+
+
+
+console.log('📦 Imports done')
+
+const route = useRoute()
+console.log('🛣️ Route object:', route)
+console.log('📍 Route params:', route.params)
+
+const loading = ref(false)
+const error = ref(null)
+const product = ref(null)
+
+console.log('📊 Initial state:', { loading: loading.value, error: error.value, product: product.value })
+
+// این رو حتماً بذار
+onMounted(() => {
+  console.log('✅✅✅ onMounted EXECUTED ✅✅✅')
+  console.log('🔍 Slug in onMounted:', route.params.slug)
+  fetchProduct()
+})
+
+async function fetchProduct() {
+  console.log('🎯🎯🎯 fetchProduct STARTED 🎯🎯🎯')
+  console.log('📌 Current slug:', route.params.slug)
+
+
+
+
 // تعریف props (اگه نیاز باشه)
 // const props = defineProps<{ ... }>()
 
@@ -11,7 +43,7 @@ import type { ProductDetail, Variant } from '@/types/product.types'
 
 const route = useRoute()
 const router = useRouter()
-console.log('slug:', route.params.slug)  // باید چیزی مثل "iphone-14" باشه
+
 
 // stateها
 const loading = ref(false)

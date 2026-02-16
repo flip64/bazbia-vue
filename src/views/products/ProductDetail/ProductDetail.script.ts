@@ -32,7 +32,7 @@ async function fetchProduct() {
   console.log('🎯🎯🎯 fetchProduct STARTED 🎯🎯🎯')
   console.log('📌 Current slug:', route.params.slug)
 
-
+}
 
 
 // تعریف props (اگه نیاز باشه)

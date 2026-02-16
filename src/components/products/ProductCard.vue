@@ -1,3 +1,7 @@
+
+
+
+
 <template>
   <div class="product-card" :class="{ 'product-card--out-of-stock': !product.inStock }">
     <div class="product-card__image-wrapper">
@@ -74,18 +78,39 @@
 
       <!-- دکمه افزودن به سبد خرید -->
       <button 
-        class="product-card__add-to-cart"
-        :disabled="!product.inStock"
-        @click="$emit('add-to-cart', product.id)"
-      >
-        <ShoppingBagIcon class="product-card__cart-icon" />
-        {{ product.inStock ? 'افزودن به سبد خرید' : 'ناموجود' }}
-      </button>
+      @click="addToCart" 
+      class="add-to-cart-btn"
+      :disabled="!product.inStock"
+    >
+      <ShoppingCart :size="16" />
+      {{ product.inStock ? 'افزودن به سبد خرید' : 'ناموجود' }}
+    </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+
+import { ShoppingCart } from 'lucide-vue-next'
+import { useCartStore } from '@/stores/cart'
+import { useToast } from '@/composables/useToast'
+
+const props = defineProps<{
+  product: any
+}>()
+
+const cartStore = useCartStore()
+const { showToast } = useToast()
+
+const addToCart = () => {
+  try {
+    cartStore.addItem(props.product, 1)
+    showToast('محصول با موفقیت به سبد خرید اضافه شد', 'success')
+  } catch (error) {
+    showToast(error.message, 'error')
+  }
+}
+  
 import { HeartIcon, EyeIcon, StarIcon, ShoppingBagIcon } from 'lucide-vue-next'
 
 interface Product {

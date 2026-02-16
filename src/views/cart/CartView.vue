@@ -102,7 +102,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ShoppingBag, ArrowRight } from 'lucide-vue-next'
-import { useCartStore } from '@/cart/store/cartStore'
+import { useCartStore } from '@/core/store/cartStore'
 import CartItemCard from '@/components/CartItemCard.vue'
 import ProductCardMini from '@/components/ProductCardMini.vue'
 import { formatPrice } from '@/services/api'

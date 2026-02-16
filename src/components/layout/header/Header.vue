@@ -1,4 +1,19 @@
+
+
+
+
+
+
+
+
+
 <template>
+  <router-link to="/cart" class="cart-icon">
+    <ShoppingCart :size="20" />
+    <span v-if="cartStore.totalItems > 0" class="cart-badge">
+      {{ cartStore.totalItems }}
+    </span>
+  </router-link>
   <header class="header" :class="{ 'header--sticky': isSticky }">
     <div class="header__container">
       <!-- دسکتاپ -->
@@ -272,6 +287,13 @@
 </template>
 
 <script setup>
+
+import { ShoppingCart } from 'lucide-vue-next'
+import { useCartStore } from '@/stores/cart'
+
+const cartStore = useCartStore()
+
+  
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 

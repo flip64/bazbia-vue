@@ -1,43 +1,46 @@
-<!-- components/CartItemCard.vue -->
 <template>
   <div class="cart-item">
-    <!-- Product Image -->
-    <div class="item-image">
+    <!-- تصویر محصول -->
+    <div class="cart-item__image-wrapper">
       <img 
         :src="item.image" 
         :alt="item.name"
         @error="handleImageError"
+        class="cart-item__image"
       />
     </div>
     
-    <!-- Product Details -->
-    <div class="item-details">
-      <h3 class="item-name">{{ item.name }}</h3>
+    <!-- جزئیات محصول -->
+    <div class="cart-item__details">
+      <h3 class="cart-item__name">{{ item.name }}</h3>
       
-      <!-- Variants -->
-      <div v-if="item.variant" class="item-variants">
-        <span v-if="item.variant.color" class="variant-badge">
-          <span class="color-dot" :style="{ backgroundColor: getColorCode(item.variant.color) }"></span>
+      <!-- تنوع محصول (رنگ، سایز و ...) -->
+      <div v-if="item.variant" class="cart-item__variants">
+        <span v-if="item.variant.color" class="cart-item__variant">
+          <span 
+            class="cart-item__color-dot" 
+            :style="{ backgroundColor: getColorCode(item.variant.color) }"
+          ></span>
           {{ item.variant.color }}
         </span>
-        <span v-if="item.variant.size" class="variant-badge">
+        <span v-if="item.variant.size" class="cart-item__variant">
           سایز {{ item.variant.size }}
         </span>
       </div>
       
-      <!-- Price -->
-      <div class="item-price">
+      <!-- قیمت -->
+      <div class="cart-item__price">
         {{ formatPrice(item.price * item.quantity) }}
       </div>
       
-      <!-- Actions -->
-      <div class="item-actions">
-        <!-- Quantity Control -->
-        <div class="quantity-control">
+      <!-- کنترل مقدار و دکمه حذف -->
+      <div class="cart-item__actions">
+        <!-- کنترل تعداد -->
+        <div class="cart-item__quantity">
           <button 
             @click="decreaseQuantity"
             :disabled="item.quantity <= 1"
-            class="quantity-btn"
+            class="cart-item__quantity-btn"
           >
             -
           </button>
@@ -47,27 +50,27 @@
             @change="handleQuantityChange"
             min="1"
             :max="item.maxStock"
-            class="quantity-input"
+            class="cart-item__quantity-input"
           />
           <button 
             @click="increaseQuantity"
             :disabled="item.quantity >= item.maxStock"
-            class="quantity-btn"
+            class="cart-item__quantity-btn"
           >
             +
           </button>
         </div>
         
-        <!-- Remove Button -->
-        <button @click="removeItem" class="remove-btn">
+        <!-- دکمه حذف -->
+        <button @click="removeItem" class="cart-item__remove-btn">
           <Trash2 :size="18" />
           حذف
         </button>
       </div>
       
-      <!-- Stock Warning -->
-      <p v-if="item.quantity >= item.maxStock" class="stock-warning">
-        حداکثر موجودی
+      <!-- هشدار موجودی -->
+      <p v-if="item.quantity >= item.maxStock" class="cart-item__stock-warning">
+        حداکثر موجودی: {{ item.maxStock }} عدد
       </p>
     </div>
   </div>
@@ -75,23 +78,45 @@
 
 <script setup lang="ts">
 import { Trash2 } from 'lucide-vue-next'
-import { formatPrice } from '@/services/api'
-import type { CartItem } from '@/stores/cart'
 
+// تعریف نوع برای آیتم سبد خرید
+interface CartItem {
+  id: number
+  productId: number
+  name: string
+  price: number
+  quantity: number
+  image: string
+  variant?: {
+    color?: string
+    size?: string
+  }
+  maxStock: number
+}
+
+// Props
 const props = defineProps<{
   item: CartItem
 }>()
 
+// Emits
 const emit = defineEmits<{
   (e: 'update-quantity', itemId: number, quantity: number): void
   (e: 'remove', itemId: number): void
 }>()
 
+// تابع formatPrice - تعریف شده در همین فایل
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
+}
+
+// مدیریت خطای تصویر
 const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
   img.src = '/placeholder-product.jpg'
 }
 
+// تبدیل نام رنگ به کد رنگ
 const getColorCode = (color: string): string => {
   const colors: Record<string, string> = {
     'مشکی': '#000000',
@@ -103,30 +128,43 @@ const getColorCode = (color: string): string => {
     'بنفش': '#800080',
     'نارنجی': '#FFA500',
     'صورتی': '#FFC0CB',
-    'قهوه‌ای': '#8B4513'
+    'قهوه‌ای': '#8B4513',
+    'طلایی': '#FFD700',
+    'نقره‌ای': '#C0C0C0'
   }
   return colors[color] || '#CCCCCC'
 }
 
+// افزایش تعداد
 const increaseQuantity = () => {
   if (props.item.quantity < props.item.maxStock) {
     emit('update-quantity', props.item.id, props.item.quantity + 1)
   }
 }
 
+// کاهش تعداد
 const decreaseQuantity = () => {
   if (props.item.quantity > 1) {
     emit('update-quantity', props.item.id, props.item.quantity - 1)
   }
 }
 
+// تغییر دستی تعداد
 const handleQuantityChange = () => {
   let quantity = props.item.quantity
-  if (quantity < 1) quantity = 1
-  if (quantity > props.item.maxStock) quantity = props.item.maxStock
+  
+  // اعتبارسنجی
+  if (isNaN(quantity) || quantity < 1) {
+    quantity = 1
+  }
+  if (quantity > props.item.maxStock) {
+    quantity = props.item.maxStock
+  }
+  
   emit('update-quantity', props.item.id, quantity)
 }
 
+// حذف آیتم
 const removeItem = () => {
   emit('remove', props.item.id)
 }
@@ -138,47 +176,59 @@ const removeItem = () => {
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.cart-item:hover {
+  background-color: #fafafa;
 }
 
 .cart-item:last-child {
   border-bottom: none;
 }
 
-.item-image {
+.cart-item__image-wrapper {
   width: 100px;
   height: 100px;
   flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
   background: #f5f5f5;
+  border: 1px solid #f0f0f0;
 }
 
-.item-image img {
+.cart-item__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s;
 }
 
-.item-details {
+.cart-item:hover .cart-item__image {
+  transform: scale(1.05);
+}
+
+.cart-item__details {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.item-name {
+.cart-item__name {
   font-size: 1rem;
   color: #333;
   margin: 0;
+  font-weight: 500;
 }
 
-.item-variants {
+.cart-item__variants {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.variant-badge {
+.cart-item__variant {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -189,35 +239,36 @@ const removeItem = () => {
   color: #666;
 }
 
-.color-dot {
+.cart-item__color-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   border: 1px solid #ddd;
 }
 
-.item-price {
+.cart-item__price {
   font-size: 1.2rem;
   font-weight: bold;
   color: #4CAF50;
 }
 
-.item-actions {
+.cart-item__actions {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
-.quantity-control {
+.cart-item__quantity {
   display: flex;
   align-items: center;
   border: 1px solid #ddd;
   border-radius: 6px;
   overflow: hidden;
+  background: white;
 }
 
-.quantity-btn {
+.cart-item__quantity-btn {
   width: 32px;
   height: 32px;
   background: #f5f5f5;
@@ -227,19 +278,21 @@ const removeItem = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  color: #333;
 }
 
-.quantity-btn:hover:not(:disabled) {
+.cart-item__quantity-btn:hover:not(:disabled) {
   background: #e0e0e0;
 }
 
-.quantity-btn:disabled {
+.cart-item__quantity-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: #f9f9f9;
 }
 
-.quantity-input {
+.cart-item__quantity-input {
   width: 50px;
   height: 32px;
   border: none;
@@ -247,15 +300,16 @@ const removeItem = () => {
   border-right: 1px solid #ddd;
   text-align: center;
   -moz-appearance: textfield;
+  font-size: 0.9rem;
 }
 
-.quantity-input::-webkit-outer-spin-button,
-.quantity-input::-webkit-inner-spin-button {
+.cart-item__quantity-input::-webkit-outer-spin-button,
+.cart-item__quantity-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.remove-btn {
+.cart-item__remove-btn {
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -266,39 +320,42 @@ const removeItem = () => {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 0.9rem;
 }
 
-.remove-btn:hover {
+.cart-item__remove-btn:hover {
   background: #ff4444;
   color: white;
 }
 
-.stock-warning {
+.cart-item__stock-warning {
   color: #ff9800;
   font-size: 0.8rem;
   margin: 0;
 }
 
+/* حالت موبایل */
 @media (max-width: 480px) {
   .cart-item {
     flex-direction: column;
+    padding: 0.75rem;
   }
   
-  .item-image {
+  .cart-item__image-wrapper {
     width: 100%;
     height: 200px;
   }
   
-  .item-actions {
+  .cart-item__actions {
     flex-direction: column;
     align-items: stretch;
   }
   
-  .quantity-control {
+  .cart-item__quantity {
     justify-content: center;
   }
   
-  .remove-btn {
+  .cart-item__remove-btn {
     justify-content: center;
   }
 }

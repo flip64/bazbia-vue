@@ -1,7 +1,3 @@
-
-
-
-
 <template>
   <div class="product-card" :class="{ 'product-card--out-of-stock': !product.inStock }">
     <div class="product-card__image-wrapper">
@@ -11,6 +7,7 @@
           :alt="product.name"
           class="product-card__image"
           loading="lazy"
+          @error="handleImageError"
         >
       </router-link>
       
@@ -29,16 +26,16 @@
         <button 
           class="product-card__quick-action" 
           @click="$emit('add-to-wishlist', product.id)"
-          title="افزودن به علاقه‌مندی‌ها"
+          :title="'افزودن به علاقه‌مندی‌ها'"
         >
-          <HeartIcon />
+          <HeartIcon :size="18" />
         </button>
         <button 
           class="product-card__quick-action" 
           @click="$emit('quick-view', product.id)"
-          title="مشاهده سریع"
+          :title="'مشاهده سریع'"
         >
-          <EyeIcon />
+          <EyeIcon :size="18" />
         </button>
       </div>
     </div>
@@ -61,6 +58,7 @@
           <StarIcon 
             v-for="star in 5" 
             :key="star"
+            :size="16"
             class="product-card__star"
             :class="{ 'product-card__star--filled': star <= product.rating }"
           />
@@ -70,49 +68,31 @@
 
       <!-- قیمت -->
       <div class="product-card__prices">
-        <span class="product-card__price">{{ formatPrice(product.price) }} تومان</span>
+        <span class="product-card__price">{{ formatPrice(product.price) }}</span>
         <span v-if="product.oldPrice" class="product-card__old-price">
-          {{ formatPrice(product.oldPrice) }} تومان
+          {{ formatPrice(product.oldPrice) }}
         </span>
       </div>
 
       <!-- دکمه افزودن به سبد خرید -->
       <button 
-      @click="addToCart" 
-      class="add-to-cart-btn"
-      :disabled="!product.inStock"
-    >
-      <ShoppingCart :size="16" />
-      {{ product.inStock ? 'افزودن به سبد خرید' : 'ناموجود' }}
-    </button>
+        @click="addToCart" 
+        class="product-card__add-to-cart"
+        :disabled="!product.inStock"
+      >
+        <ShoppingCart :size="16" />
+        {{ product.inStock ? 'افزودن به سبد خرید' : 'ناموجود' }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-
-import { ShoppingCart } from 'lucide-vue-next'
-import { useCartStore } from '@/stores/cart'
+import { ShoppingCart, HeartIcon, EyeIcon, StarIcon } from 'lucide-vue-next'
+import { useCartStore } from '@/core/store/cartStore'  // ✅ مسیر اصلاح شده
 import { useToast } from '@/composables/useToast'
 
-const props = defineProps<{
-  product: any
-}>()
-
-const cartStore = useCartStore()
-const { showToast } = useToast()
-
-const addToCart = () => {
-  try {
-    cartStore.addItem(props.product, 1)
-    showToast('محصول با موفقیت به سبد خرید اضافه شد', 'success')
-  } catch (error) {
-    showToast(error.message, 'error')
-  }
-}
-  
-import { HeartIcon, EyeIcon, StarIcon, ShoppingBagIcon } from 'lucide-vue-next'
-
+// تعریف اینترفیس محصول
 interface Product {
   id: number
   name: string
@@ -127,14 +107,40 @@ interface Product {
   discount?: number
 }
 
-defineProps<{
+// Props
+const props = defineProps<{
   product: Product
 }>()
 
-defineEmits(['add-to-cart', 'add-to-wishlist', 'quick-view'])
+// Emits
+const emit = defineEmits<{
+  (e: 'add-to-wishlist', id: number): void
+  (e: 'quick-view', id: number): void
+}>()
 
-const formatPrice = (price: number) => {
-  return price.toLocaleString('fa-IR')
+// Stores
+const cartStore = useCartStore()
+const { showToast } = useToast()
+
+// توابع کمکی
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
+}
+
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.src = '/placeholder-product.jpg'
+}
+
+const addToCart = () => {
+  if (!props.product.inStock) return
+  
+  try {
+    cartStore.addItem(props.product, 1)
+    showToast('محصول با موفقیت به سبد خرید اضافه شد', 'success')
+  } catch (error: any) {
+    showToast(error.message || 'خطا در افزودن به سبد خرید', 'error')
+  }
 }
 </script>
 
@@ -280,8 +286,6 @@ const formatPrice = (price: number) => {
 }
 
 .product-card__star {
-  width: 16px;
-  height: 16px;
   color: #d1d5db;
 }
 
@@ -300,6 +304,7 @@ const formatPrice = (price: number) => {
   align-items: baseline;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .product-card__price {
@@ -328,7 +333,7 @@ const formatPrice = (price: number) => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .product-card__add-to-cart:hover:not(:disabled) {
@@ -338,5 +343,21 @@ const formatPrice = (price: number) => {
 .product-card__add-to-cart:disabled {
   background: #d1d5db;
   cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .product-card__content {
+    padding: 1rem;
+  }
+  
+  .product-card__title {
+    font-size: 1rem;
+  }
+  
+  .product-card__price {
+    font-size: 1.1rem;
+  }
 }
 </style>

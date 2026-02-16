@@ -22,9 +22,9 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: "/product/:id",
+    path: "/product/:slug",
     name: "product-detail",
-    component: () => import("@/views/products/ProductDetail.vue"),
+    component: () => import("@/views/products/ProductDital/ProductDetail.vue"),
     meta: { 
       requiresAuth: false,
       title: 'جزئیات محصول'

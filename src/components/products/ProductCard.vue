@@ -74,14 +74,15 @@
         </span>
       </div>
 
-      <!-- دکمه افزودن به سبد خرید -->
+      <!-- دکمه افزودن به سبد خرید با state لودینگ -->
       <button 
         @click="addToCart" 
         class="product-card__add-to-cart"
-        :disabled="!product.inStock"
+        :disabled="!product.inStock || cartStore.loading"
       >
-        <ShoppingCart :size="16" />
-        {{ product.inStock ? 'افزودن به سبد خرید' : 'ناموجود' }}
+        <span v-if="cartStore.loading" class="loading-spinner-small"></span>
+        <ShoppingCart v-else :size="16" />
+        {{ getButtonText() }}
       </button>
     </div>
   </div>
@@ -89,7 +90,7 @@
 
 <script setup lang="ts">
 import { ShoppingCart, HeartIcon, EyeIcon, StarIcon } from 'lucide-vue-next'
-import { useCartStore } from '@/core/store/cartStore'  // ✅ مسیر اصلاح شده
+import { useCartStore } from '@/core/store/cartStore'
 import { useToast } from '@/composables/useToast'
 
 // تعریف اینترفیس محصول
@@ -105,6 +106,8 @@ interface Product {
   reviewCount: number
   inStock: boolean
   discount?: number
+  images?: string[] // برای سازگاری با API
+  stock?: number    // برای سازگاری با API
 }
 
 // Props
@@ -132,11 +135,27 @@ const handleImageError = (e: Event) => {
   img.src = '/placeholder-product.jpg'
 }
 
-const addToCart = () => {
+const getButtonText = (): string => {
+  if (!props.product.inStock) return 'ناموجود'
+  if (cartStore.loading) return 'در حال افزودن...'
+  return 'افزودن به سبد خرید'
+}
+
+// افزودن به سبد خرید (async)
+const addToCart = async () => {
   if (!props.product.inStock) return
   
   try {
-    cartStore.addItem(props.product, 1)
+    // تبدیل محصول به فرمت مورد قبول استور
+    const productForStore = {
+      id: props.product.id,
+      name: props.product.name,
+      price: props.product.price,
+      images: [props.product.image],
+      stock: props.product.stock || 10
+    }
+    
+    await cartStore.addItem(productForStore, 1)
     showToast('محصول با موفقیت به سبد خرید اضافه شد', 'success')
   } catch (error: any) {
     showToast(error.message || 'خطا در افزودن به سبد خرید', 'error')
@@ -334,6 +353,7 @@ const addToCart = () => {
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .product-card__add-to-cart:hover:not(:disabled) {
@@ -344,6 +364,22 @@ const addToCart = () => {
   background: #d1d5db;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+/* اسپینر کوچک برای حالت لودینگ */
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Responsive */

@@ -105,7 +105,12 @@ import { ShoppingBag, ArrowRight } from 'lucide-vue-next'
 import { useCartStore } from '@/core/store/cartStore'
 import CartItemCard from '@/components/CartItemCard.vue'
 import ProductCardMini from '@/components/ProductCardMini.vue'
-import { formatPrice } from '@/services/api'
+  
+
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
+}
+  
 
 const router = useRouter()
 const cartStore = useCartStore()

@@ -1,11 +1,11 @@
 // src/core/api/client.ts
-import axios, { AxiosInstance, AxiosError } from 'axios'
+import axios from 'axios'  // ✅ فقط axios رو import کن
 
 // تنظیمات پایه
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 // ایجاد نمونه axios
-const apiClient: AxiosInstance = axios.create({
+const apiClient = axios.create({
   baseURL,
   timeout: 10000,
   headers: {
@@ -14,17 +14,13 @@ const apiClient: AxiosInstance = axios.create({
   }
 })
 
-// اینترسپتور درخواست - اضافه کردن توکن
+// اینترسپتور درخواست
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
-    // اضافه کردن زبان به هدر
-    config.headers['Accept-Language'] = 'fa'
-    
     return config
   },
   (error) => {
@@ -32,21 +28,16 @@ apiClient.interceptors.request.use(
   }
 )
 
-// اینترسپتور پاسخ - مدیریت خطاها
+// اینترسپتور پاسخ
 apiClient.interceptors.response.use(
-  (response) => {
-    return response
-  },
-  async (error: AxiosError) => {
-    // مدیریت خطای 401 (unauthorized)
+  (response) => response,
+  (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
     }
-    
     return Promise.reject(error)
   }
 )
 
-// ✅ این خط مهمه - export default
 export default apiClient

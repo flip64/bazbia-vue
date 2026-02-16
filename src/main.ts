@@ -22,7 +22,7 @@ if (auth.token)
 app.mount("#app")
 
 
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+
      
 
 

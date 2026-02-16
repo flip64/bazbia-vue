@@ -1,69 +1,97 @@
+<!-- views/CartView.vue -->
 <template>
-  <div class="cart-page">
-    <div class="cart-container">
-      <h1 class="cart-title">سبد خرید</h1>
+  <div class="cart-page" dir="rtl">
+    <!-- Header -->
+    <div class="cart-header">
+      <h1>سبد خرید</h1>
+      <span class="item-count">{{ cartStore.totalItems }} کالا</span>
+    </div>
 
-      <div v-if="cartItems.length === 0" class="cart-empty">
-        <p>سبد خرید شما خالی است</p>
-        <router-link to="/products" class="continue-shopping">
+    <!-- Empty Cart -->
+    <div v-if="cartStore.isEmpty" class="empty-cart">
+      <ShoppingBag class="empty-icon" :size="64" />
+      <h2>سبد خرید شما خالی است</h2>
+      <p>برای مشاهده محصولات بیشتر به صفحه محصولات بروید</p>
+      <router-link to="/products" class="continue-shopping-btn">
+        مشاهده محصولات
+      </router-link>
+    </div>
+
+    <!-- Cart Items -->
+    <div v-else class="cart-content">
+      <div class="cart-items">
+        <CartItemCard
+          v-for="item in cartStore.items"
+          :key="item.id"
+          :item="item"
+          @update-quantity="handleUpdateQuantity"
+          @remove="handleRemoveItem"
+        />
+        
+        <!-- Continue Shopping -->
+        <router-link to="/products" class="continue-link">
+          <ArrowRight class="icon" />
           ادامه خرید
         </router-link>
       </div>
 
-      <div v-else class="cart-content">
-        <!-- لیست محصولات -->
-        <div class="cart-items">
-          <div v-for="item in cartItems" :key="item.id" class="cart-item">
-            <img :src="item.image" :alt="item.name" class="cart-item__image">
-            
-            <div class="cart-item__info">
-              <h3>{{ item.name }}</h3>
-              <p class="cart-item__price">{{ item.price }} تومان</p>
-            </div>
-
-            <div class="cart-item__quantity">
-              <button @click="decreaseQuantity(item.id)">-</button>
-              <span>{{ item.quantity }}</span>
-              <button @click="increaseQuantity(item.id)">+</button>
-            </div>
-
-            <div class="cart-item__total">
-              {{ item.price * item.quantity }} تومان
-            </div>
-
-            <button @click="removeItem(item.id)" class="cart-item__remove">
-              🗑️
-            </button>
+      <!-- Cart Summary -->
+      <div class="cart-summary">
+        <h3>خلاصه سبد خرید</h3>
+        
+        <div class="summary-row">
+          <span>تعداد کالاها</span>
+          <span>{{ cartStore.totalItems }}</span>
+        </div>
+        
+        <div class="summary-row">
+          <span>مبلغ کل</span>
+          <span>{{ formatPrice(cartStore.totalPrice) }}</span>
+        </div>
+        
+        <div class="summary-row">
+          <span>هزینه ارسال</span>
+          <span>
+            <span v-if="cartStore.shippingCost === 0" class="free-shipping">رایگان</span>
+            <span v-else>{{ formatPrice(cartStore.shippingCost) }}</span>
+          </span>
+        </div>
+        
+        <div class="summary-total">
+          <span>مبلغ قابل پرداخت</span>
+          <span class="total-price">{{ formatPrice(cartStore.finalPrice) }}</span>
+        </div>
+        
+        <!-- Free shipping progress -->
+        <div v-if="cartStore.shippingCost > 0" class="shipping-progress">
+          <p>{{ formatPrice(500000 - cartStore.totalPrice) }} دیگر خرید کنید تا ارسال رایگان شود</p>
+          <div class="progress-bar">
+            <div 
+              class="progress-fill" 
+              :style="{ width: Math.min((cartStore.totalPrice / 500000) * 100, 100) + '%' }"
+            ></div>
           </div>
         </div>
-
-        <!-- خلاصه سبد خرید -->
-        <div class="cart-summary">
-          <h2>خلاصه سفارش</h2>
-          
-          <div class="summary-row">
-            <span>تعداد کالاها:</span>
-            <span>{{ totalItems }}</span>
+        
+        <button 
+          class="checkout-btn"
+          @click="goToCheckout"
+          :disabled="cartStore.isEmpty"
+        >
+          ادامه فرآیند خرید
+        </button>
+        
+        <!-- Suggestions -->
+        <div class="suggestions">
+          <h4>پیشنهاد ویژه</h4>
+          <div class="suggestion-items">
+            <ProductCardMini
+              v-for="product in suggestedProducts"
+              :key="product.id"
+              :product="product"
+              @add-to-cart="handleAddSuggested"
+            />
           </div>
-          
-          <div class="summary-row">
-            <span>مبلغ کل:</span>
-            <span>{{ totalPrice }} تومان</span>
-          </div>
-          
-          <div class="summary-row">
-            <span>هزینه ارسال:</span>
-            <span>رایگان</span>
-          </div>
-          
-          <div class="summary-total">
-            <span>مبلغ قابل پرداخت:</span>
-            <span>{{ totalPrice }} تومان</span>
-          </div>
-
-          <router-link to="/checkout" class="checkout-btn">
-            ادامه فرآیند خرید
-          </router-link>
         </div>
       </div>
     </div>
@@ -71,93 +99,104 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ShoppingBag, ArrowRight } from 'lucide-vue-next'
+import { useCartStore } from '@/stores/cart'
+import CartItemCard from '@/components/CartItemCard.vue'
+import ProductCardMini from '@/components/ProductCardMini.vue'
+import { formatPrice } from '@/services/api'
 
-interface CartItem {
-  id: number
-  name: string
-  price: number
-  quantity: number
-  image: string
+const router = useRouter()
+const cartStore = useCartStore()
+const suggestedProducts = ref([])
+
+// Load suggestions
+onMounted(async () => {
+  // Get random products for suggestions
+  const response = await fetch('https://api.example.com/products?random=3')
+  suggestedProducts.value = await response.json()
+})
+
+const handleUpdateQuantity = (itemId: number, quantity: number) => {
+  cartStore.updateQuantity(itemId, quantity)
 }
 
-const cartItems = ref<CartItem[]>([
-  {
-    id: 1,
-    name: 'محصول ۱',
-    price: 250000,
-    quantity: 2,
-    image: 'https://via.placeholder.com/100x100?text=محصول+1'
-  },
-  {
-    id: 2,
-    name: 'محصول ۲',
-    price: 350000,
-    quantity: 1,
-    image: 'https://via.placeholder.com/100x100?text=محصول+2'
+const handleRemoveItem = (itemId: number) => {
+  if (confirm('آیا از حذف این کالا مطمئن هستید؟')) {
+    cartStore.removeItem(itemId)
   }
-])
-
-const totalItems = computed(() => {
-  return cartItems.value.reduce((sum, item) => sum + item.quantity, 0)
-})
-
-const totalPrice = computed(() => {
-  return cartItems.value.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()
-})
-
-const increaseQuantity = (id: number) => {
-  const item = cartItems.value.find(i => i.id === id)
-  if (item) item.quantity++
 }
 
-const decreaseQuantity = (id: number) => {
-  const item = cartItems.value.find(i => i.id === id)
-  if (item && item.quantity > 1) item.quantity--
+const handleAddSuggested = (product: any) => {
+  cartStore.addItem(product, 1)
 }
 
-const removeItem = (id: number) => {
-  cartItems.value = cartItems.value.filter(i => i.id !== id)
+const goToCheckout = () => {
+  router.push('/checkout')
 }
 </script>
 
 <style scoped>
 .cart-page {
-  padding: 2rem;
-  min-height: 70vh;
-}
-
-.cart-container {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 2rem 1rem;
 }
 
-.cart-title {
-  font-size: 2rem;
-  color: #374151;
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 2rem;
 }
 
-.cart-empty {
+.cart-header h1 {
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.item-count {
+  background: #f0f0f0;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: #666;
+}
+
+.empty-cart {
   text-align: center;
-  padding: 4rem;
-  background: #f9fafb;
+  padding: 4rem 2rem;
+  background: #f9f9f9;
   border-radius: 12px;
 }
 
-.cart-empty p {
-  font-size: 1.2rem;
-  color: #6b7280;
-  margin-bottom: 1.5rem;
+.empty-icon {
+  color: #999;
+  margin-bottom: 1rem;
 }
 
-.continue-shopping {
+.empty-cart h2 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.empty-cart p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.continue-shopping-btn {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: #667eea;
+  background: #4CAF50;
   color: white;
-  text-decoration: none;
+  padding: 0.8rem 2rem;
   border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.continue-shopping-btn:hover {
+  background: #45a049;
 }
 
 .cart-content {
@@ -169,161 +208,134 @@ const removeItem = (id: number) => {
 .cart-items {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 1rem;
 }
 
-.cart-item {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.cart-item:last-child {
-  border-bottom: none;
-}
-
-.cart-item__image {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.cart-item__info h3 {
-  font-size: 1.1rem;
-  color: #374151;
-  margin-bottom: 0.25rem;
-}
-
-.cart-item__price {
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-.cart-item__quantity {
+.continue-link {
   display: flex;
   align-items: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  overflow: hidden;
+  gap: 0.5rem;
+  padding: 1rem;
+  color: #4CAF50;
+  text-decoration: none;
+  border-top: 1px solid #eee;
 }
 
-.cart-item__quantity button {
-  width: 30px;
-  height: 30px;
-  background: white;
-  border: none;
-  cursor: pointer;
-}
-
-.cart-item__quantity span {
-  width: 40px;
-  text-align: center;
-}
-
-.cart-item__total {
-  font-weight: bold;
-  color: #374151;
-}
-
-.cart-item__remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2rem;
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
-}
-
-.cart-item__remove:hover {
-  opacity: 1;
+.continue-link:hover {
+  background: #f9f9f9;
 }
 
 .cart-summary {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 1.5rem;
   height: fit-content;
+  position: sticky;
+  top: 100px;
 }
 
-.cart-summary h2 {
-  font-size: 1.25rem;
-  color: #374151;
+.cart-summary h3 {
   margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #4CAF50;
+  color: #333;
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
   margin-bottom: 1rem;
-  color: #6b7280;
+  color: #666;
 }
 
 .summary-total {
   display: flex;
   justify-content: space-between;
   margin: 1.5rem 0;
-  padding-top: 1rem;
-  border-top: 2px solid #f0f0f0;
+  padding: 1rem 0;
+  border-top: 2px solid #eee;
+  border-bottom: 2px solid #eee;
   font-weight: bold;
+  color: #333;
+}
+
+.total-price {
+  color: #4CAF50;
   font-size: 1.2rem;
-  color: #374151;
+}
+
+.free-shipping {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.shipping-progress {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f0f8ff;
+  border-radius: 8px;
+}
+
+.shipping-progress p {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #ddd;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #4CAF50;
+  transition: width 0.3s;
 }
 
 .checkout-btn {
-  display: block;
   width: 100%;
   padding: 1rem;
-  background: #667eea;
+  background: #4CAF50;
   color: white;
-  text-align: center;
-  text-decoration: none;
+  border: none;
   border-radius: 8px;
-  font-weight: bold;
-  transition: background 0.3s ease;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-bottom: 2rem;
 }
 
-.checkout-btn:hover {
-  background: #5a67d8;
+.checkout-btn:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.checkout-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.suggestions h4 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.suggestion-items {
+  display: grid;
+  gap: 1rem;
 }
 
 @media (max-width: 768px) {
   .cart-content {
     grid-template-columns: 1fr;
   }
-
-  .cart-item {
-    grid-template-columns: auto 1fr auto;
-    grid-template-areas:
-      "image info remove"
-      "image quantity total";
-    gap: 0.5rem;
-  }
-
-  .cart-item__image {
-    grid-area: image;
-  }
-
-  .cart-item__info {
-    grid-area: info;
-  }
-
-  .cart-item__quantity {
-    grid-area: quantity;
-  }
-
-  .cart-item__total {
-    grid-area: total;
-    text-align: left;
-  }
-
-  .cart-item__remove {
-    grid-area: remove;
+  
+  .cart-summary {
+    position: static;
   }
 }
 </style>

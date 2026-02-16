@@ -24,7 +24,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/product/:slug",
     name: "product-detail",
-    component: () => import("@/views/products/ProductDital/ProductDetail.vue"),
+    component: () => import("@/views/products/ProductDetail/ProductDetail.vue"),
     meta: { 
       requiresAuth: false,
       title: 'جزئیات محصول'

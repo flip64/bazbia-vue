@@ -1,12 +1,4 @@
 
-
-
-
-
-
-
-
-
 <template>
   <router-link to="/cart" class="cart-icon">
     <ShoppingCart :size="20" />
@@ -289,7 +281,7 @@
 <script setup>
 
 import { ShoppingCart } from 'lucide-vue-next'
-import { useCartStore } from '@/stores/cart'
+import { useCartStore } from '@/stores/cartStore'
 
 const cartStore = useCartStore()
 

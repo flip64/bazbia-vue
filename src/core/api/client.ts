@@ -2,7 +2,7 @@
 import axios from 'axios'  // ✅ فقط axios رو import کن
 
 // تنظیمات پایه
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const baseURL = import.meta.env.VITE_API_URL || 'httphttps://backend.bazbia.ir/api'
 
 // ایجاد نمونه axios
 const apiClient = axios.create({

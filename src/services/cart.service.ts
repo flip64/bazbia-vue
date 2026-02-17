@@ -1,64 +1,248 @@
 // src/services/cart.service.ts
 import apiClient from '@/core/api/client'
 import { API_ENDPOINTS } from '@/core/api/endpoints'
-import type { Cart, AddToCartDto, UpdateCartItemDto, CartResponse } from '@/types/cart.types'
+import type { 
+  Cart, 
+  AddToCartPayload, 
+  UpdateQuantityPayload,
+  MergeCartResponse,
+  StockCheckResponse 
+} from '@/types/cart.types'
 
 class CartService {
-  // دریافت سبد خرید
-  async getCart(): Promise<Cart> {
+  
+  /**
+   * دریافت سبد خرید
+   * @param sessionKey - کلید جلسه برای کاربران مهمان (اختیاری)
+   */
+  async getCart(sessionKey?: string): Promise<Cart> {
     try {
-      const response = await apiClient.get<CartResponse>(API_ENDPOINTS.CART.GET)
-      return response.data.data
+      const config = sessionKey 
+        ? { params: { session_key: sessionKey } }
+        : {}
+      
+      const response = await apiClient.get<Cart>(
+        API_ENDPOINTS.CART.GET,
+        config
+      )
+      
+      return response.data
     } catch (error) {
       console.error('Error fetching cart:', error)
       throw error
     }
   }
 
-  // افزودن محصول به سبد خرید
-  async addToCart(data: AddToCartDto): Promise<Cart> {
+  /**
+   * افزودن محصول به سبد خرید
+   * @param payload - اطلاعات محصول و session_key (برای مهمان)
+   */
+  async addToCart(payload: AddToCartPayload): Promise<Cart> {
     try {
-      const response = await apiClient.post<CartResponse>(API_ENDPOINTS.CART.ADD, data)
-      return response.data.data
+      const response = await apiClient.post<Cart>(
+        API_ENDPOINTS.CART.ADD,
+        payload
+      )
+      
+      return response.data
     } catch (error) {
       console.error('Error adding to cart:', error)
       throw error
     }
   }
 
-  // بروزرسانی آیتم
-  async updateCartItem(itemId: number, data: UpdateCartItemDto): Promise<Cart> {
+  /**
+   * بروزرسانی تعداد آیتم
+   * @param itemId - شناسه آیتم
+   * @param quantity - تعداد جدید
+   * @param sessionKey - کلید جلسه (برای مهمان)
+   */
+  async updateQuantity(
+    itemId: number, 
+    quantity: number, 
+    sessionKey?: string
+  ): Promise<Cart> {
     try {
-      const response = await apiClient.put<CartResponse>(
-        API_ENDPOINTS.CART.UPDATE(itemId), 
-        data
+      const payload: UpdateQuantityPayload = { quantity }
+      const config = sessionKey 
+        ? { params: { session_key: sessionKey } }
+        : {}
+      
+      const response = await apiClient.put<Cart>(
+        API_ENDPOINTS.CART.UPDATE(itemId),
+        payload,
+        config
       )
-      return response.data.data
+      
+      return response.data
     } catch (error) {
       console.error('Error updating cart item:', error)
       throw error
     }
   }
 
-  // حذف آیتم از سبد خرید
-  async removeCartItem(itemId: number): Promise<Cart> {
+  /**
+   * حذف آیتم از سبد خرید
+   * @param itemId - شناسه آیتم
+   * @param sessionKey - کلید جلسه (برای مهمان)
+   */
+  async removeItem(itemId: number, sessionKey?: string): Promise<Cart> {
     try {
-      const response = await apiClient.delete<CartResponse>(
-        API_ENDPOINTS.CART.DELETE(itemId)
+      const config = sessionKey 
+        ? { params: { session_key: sessionKey } }
+        : {}
+      
+      const response = await apiClient.delete<Cart>(
+        API_ENDPOINTS.CART.DELETE(itemId),
+        config
       )
-      return response.data.data
+      
+      return response.data
     } catch (error) {
       console.error('Error removing cart item:', error)
       throw error
     }
   }
 
-  // پاک کردن کل سبد خرید
-  async clearCart(): Promise<void> {
+  /**
+   * ادغام سبد خرید مهمان با کاربر
+   * @param sessionKey - کلید جلسه مهمان
+   */
+  async mergeCart(sessionKey: string): Promise<MergeCartResponse> {
     try {
-      await apiClient.post(API_ENDPOINTS.CART.CLEAR)
+      const response = await apiClient.post<MergeCartResponse>(
+        API_ENDPOINTS.CART.MERGE,
+        { session_key: sessionKey }
+      )
+      
+      return response.data
+    } catch (error) {
+      console.error('Error merging cart:', error)
+      throw error
+    }
+  }
+
+  /**
+   * خالی کردن کامل سبد خرید
+   * @param sessionKey - کلید جلسه (برای مهمان)
+   */
+  async clearCart(sessionKey?: string): Promise<void> {
+    try {
+      const config = sessionKey 
+        ? { params: { session_key: sessionKey } }
+        : {}
+      
+      await apiClient.delete(
+        API_ENDPOINTS.CART.CLEAR,
+        config
+      )
     } catch (error) {
       console.error('Error clearing cart:', error)
+      throw error
+    }
+  }
+
+  /**
+   * بررسی موجودی محصول
+   * @param variantId - شناسه واریانت
+   * @param quantity - تعداد مورد نظر
+   */
+  async checkStock(variantId: number, quantity: number): Promise<StockCheckResponse> {
+    try {
+      const response = await apiClient.get<StockCheckResponse>(
+        API_ENDPOINTS.PRODUCT.STOCK_CHECK(variantId),
+        { params: { quantity } }
+      )
+      
+      return response.data
+    } catch (error) {
+      console.error('Error checking stock:', error)
+      throw error
+    }
+  }
+
+  /**
+   * دریافت تعداد آیتم‌های سبد خرید (برای نمایش در header)
+   * @param sessionKey - کلید جلسه (برای مهمان)
+   */
+  async getCartCount(sessionKey?: string): Promise<number> {
+    try {
+      const cart = await this.getCart(sessionKey)
+      return cart.items?.length || 0
+    } catch (error) {
+      console.error('Error getting cart count:', error)
+      return 0
+    }
+  }
+
+  /**
+   * اعمال کد تخفیف
+   * @param code - کد تخفیف
+   * @param sessionKey - کلید جلسه (برای مهمان)
+   */
+  async applyCoupon(code: string, sessionKey?: string): Promise<Cart> {
+    try {
+      const payload = { code }
+      const config = sessionKey 
+        ? { params: { session_key: sessionKey } }
+        : {}
+      
+      const response = await apiClient.post<Cart>(
+        API_ENDPOINTS.CART.APPLY_COUPON,
+        payload,
+        config
+      )
+      
+      return response.data
+    } catch (error) {
+      console.error('Error applying coupon:', error)
+      throw error
+    }
+  }
+
+  /**
+   * حذف کد تخفیف
+   * @param sessionKey - کلید جلسه (برای مهمان)
+   */
+  async removeCoupon(sessionKey?: string): Promise<Cart> {
+    try {
+      const config = sessionKey 
+        ? { params: { session_key: sessionKey } }
+        : {}
+      
+      const response = await apiClient.delete<Cart>(
+        API_ENDPOINTS.CART.REMOVE_COUPON,
+        config
+      )
+      
+      return response.data
+    } catch (error) {
+      console.error('Error removing coupon:', error)
+      throw error
+    }
+  }
+
+  /**
+   * محاسبه هزینه ارسال
+   * @param addressId - شناسه آدرس
+   * @param sessionKey - کلید جلسه (برای مهمان)
+   */
+  async calculateShipping(addressId: number, sessionKey?: string): Promise<number> {
+    try {
+      const payload = { address_id: addressId }
+      const config = sessionKey 
+        ? { params: { session_key: sessionKey } }
+        : {}
+      
+      const response = await apiClient.post<{ shipping_cost: number }>(
+        API_ENDPOINTS.CART.CALCULATE_SHIPPING,
+        payload,
+        config
+      )
+      
+      return response.data.shipping_cost
+    } catch (error) {
+      console.error('Error calculating shipping:', error)
       throw error
     }
   }

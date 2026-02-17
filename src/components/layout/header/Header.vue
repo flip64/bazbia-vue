@@ -1,11 +1,5 @@
-
+<!-- src/components/layout/header/Header.vue -->
 <template>
-  <router-link to="/cart" class="cart-icon">
-    <ShoppingCart :size="20" />
-    <span v-if="cartStore.totalItems > 0" class="cart-badge">
-      {{ cartStore.totalItems }}
-    </span>
-  </router-link>
   <header class="header" :class="{ 'header--sticky': isSticky }">
     <div class="header__container">
       <!-- دسکتاپ -->
@@ -15,11 +9,11 @@
           <router-link to="/" class="header__logo-link">
             <img 
               :src="logoUrl" 
-              alt=" بازبیا  " 
+              alt="بازبیا" 
               class="header__logo-img"
               @error="handleImageError"
             >
-            <span class="header__logo-text">فروشگاه بازبیا</span>
+            <span class="header__logo-text">بازبیا</span>
           </router-link>
         </div>
 
@@ -48,37 +42,36 @@
               class="header__search-input"
             >
             <button type="submit" class="header__search-btn">
-              <SearchIcon class="header__search-icon" />
+              <Search :size="18" />
             </button>
           </form>
         </div>
 
-        <!-- آیکون‌های کاربری با وضعیت لاگین -->
+        <!-- آیکون‌های کاربری -->
         <div class="header__actions">
-          <!-- منوی کاربر با وضعیت لاگین -->
+          <!-- منوی کاربر -->
           <div class="header__user-menu" :class="{ 'header__user-menu--open': isUserMenuOpen }">
             <button @click="toggleUserMenu" class="header__action-btn header__user-btn">
-              <!-- اگه لاگین کرده باشه، عکس پروفایل یا حرف اول نام رو نشون بده -->
-              <template v-if="isLoggedIn">
+              <template v-if="isAuthenticated">
                 <div class="header__user-avatar">
                   <img 
                     v-if="userAvatar" 
                     :src="userAvatar" 
                     alt="avatar"
                     class="header__user-avatar-img"
+                    @error="handleAvatarError"
                   >
                   <span v-else class="header__user-avatar-text">
                     {{ userInitial }}
                   </span>
                 </div>
               </template>
-              <!-- اگه لاگین نکرده باشه، آیکون کاربر رو نشون بده -->
-              <UserIcon v-else class="header__action-icon" />
+              <User v-else class="header__action-icon" />
             </button>
 
-            <!-- دراپ‌داون منوی کاربر (فقط وقتی لاگین کرده باشه) -->
+            <!-- دراپ‌داون منو (فقط کاربران لاگین کرده) -->
             <transition name="fade">
-              <div v-if="isUserMenuOpen && isLoggedIn" class="header__dropdown">
+              <div v-if="isUserMenuOpen && isAuthenticated" class="header__dropdown" v-click-outside="closeUserMenu">
                 <div class="header__dropdown-header">
                   <div class="header__dropdown-user">
                     <div class="header__dropdown-avatar">
@@ -86,6 +79,7 @@
                         v-if="userAvatar" 
                         :src="userAvatar" 
                         alt="avatar"
+                        @error="handleAvatarError"
                       >
                       <span v-else>{{ userInitial }}</span>
                     </div>
@@ -98,33 +92,33 @@
                 <ul class="header__dropdown-menu">
                   <li>
                     <router-link to="/profile" class="header__dropdown-link" @click="closeUserMenu">
-                      <UserIcon class="header__dropdown-icon" />
+                      <User :size="16" class="header__dropdown-icon" />
                       <span>پروفایل من</span>
                     </router-link>
                   </li>
                   <li>
                     <router-link to="/orders" class="header__dropdown-link" @click="closeUserMenu">
-                      <ShoppingBagIcon class="header__dropdown-icon" />
+                      <ShoppingBag :size="16" class="header__dropdown-icon" />
                       <span>سفارش‌های من</span>
                     </router-link>
                   </li>
                   <li>
                     <router-link to="/wishlist" class="header__dropdown-link" @click="closeUserMenu">
-                      <HeartIcon class="header__dropdown-icon" />
+                      <Heart :size="16" class="header__dropdown-icon" />
                       <span>علاقه‌مندی‌ها</span>
                       <span v-if="wishlistCount" class="header__dropdown-badge">{{ wishlistCount }}</span>
                     </router-link>
                   </li>
                   <li>
                     <router-link to="/settings" class="header__dropdown-link" @click="closeUserMenu">
-                      <SettingsIcon class="header__dropdown-icon" />
+                      <Settings :size="16" class="header__dropdown-icon" />
                       <span>تنظیمات</span>
                     </router-link>
                   </li>
                   <li class="header__dropdown-divider"></li>
                   <li>
                     <button @click="handleLogout" class="header__dropdown-link header__dropdown-link--logout">
-                      <LogOutIcon class="header__dropdown-icon" />
+                      <LogOut :size="16" class="header__dropdown-icon" />
                       <span>خروج از حساب</span>
                     </button>
                   </li>
@@ -135,14 +129,14 @@
           
           <!-- علاقه‌مندی‌ها -->
           <button @click="goToWishlist" class="header__action-btn">
-            <HeartIcon class="header__action-icon" />
+            <Heart class="header__action-icon" />
             <span v-if="wishlistCount" class="header__badge">{{ wishlistCount }}</span>
           </button>
           
-          <!-- سبد خرید -->
+          <!-- سبد خرید (یک بار) -->
           <router-link to="/cart" class="header__action-btn">
-            <ShoppingBagIcon class="header__action-icon" />
-            <span v-if="cartCount" class="header__badge">{{ cartCount }}</span>
+            <ShoppingBag class="header__action-icon" />
+            <span v-if="cartTotalItems" class="header__badge">{{ cartTotalItems }}</span>
           </router-link>
         </div>
       </div>
@@ -151,14 +145,14 @@
       <div class="header__mobile">
         <div class="header__mobile-top">
           <button @click="toggleMobileMenu" class="header__mobile-menu-btn">
-            <MenuIcon v-if="!isMobileMenuOpen" />
-            <XIcon v-else />
+            <Menu v-if="!isMobileMenuOpen" />
+            <X v-else />
           </button>
 
           <router-link to="/" class="header__logo">
             <img 
               :src="logoUrl" 
-              alt="فروشگاه من" 
+              alt="بازبیا" 
               class="header__logo-img"
               @error="handleImageError"
             >
@@ -166,28 +160,29 @@
 
           <div class="header__mobile-actions">
             <button @click="toggleSearch" class="header__mobile-search-btn">
-              <SearchIcon />
+              <Search :size="20" />
             </button>
             
             <router-link to="/cart" class="header__mobile-cart">
-              <ShoppingBagIcon />
-              <span v-if="cartCount" class="header__badge">{{ cartCount }}</span>
+              <ShoppingBag :size="20" />
+              <span v-if="cartTotalItems" class="header__badge">{{ cartTotalItems }}</span>
             </router-link>
           </div>
         </div>
 
         <!-- منوی موبایل -->
         <transition name="slide">
-          <div v-if="isMobileMenuOpen" class="header__mobile-menu">
+          <div v-if="isMobileMenuOpen" class="header__mobile-menu" v-click-outside="closeMobileMenu">
             <nav class="header__mobile-nav">
               <!-- بخش کاربر در موبایل -->
-              <div class="header__mobile-user" v-if="isLoggedIn">
+              <div class="header__mobile-user" v-if="isAuthenticated">
                 <div class="header__mobile-user-info">
                   <div class="header__mobile-user-avatar">
                     <img 
                       v-if="userAvatar" 
                       :src="userAvatar" 
                       alt="avatar"
+                      @error="handleAvatarError"
                     >
                     <span v-else>{{ userInitial }}</span>
                   </div>
@@ -200,9 +195,9 @@
 
               <ul class="header__mobile-nav-list">
                 <!-- لینک ورود/ثبت‌نام برای کاربران مهمان -->
-                <li v-if="!isLoggedIn" class="header__mobile-auth">
+                <li v-if="!isAuthenticated" class="header__mobile-auth">
                   <router-link to="/login" class="header__mobile-auth-link" @click="closeMobileMenu">
-                    <LogInIcon class="header__mobile-auth-icon" />
+                    <LogIn :size="20" class="header__mobile-auth-icon" />
                     <span>ورود / ثبت‌نام</span>
                   </router-link>
                 </li>
@@ -218,38 +213,38 @@
                   </router-link>
                 </li>
 
-                <!-- لینک‌های کاربری (فقط وقتی لاگین کرده) -->
-                <template v-if="isLoggedIn">
+                <!-- لینک‌های کاربری (فقط کاربران لاگین کرده) -->
+                <template v-if="isAuthenticated">
                   <li class="header__mobile-divider"></li>
                   <li>
                     <router-link to="/profile" class="header__mobile-nav-link" @click="closeMobileMenu">
-                      <UserIcon class="header__mobile-nav-icon" />
+                      <User :size="18" class="header__mobile-nav-icon" />
                       <span>پروفایل من</span>
                     </router-link>
                   </li>
                   <li>
                     <router-link to="/orders" class="header__mobile-nav-link" @click="closeMobileMenu">
-                      <ShoppingBagIcon class="header__mobile-nav-icon" />
+                      <ShoppingBag :size="18" class="header__mobile-nav-icon" />
                       <span>سفارش‌های من</span>
                     </router-link>
                   </li>
                   <li>
                     <router-link to="/wishlist" class="header__mobile-nav-link" @click="closeMobileMenu">
-                      <HeartIcon class="header__mobile-nav-icon" />
+                      <Heart :size="18" class="header__mobile-nav-icon" />
                       <span>علاقه‌مندی‌ها</span>
                       <span v-if="wishlistCount" class="header__badge">{{ wishlistCount }}</span>
                     </router-link>
                   </li>
                   <li>
                     <router-link to="/settings" class="header__mobile-nav-link" @click="closeMobileMenu">
-                      <SettingsIcon class="header__mobile-nav-icon" />
+                      <Settings :size="18" class="header__mobile-nav-icon" />
                       <span>تنظیمات</span>
                     </router-link>
                   </li>
                   <li class="header__mobile-divider"></li>
                   <li>
                     <button @click="handleMobileLogout" class="header__mobile-nav-link header__mobile-nav-link--logout">
-                      <LogOutIcon class="header__mobile-nav-icon" />
+                      <LogOut :size="18" class="header__mobile-nav-icon" />
                       <span>خروج از حساب</span>
                     </button>
                   </li>
@@ -278,80 +273,59 @@
   </header>
 </template>
 
-<script setup>
-
-import { ShoppingCart } from 'lucide-vue-next'
-import { useCartStore } from '@/core/store/cartStore'
-
-const cartStore = useCartStore()
-
-  
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { 
-  SearchIcon, 
-  UserIcon, 
-  HeartIcon, 
-  ShoppingBagIcon, 
-  MenuIcon, 
-  XIcon,
-  LogOutIcon,
-  LogInIcon,
-  SettingsIcon
+  Search,
+  User,
+  Heart,
+  ShoppingBag,
+  Menu,
+  X,
+  LogOut,
+  LogIn,
+  Settings
 } from 'lucide-vue-next'
+import { useAuthStore } from '@/core/store/authStore'
+import { useCartStore } from '@/core/store/cartStore'
+import { useWishlistStore } from '@/core/store/wishlistStore'
+import { vClickOutside } from '@/directives/clickOutside'
 import './Header.css'
 
-const props = defineProps({
-  cartCount: { type: Number, default: 0 },
-  wishlistCount: { type: Number, default: 0 },
-  isLoggedIn: { type: Boolean, default: false }, // وضعیت لاگین
-  userData: { // اطلاعات کاربر
-    type: Object,
-    default: () => ({
-      firstName: '',
-      lastName: '',
-      email: '',
-      avatar: null
-    })
-  }
-})
-
-const emit = defineEmits(['search', 'toggle-wishlist', 'logout', 'login'])
-
+// ========== Router ==========
 const router = useRouter()
 const route = useRoute()
 
-// State
+// ========== Stores ==========
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
+
+// ========== Store Refs ==========
+const { 
+  isAuthenticated, 
+  user, 
+  userInitial, 
+  userFullName, 
+  userEmail,
+  userAvatar 
+} = storeToRefs(authStore)
+
+const { totalItems: cartTotalItems } = storeToRefs(cartStore)
+const { totalItems: wishlistCount } = storeToRefs(wishlistStore)
+
+// ========== State ==========
 const isSticky = ref(false)
 const isMobileMenuOpen = ref(false)
 const isMobileSearchOpen = ref(false)
 const isUserMenuOpen = ref(false)
 const searchQuery = ref('')
-const mobileSearchInput = ref(null)
+const mobileSearchInput = ref<HTMLInputElement | null>(null)
 const logoUrl = ref('https://bazbia.ir/media/logo/bazbialogo.gif')
 
-// Computed properties برای اطلاعات کاربر
-const userFullName = computed(() => {
-  if (props.userData.firstName || props.userData.lastName) {
-    return `${props.userData.firstName} ${props.userData.lastName}`.trim()
-  }
-  return 'کاربر'
-})
-
-const userInitial = computed(() => {
-  if (props.userData.firstName) {
-    return props.userData.firstName.charAt(0).toUpperCase()
-  }
-  if (props.userData.email) {
-    return props.userData.email.charAt(0).toUpperCase()
-  }
-  return 'U'
-})
-
-const userEmail = computed(() => props.userData.email || '')
-const userAvatar = computed(() => props.userData.avatar || null)
-
-// Menu items
+// ========== Menu Items ==========
 const menuItems = ref([
   { id: 1, title: 'خانه', path: '/' },
   { id: 2, title: 'محصولات', path: '/products' },
@@ -361,29 +335,34 @@ const menuItems = ref([
   { id: 6, title: 'تماس با ما', path: '/contact' }
 ])
 
-// Methods
-const isActiveRoute = (path) => route.path === path
+// ========== Methods ==========
+const isActiveRoute = (path: string) => route.path === path
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    emit('search', searchQuery.value)
-    router.push({ path: '/search', query: { q: searchQuery.value } })
+    router.push({ 
+      path: '/products', 
+      query: { search: searchQuery.value } 
+    })
     searchQuery.value = ''
     closeMobileSearch()
   }
 }
 
-const handleImageError = (e) => {
-  console.log('خطا در لود لوگو')
-  e.target.src = 'https://via.placeholder.com/150x50?text=فروشگاه'
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.src = 'https://via.placeholder.com/150x50?text=بازبیا'
+}
+
+const handleAvatarError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.style.display = 'none'
 }
 
 const toggleUserMenu = () => {
-  if (!props.isLoggedIn) {
-    // اگه لاگین نکرده، برو به صفحه لاگین
+  if (!isAuthenticated.value) {
     router.push('/login')
   } else {
-    // اگه لاگین کرده، منو رو باز کن
     isUserMenuOpen.value = !isUserMenuOpen.value
   }
 }
@@ -393,17 +372,16 @@ const closeUserMenu = () => {
 }
 
 const goToWishlist = () => {
-  if (!props.isLoggedIn) {
+  if (!isAuthenticated.value) {
     router.push('/login?redirect=wishlist')
   } else {
     router.push('/wishlist')
-    emit('toggle-wishlist')
   }
 }
 
 const handleLogout = async () => {
   try {
-    emit('logout')
+    await authStore.logout()
     closeUserMenu()
     closeMobileMenu()
     router.push('/')
@@ -419,7 +397,6 @@ const handleMobileLogout = () => {
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
   document.body.style.overflow = isMobileMenuOpen.value ? 'hidden' : ''
-  // وقتی منوی موبایل باز میشه، منوی کاربر رو ببند
   if (isMobileMenuOpen.value) {
     isUserMenuOpen.value = false
   }
@@ -437,26 +414,29 @@ const toggleSearch = () => {
   }
 }
 
-const closeMobileSearch = () => isMobileSearchOpen.value = false
+const closeMobileSearch = () => {
+  isMobileSearchOpen.value = false
+}
 
-const handleScroll = () => isSticky.value = window.scrollY > 50
+const handleScroll = () => {
+  isSticky.value = window.scrollY > 50
+}
 
-// Watchers
+// ========== Watchers ==========
 watch(() => route.path, () => {
   closeMobileMenu()
   closeMobileSearch()
   closeUserMenu()
 })
 
-watch(() => props.isLoggedIn, (newVal) => {
-  // اگه کاربر از صفحه لاگین برگشت، منو رو ببند
-  if (newVal) {
-    closeUserMenu()
-  }
+// ========== Lifecycle ==========
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  
+  // مقداردهی اولیه سبد خرید
+  cartStore.initializeCart()
 })
 
-// Lifecycle
-onMounted(() => window.addEventListener('scroll', handleScroll))
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   document.body.style.overflow = ''

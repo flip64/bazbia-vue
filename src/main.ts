@@ -7,7 +7,7 @@ import router from "@/core/router"
 import { store } from "@/core/store"
 import { registerPlugins } from "@/core/plugins"
 
-import { useAuthStore } from "@/modules/auth/store/authStore"
+import { useAuthStore } from "@/core/store/authStore"
 
 
 const app = createApp(App)

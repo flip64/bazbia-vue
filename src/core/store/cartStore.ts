@@ -24,14 +24,20 @@ export const useCartStore = defineStore('cart', () => {
   const error = ref<string | null>(null)
   const sessionKey = ref<string | null>(localStorage.getItem('session_key'))
   const selectedItems = ref<number[]>([])
-  const initialized = ref(false)  // برای جلوگیری از مقداردهی مجدد
+  const initialized = ref(false)
 
   // ========== Getters ==========
-  const items = computed(() => cart.value?.items || [])
+  const items = computed(() => {
+    console.log('🔍 computed items called, cart.value:', cart.value)
+    console.log('📦 items from cart:', cart.value?.items)
+    return cart.value?.items || []
+  })
   
-  const totalItems = computed(() => 
-    items.value.reduce((sum, item) => sum + item.quantity, 0)
-  )
+  const totalItems = computed(() => {
+    const total = items.value.reduce((sum, item) => sum + item.quantity, 0)
+    console.log('🧮 totalItems computed:', total)
+    return total
+  })
   
   const totalPrice = computed(() => 
     items.value.reduce((sum, item) => sum + item.total_price, 0)
@@ -43,9 +49,16 @@ export const useCartStore = defineStore('cart', () => {
       .reduce((sum, item) => sum + item.total_price, 0)
   )
   
-  const selectedCount = computed(() => selectedItems.value.length)
+  const selectedCount = computed(() => {
+    console.log('✅ selectedCount:', selectedItems.value.length)
+    return selectedItems.value.length
+  })
   
-  const isEmpty = computed(() => items.value.length === 0)
+  const isEmpty = computed(() => {
+    const empty = items.value.length === 0
+    console.log('🫙 isEmpty:', empty)
+    return empty
+  })
   
   const isAllSelected = computed(() => 
     items.value.length > 0 && selectedItems.value.length === items.value.length
@@ -69,83 +82,113 @@ export const useCartStore = defineStore('cart', () => {
     if (!sessionKey.value) {
       sessionKey.value = generateSessionKey()
       localStorage.setItem('session_key', sessionKey.value)
+      console.log('🔑 New session key generated:', sessionKey.value)
     }
     return sessionKey.value
   }
 
   // ========== Initialization ==========
   
-  /**
-   * مقداردهی اولیه سبد خرید
-   */
   const initializeCart = async () => {
-    // اگه قبلاً مقداردهی شده، دوباره اینکارو نکن
-    if (initialized.value) return
+    console.log('🚀 initializeCart started')
+    console.log('📊 initialized:', initialized.value)
+    console.log('🔑 sessionKey:', sessionKey.value)
+    
+    if (initialized.value) {
+      console.log('⏭️ Already initialized, skipping')
+      return
+    }
     
     const auth = useAuthStore()
+    console.log('👤 auth.isAuthenticated:', auth.isAuthenticated)
     
-    // اگه session key نداریم و کاربر مهمانه، یکی بسازیم
     if (!sessionKey.value && !auth.isAuthenticated) {
       sessionKey.value = generateSessionKey()
       localStorage.setItem('session_key', sessionKey.value)
+      console.log('🔑 Generated new session key:', sessionKey.value)
     }
     
-    // دریافت سبد خرید
+    console.log('🔄 Fetching cart...')
     await fetchCart()
     initialized.value = true
+    console.log('✅ initializeCart completed')
   }
 
   // ========== API Methods ==========
   
   const fetchCart = async () => {
+    console.log('📡 fetchCart STARTED')
+    console.log('🔑 sessionKey:', sessionKey.value)
+    
     loading.value = true
     error.value = null
     
     try {
       const auth = useAuthStore()
-      const response = await cartService.getCart(
-        auth.isAuthenticated ? undefined : getSessionKey()
-      )
+      const sessionKeyToUse = auth.isAuthenticated ? undefined : getSessionKey()
+      console.log('🔐 Using session key:', sessionKeyToUse)
+      
+      const response = await cartService.getCart(sessionKeyToUse)
+      console.log('✅ fetchCart response:', response)
+      
       cart.value = response
+      console.log('📦 cart.value set to:', cart.value)
+      console.log('🛒 items in cart:', cart.value?.items)
+      
       syncSelectedItems()
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در دریافت سبد خرید'
-      console.error('Fetch cart error:', err)
+      console.error('❌ Fetch cart error:', err)
       
       if (err.response?.status === 401 && !isAuthenticated.value) {
+        console.log('🔄 401 error, generating new session key')
         sessionKey.value = generateSessionKey()
         localStorage.setItem('session_key', sessionKey.value)
         await fetchCart()
       }
     } finally {
       loading.value = false
+      console.log('🏁 fetchCart completed, loading:', loading.value)
     }
   }
 
   const addItem = async (payload: AddToCartPayload) => {
+    console.log('🛒 addItem STARTED with payload:', payload)
+    
     loading.value = true
     error.value = null
     
     try {
       const auth = useAuthStore()
+      const sessionKeyToUse = auth.isAuthenticated ? undefined : getSessionKey()
+      console.log('🔐 Using session key:', sessionKeyToUse)
+      
       const response = await cartService.addToCart({
         variant_id: payload.variant_id,
         quantity: payload.quantity,
-        session_key: auth.isAuthenticated ? undefined : getSessionKey()
+        session_key: sessionKeyToUse
       })
       
+      console.log('✅ addItem response:', response)
+      
+      console.log('🔄 Fetching updated cart...')
       await fetchCart()
+      
+      console.log('🎉 Item added successfully')
       return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در افزودن به سبد خرید'
-      console.error('Add item error:', err)
+      console.error('❌ Add item error:', err)
       throw err
     } finally {
       loading.value = false
+      console.log('🏁 addItem completed')
     }
   }
 
   const updateQuantity = async (itemId: number, quantity: number) => {
+    console.log('✏️ updateQuantity:', { itemId, quantity })
+    
     loading.value = true
     error.value = null
     
@@ -157,10 +200,11 @@ export const useCartStore = defineStore('cart', () => {
         auth.isAuthenticated ? undefined : sessionKey.value!
       )
       
+      console.log('🔄 Fetching updated cart...')
       await fetchCart()
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در بروزرسانی تعداد'
-      console.error('Update quantity error:', err)
+      console.error('❌ Update quantity error:', err)
       throw err
     } finally {
       loading.value = false
@@ -168,6 +212,8 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   const removeItem = async (itemId: number) => {
+    console.log('🗑️ removeItem:', itemId)
+    
     loading.value = true
     error.value = null
     
@@ -179,10 +225,12 @@ export const useCartStore = defineStore('cart', () => {
       )
       
       selectedItems.value = selectedItems.value.filter(id => id !== itemId)
+      
+      console.log('🔄 Fetching updated cart...')
       await fetchCart()
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در حذف آیتم'
-      console.error('Remove item error:', err)
+      console.error('❌ Remove item error:', err)
       throw err
     } finally {
       loading.value = false
@@ -191,6 +239,8 @@ export const useCartStore = defineStore('cart', () => {
 
   const removeSelectedItems = async () => {
     if (selectedItems.value.length === 0) return
+    
+    console.log('🗑️ removeSelectedItems:', selectedItems.value)
     
     loading.value = true
     error.value = null
@@ -201,25 +251,30 @@ export const useCartStore = defineStore('cart', () => {
       selectedItems.value = []
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در حذف آیتم‌ها'
-      console.error('Remove selected items error:', err)
+      console.error('❌ Remove selected items error:', err)
     } finally {
       loading.value = false
     }
   }
 
   const mergeGuestCart = async (guestSessionKey: string) => {
+    console.log('🔄 mergeGuestCart:', guestSessionKey)
+    
     loading.value = true
     error.value = null
     
     try {
       const response = await cartService.mergeCart(guestSessionKey)
+      console.log('✅ merge response:', response)
+      
       localStorage.removeItem('session_key')
       sessionKey.value = null
+      
       await fetchCart()
       return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در ادغام سبد خرید'
-      console.error('Merge cart error:', err)
+      console.error('❌ Merge cart error:', err)
       throw err
     } finally {
       loading.value = false
@@ -227,6 +282,8 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   const clearCart = async () => {
+    console.log('🧹 clearCart')
+    
     loading.value = true
     error.value = null
     
@@ -238,9 +295,10 @@ export const useCartStore = defineStore('cart', () => {
       
       cart.value = null
       selectedItems.value = []
+      console.log('✅ Cart cleared')
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در پاک کردن سبد خرید'
-      console.error('Clear cart error:', err)
+      console.error('❌ Clear cart error:', err)
       throw err
     } finally {
       loading.value = false
@@ -252,6 +310,7 @@ export const useCartStore = defineStore('cart', () => {
   const syncSelectedItems = () => {
     const validItemIds = new Set(items.value.map(item => item.id))
     selectedItems.value = selectedItems.value.filter(id => validItemIds.has(id))
+    console.log('🔄 syncSelectedItems completed, selected:', selectedItems.value)
   }
 
   const toggleItemSelection = (itemId: number) => {
@@ -260,6 +319,7 @@ export const useCartStore = defineStore('cart', () => {
     } else {
       selectedItems.value.push(itemId)
     }
+    console.log('✅ toggleItemSelection:', selectedItems.value)
   }
 
   const selectAll = () => {
@@ -268,6 +328,7 @@ export const useCartStore = defineStore('cart', () => {
     } else {
       selectedItems.value = items.value.map(item => item.id)
     }
+    console.log('✅ selectAll:', selectedItems.value)
   }
 
   // ========== Utility Methods ==========
@@ -287,6 +348,7 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   const $reset = () => {
+    console.log('🔄 Resetting cart store')
     cart.value = null
     loading.value = false
     error.value = null

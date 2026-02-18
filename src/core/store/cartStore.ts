@@ -17,7 +17,6 @@ export interface CartItem {
   selected?: boolean
 }
 
-// ✅ این خط درسته - useCartStore رو export می‌کنه
 export const useCartStore = defineStore('cart', () => {
   // ========== State ==========
   const cart = ref<Cart | null>(null)
@@ -80,26 +79,12 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   const getSessionKey = (): string => {
-    // اول state رو چک کن
-    if (sessionKey.value) {
-      console.log('🔑 Using existing session key:', sessionKey.value)
-      return sessionKey.value
+    if (!sessionKey.value) {
+      sessionKey.value = generateSessionKey()
+      localStorage.setItem('session_key', sessionKey.value)
+      console.log('🔑 New session key generated:', sessionKey.value)
     }
-    
-    // بعد localStorage
-    const storedKey = localStorage.getItem('session_key')
-    if (storedKey) {
-      console.log('🔑 Restoring session key from localStorage:', storedKey)
-      sessionKey.value = storedKey
-      return storedKey
-    }
-    
-    // آخرش جدید بساز
-    const newKey = generateSessionKey()
-    console.log('🔑 Generated new session key:', newKey)
-    sessionKey.value = newKey
-    localStorage.setItem('session_key', newKey)
-    return newKey
+    return sessionKey.value
   }
 
   // ========== Initialization ==========
@@ -140,23 +125,11 @@ export const useCartStore = defineStore('cart', () => {
     
     try {
       const auth = useAuthStore()
+      const sessionKeyToUse = auth.isAuthenticated ? undefined : getSessionKey()
+      console.log('🔐 Using session key:', sessionKeyToUse)
       
-      // ✅ از sessionKey.value استفاده کن
-      const currentKey = sessionKey.value
-      console.log('🔐 Using session key:', currentKey)
-      
-      const response = await cartService.getCart(
-        auth.isAuthenticated ? undefined : currentKey
-      )
-      
+      const response = await cartService.getCart(sessionKeyToUse)
       console.log('✅ fetchCart response:', response)
-      
-      // ✅ session_key رو از response بگیر و ذخیره کن
-      if (response.session_key && response.session_key !== sessionKey.value) {
-        console.log('🔄 Updating session key from:', sessionKey.value, 'to:', response.session_key)
-        sessionKey.value = response.session_key
-        localStorage.setItem('session_key', response.session_key)
-      }
       
       cart.value = response
       console.log('📦 cart.value set to:', cart.value)
@@ -166,9 +139,16 @@ export const useCartStore = defineStore('cart', () => {
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در دریافت سبد خرید'
       console.error('❌ Fetch cart error:', err)
+      
+      if (err.response?.status === 401 && !isAuthenticated.value) {
+        console.log('🔄 401 error, generating new session key')
+        sessionKey.value = generateSessionKey()
+        localStorage.setItem('session_key', sessionKey.value)
+        await fetchCart()
+      }
     } finally {
       loading.value = false
-      console.log('🏁 fetchCart completed, sessionKey now:', sessionKey.value)
+      console.log('🏁 fetchCart completed, loading:', loading.value)
     }
   }
 
@@ -180,29 +160,21 @@ export const useCartStore = defineStore('cart', () => {
     
     try {
       const auth = useAuthStore()
-      
-      // ✅ از sessionKey.value استفاده کن
-      const currentKey = sessionKey.value
-      console.log('🔐 Using session key:', currentKey)
+      const sessionKeyToUse = auth.isAuthenticated ? undefined : getSessionKey()
+      console.log('🔐 Using session key:', sessionKeyToUse)
       
       const response = await cartService.addToCart({
         variant_id: payload.variant_id,
         quantity: payload.quantity,
-        session_key: auth.isAuthenticated ? undefined : currentKey
+        session_key: sessionKeyToUse
       })
       
       console.log('✅ addItem response:', response)
       
-      // ✅ session_key رو از response بگیر
-      if (response.session_key && response.session_key !== sessionKey.value) {
-        console.log('🔄 Updating session key from response:', response.session_key)
-        sessionKey.value = response.session_key
-        localStorage.setItem('session_key', response.session_key)
-      }
-      
-      // دوباره سبد رو بگیر
+      console.log('🔄 Fetching updated cart...')
       await fetchCart()
       
+      console.log('🎉 Item added successfully')
       return response
     } catch (err: any) {
       error.value = err.response?.data?.message || 'خطا در افزودن به سبد خرید'
@@ -210,10 +182,10 @@ export const useCartStore = defineStore('cart', () => {
       throw err
     } finally {
       loading.value = false
+      console.log('🏁 addItem completed')
     }
   }
 
-  // ========== بقیه متدها ==========
   const updateQuantity = async (itemId: number, quantity: number) => {
     console.log('✏️ updateQuantity:', { itemId, quantity })
     
@@ -418,5 +390,4 @@ export const useCartStore = defineStore('cart', () => {
     calculateShipping,
     $reset
   }
-})  // ✅ اینجا پرانتز تموم میشه
-// ❌ دیگه export جداگانه نمی‌خواد
+})

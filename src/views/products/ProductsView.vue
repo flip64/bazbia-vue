@@ -11,11 +11,11 @@
 
     <div class="products-container">
       <div class="products-layout">
-        <!-- فیلترها (فعلاً ساده) -->
+        <!-- فیلترها -->
         <aside class="products-sidebar">
           <div class="filter-section">
             <h3>دسته‌بندی</h3>
-            <select v-model="filters.category" @change="loadProducts(1)">
+            <select v-model="filters.category" @change="handleCategoryChange">
               <option value="">همه دسته‌ها</option>
               <option value="الکترونیک">الکترونیک</option>
               <option value="خانه">خانه</option>
@@ -28,7 +28,7 @@
         <main class="products-main">
           <!-- مرتب‌سازی -->
           <div class="products-toolbar">
-            <select v-model="filters.ordering" @change="loadProducts(1)">
+            <select v-model="filters.ordering" @change="handleOrderingChange">
               <option value="">مرتب‌سازی پیش‌فرض</option>
               <option value="price">ارزان‌ترین</option>
               <option value="-price">گران‌ترین</option>
@@ -70,8 +70,9 @@
               <button 
                 class="product-card__add-to-cart"
                 @click="addToCart(product)"
+                :disabled="!product.in_stock"
               >
-                افزودن به سبد خرید
+                {{ product.in_stock ? 'افزودن به سبد خرید' : 'ناموجود' }}
               </button>
             </div>
           </div>
@@ -85,7 +86,7 @@
           <div v-if="pagination.total_pages > 1" class="products-pagination">
             <button 
               :disabled="pagination.current_page === 1"
-              @click="loadProducts(pagination.current_page - 1)"
+              @click="handlePageChange(pagination.current_page - 1)"
             >
               قبلی
             </button>
@@ -94,7 +95,7 @@
             
             <button 
               :disabled="pagination.current_page === pagination.total_pages"
-              @click="loadProducts(pagination.current_page + 1)"
+              @click="handlePageChange(pagination.current_page + 1)"
             >
               بعدی
             </button>
@@ -106,13 +107,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { productService } from '@/services/product.service'
+import { useCartStore } from '@/core/store/cartStore'
 import type { Product, ProductsResponse } from '@/types/product.types'
 
-// State
+// ========== Router ==========
+const router = useRouter()
+
+// ========== Stores ==========
+const cartStore = useCartStore()
+
+// ========== State ==========
 const products = ref<Product[]>([])
 const loading = ref(false)
+const error = ref<string | null>(null)
 const pagination = reactive({
   current_page: 1,
   total_pages: 1,
@@ -124,53 +134,162 @@ const filters = reactive({
   ordering: ''
 })
 
-// بارگذاری محصولات
+// ========== Computed ==========
+const totalProducts = computed(() => pagination.total_products)
+
+// ========== Methods ==========
+
+/**
+ * بارگذاری محصولات
+ */
 const loadProducts = async (page: number = 1) => {
+  console.log('📦 ====== PRODUCTS VIEW ======')
+  console.log('📊 بارگذاری محصولات - صفحه:', page)
+  console.log('🔍 فیلترها:', filters)
+  
   loading.value = true
+  error.value = null
+  
   try {
-    const response = await productService.getProducts({
+    const params: any = {
       page,
-      category: filters.category || undefined,
-      ordering: filters.ordering || undefined
+      ...(filters.category && { category: filters.category }),
+      ...(filters.ordering && { ordering: filters.ordering })
+    }
+    
+    console.log('📡 ارسال درخواست با پارامترها:', params)
+    
+    const response = await productService.getProducts(params)
+    
+    console.log('✅ پاسخ دریافت شد:', {
+      count: response.count,
+      current_page: response.current_page,
+      total_pages: response.total_pages,
+      products_count: response.data.length
     })
     
     products.value = response.data
     pagination.current_page = response.current_page
     pagination.total_pages = response.total_pages
     pagination.total_products = response.count
-  } catch (error) {
-    console.error('خطا:', error)
+    
+    console.log('📋 محصولات:', products.value.map(p => ({ id: p.id, name: p.name })))
+    
+  } catch (err: any) {
+    error.value = err.message || 'خطا در بارگذاری محصولات'
+    console.error('❌ خطا:', err)
   } finally {
     loading.value = false
+    console.log('🏁 بارگذاری کامل شد')
   }
 }
 
-// Helper functions
+/**
+ * تغییر دسته‌بندی
+ */
+const handleCategoryChange = () => {
+  console.log('🔽 تغییر دسته‌بندی به:', filters.category)
+  loadProducts(1)
+}
+
+/**
+ * تغییر مرتب‌سازی
+ */
+const handleOrderingChange = () => {
+  console.log('🔽 تغییر مرتب‌سازی به:', filters.ordering)
+  loadProducts(1)
+}
+
+/**
+ * تغییر صفحه
+ */
+const handlePageChange = (page: number) => {
+  console.log('📄 تغییر صفحه به:', page)
+  loadProducts(page)
+}
+
+/**
+ * فرمت قیمت
+ */
 const formatPrice = (price: number) => {
   return productService.formatPrice(price)
 }
 
+/**
+ * دریافت آدرس تصویر
+ */
 const getProductImage = (thumb: string) => {
   return productService.getProductImageUrl(thumb)
 }
 
+/**
+ * مدیریت خطای تصویر
+ */
 const handleImageError = (e: Event) => {
+  console.log('🖼️ خطا در لود تصویر')
   const img = e.target as HTMLImageElement
   img.src = 'https://via.placeholder.com/300x300?text=عکس+موجود+نیست'
 }
 
-const addToCart = (product: Product) => {
-  // اینجا منطق افزودن به سبد خرید
-  console.log('افزودن به سبد خرید:', product)
+/**
+ * افزودن به سبد خرید
+ */
+const addToCart = async (product: Product) => {
+  console.log('🛒 ====== ADD TO CART ======')
+  console.log('🆔 محصول:', product.id)
+  console.log('📝 نام محصول:', product.name)
+  console.log('💰 قیمت:', product.price)
+  console.log('🔢 موجودی:', product.in_stock)
+  
+  if (!product.in_stock) {
+    console.log('❌ محصول ناموجود است')
+    alert('این محصول موجود نیست')
+    return
+  }
+  
+  // انتخاب اولین واریانت (اگه محصول واریانت داره)
+  let variantId = product.id
+  if (product.variants && product.variants.length > 0) {
+    variantId = product.variants[0].id
+    console.log('🎨 استفاده از واریانت:', {
+      id: variantId,
+      name: product.variants[0].name
+    })
+  }
+  
+  console.log('📦 درخواست افزودن به سبد خرید:', {
+    variant_id: variantId,
+    quantity: 1
+  })
+  
+  try {
+    await cartStore.addItem({
+      variant_id: variantId,
+      quantity: 1
+    })
+    
+    console.log('✅ محصول با موفقیت به سبد خرید اضافه شد')
+    
+    // نمایش پیام موفقیت
+    alert('محصول به سبد خرید اضافه شد')
+    
+  } catch (error: any) {
+    console.error('❌ خطا در افزودن به سبد خرید:', error)
+    alert(error.message || 'خطا در افزودن به سبد خرید')
+  }
+  
+  console.log('🏁 ====== END ADD TO CART ======')
 }
 
-// بارگذاری اولیه
+// ========== Lifecycle ==========
 onMounted(() => {
+  console.log('🔥 ProductsView mounted')
   loadProducts()
 })
 </script>
 
 <style scoped>
+/* استایل‌های قبلی */
 .products-page {
   min-height: 100vh;
   background: #f8f9fa;
@@ -333,8 +452,13 @@ onMounted(() => {
   margin-top: auto;
 }
 
-.product-card__add-to-cart:hover {
+.product-card__add-to-cart:hover:not(:disabled) {
   background: #5a67d8;
+}
+
+.product-card__add-to-cart:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 .products-loading {

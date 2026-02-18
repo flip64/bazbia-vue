@@ -1,36 +1,39 @@
 // core/store/productStore.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'  // ✅ حتماً computed رو import کن
 import { productService } from '@/services/product.service'
 import type { Product } from '@/types/product.types'
 
 export const useProductStore = defineStore('product', () => {
   // State
+  const products = ref<Product[]>([])
   const suggestedProducts = ref<Product[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-  const lastFetched = ref<number | null>(null)
 
-  // Getters
-  const isStale = computed(() => {
-    if (!lastFetched.value) return true
-    const FIVE_MINUTES = 5 * 60 * 1000
-    return Date.now() - lastFetched.value > FIVE_MINUTES
-  })
+  // Getters - با computed
+  const totalProducts = computed(() => products.value.length)
+  const hasProducts = computed(() => products.value.length > 0)
+  const hasSuggested = computed(() => suggestedProducts.value.length > 0)
 
   // Actions
-  async function fetchSuggestedProducts(force = false) {
-    // اگه داده داریم و تازه هست، درخواست نده
-    if (!force && suggestedProducts.value.length > 0 && !isStale.value) {
-      return suggestedProducts.value
-    }
-
+  async function fetchProducts(params?: any) {
     loading.value = true
     error.value = null
-    
     try {
-      suggestedProducts.value = await productService.getSuggestedProducts(3)
-      lastFetched.value = Date.now()
+      products.value = await productService.getProducts(params)
+    } catch (err: any) {
+      error.value = err.message || 'خطا در دریافت محصولات'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchSuggestedProducts(limit: number = 3) {
+    loading.value = true
+    error.value = null
+    try {
+      suggestedProducts.value = await productService.getSuggestedProducts(limit)
     } catch (err: any) {
       error.value = err.message || 'خطا در دریافت محصولات پیشنهادی'
     } finally {
@@ -40,11 +43,18 @@ export const useProductStore = defineStore('product', () => {
 
   return {
     // State
+    products,
     suggestedProducts,
     loading,
     error,
     
+    // Getters
+    totalProducts,
+    hasProducts,
+    hasSuggested,
+    
     // Actions
+    fetchProducts,
     fetchSuggestedProducts
   }
 })

@@ -1,3 +1,4 @@
+<!-- src/views/products/ProductDetail/ProductDetail.vue -->
 <template>
   <div class="product-detail-page">
     <!-- حالت بارگذاری -->
@@ -102,15 +103,32 @@
               <button 
                 class="add-to-cart-btn" 
                 @click="addToCart"
-                :disabled="!isInStock"
+                :disabled="!isInStock || loadingAddToCart"
               >
-                {{ isInStock ? 'افزودن به سبد خرید' : 'ناموجود' }}
+                <span v-if="!loadingAddToCart">
+                  {{ isInStock ? 'افزودن به سبد خرید' : 'ناموجود' }}
+                </span>
+                <span v-else class="btn-loading">
+                  <span class="spinner-small"></span>
+                  در حال افزودن...
+                </span>
               </button>
 
-              <button class="wishlist-btn" @click="addToWishlist">
+              <button 
+                class="wishlist-btn" 
+                @click="addToWishlist"
+                :disabled="loadingWishlist"
+              >
                 ♡
               </button>
             </div>
+
+            <!-- پیام موفقیت -->
+            <transition name="fade">
+              <div v-if="successMessage" class="success-message">
+                ✅ {{ successMessage }}
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -121,6 +139,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useCartStore } from '@/core/store/cartStore'
+import { useWishlistStore } from '@/core/store/wishlistStore'
 import { productService } from '@/services/product.service'
 import type { ProductDetail, Variant } from '@/types/product.types'
 
@@ -132,16 +152,23 @@ console.log('🕐 Time:', new Date().toISOString())
 const route = useRoute()
 const router = useRouter()
 
+// ========== Stores ==========
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
+
 console.log('📍 Route params:', route.params)
 
-// ========== stateها ==========
+// ========== Stateها ==========
 const loading = ref(false)
 const error = ref<string | null>(null)
 const product = ref<ProductDetail | null>(null)
 const currentImage = ref('')
 const selectedVariantId = ref<number | null>(null)
+const loadingAddToCart = ref(false)
+const loadingWishlist = ref(false)
+const successMessage = ref<string | null>(null)
 
-// ========== computed properties ==========
+// ========== Computed Properties ==========
 const currentVariant = computed<Variant | null>(() => {
   if (!product.value || !product.value.variants?.length) return null
 
@@ -218,23 +245,95 @@ const fetchProduct = async () => {
   }
 }
 
-const addToCart = () => {
-  if (!currentVariant.value || !isInStock.value) return
-  console.log('🛒 افزودن به سبد خرید:', {
-    productId: product.value?.id,
-    variantId: currentVariant.value.id
+const addToCart = async () => {
+  // ========== اعتبارسنجی ==========
+  if (!currentVariant.value) {
+    console.log('❌ واریانت انتخاب نشده')
+    return
+  }
+  
+  if (!isInStock.value) {
+    console.log('❌ محصول ناموجود است')
+    alert('این محصول موجود نیست')
+    return
+  }
+
+  // ========== شروع فرآیند ==========
+  console.log('🛒 ====== ADD TO CART ======')
+  console.log('📦 محصول:', {
+    id: product.value?.id,
+    name: product.value?.name,
+    variantId: currentVariant.value.id,
+    variantName: currentVariant.value.name,
+    quantity: 1
   })
+
+  loadingAddToCart.value = true
+  successMessage.value = null
+
+  try {
+    // ========== افزودن به سبد خرید ==========
+    console.log('🔄 در حال ارسال به store...')
+    
+    await cartStore.addItem({
+      variant_id: currentVariant.value.id,
+      quantity: 1
+    })
+
+    // ========== موفقیت ==========
+    console.log('✅ محصول با موفقیت به سبد خرید اضافه شد')
+    
+    // نمایش پیام موفقیت
+    successMessage.value = 'محصول به سبد خرید اضافه شد'
+    
+    // پاک کردن پیام بعد از ۳ ثانیه
+    setTimeout(() => {
+      successMessage.value = null
+    }, 3000)
+
+    // ویبره کردن دکمه (اختیاری)
+    // می‌تونی تعداد سبد خرید رو توی هدر آپدیت شده ببینی
+
+  } catch (error: any) {
+    // ========== خطا ==========
+    console.error('❌ خطا در افزودن به سبد خرید:', error)
+    
+    const errorMessage = error.response?.data?.message || 
+                        error.message || 
+                        'خطا در افزودن به سبد خرید'
+    
+    alert(errorMessage)
+
+  } finally {
+    // ========== پاکسازی ==========
+    loadingAddToCart.value = false
+    console.log('🏁 ====== END ADD TO CART ======')
+  }
 }
 
-const addToWishlist = () => {
-  console.log('❤️ افزودن به علاقه‌مندی‌ها:', product.value?.id)
+const addToWishlist = async () => {
+  if (!product.value) return
+  
+  console.log('❤️ افزودن به علاقه‌مندی‌ها:', product.value.id)
+  
+  loadingWishlist.value = true
+  
+  try {
+    await wishlistStore.addItem(product.value.id)
+    alert('محصول به علاقه‌مندی‌ها اضافه شد')
+  } catch (error: any) {
+    console.error('❌ خطا:', error)
+    alert(error.message || 'خطا در افزودن به علاقه‌مندی‌ها')
+  } finally {
+    loadingWishlist.value = false
+  }
 }
 
 const goBack = () => {
   router.push('/products')
 }
 
-// ========== lifecycle ==========
+// ========== Lifecycle ==========
 onMounted(() => {
   console.log('✅ onMounted اجرا شد')
   fetchProduct()
@@ -314,6 +413,7 @@ watch(() => route.params.slug, (newSlug) => {
   cursor: pointer;
   padding: 0;
   aspect-ratio: 1/1;
+  transition: all 0.3s;
 }
 
 .thumb-btn:hover {
@@ -395,6 +495,7 @@ watch(() => route.params.slug, (newSlug) => {
   color: #721c24;
 }
 
+/* مشخصات */
 .specs-table {
   width: 100%;
   border-collapse: collapse;
@@ -422,10 +523,12 @@ watch(() => route.params.slug, (newSlug) => {
   font-weight: 500;
 }
 
+/* دکمه‌ها */
 .product-info__actions {
   display: flex;
   gap: 1rem;
   margin: 2rem 0;
+  position: relative;
 }
 
 .add-to-cart-btn {
@@ -438,21 +541,41 @@ watch(() => route.params.slug, (newSlug) => {
   font-size: 1.1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s;
+  min-height: 3.5rem;
 }
 
-.add-to-cart-btn:hover {
+.add-to-cart-btn:hover:not(:disabled) {
   background: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
 .add-to-cart-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .wishlist-btn {
-  width: 3rem;
-  height: 3rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border: 1px solid #ddd;
   background: white;
   border-radius: 0.5rem;
@@ -464,11 +587,44 @@ watch(() => route.params.slug, (newSlug) => {
   transition: all 0.3s;
 }
 
-.wishlist-btn:hover {
+.wishlist-btn:hover:not(:disabled) {
   border-color: #dc3545;
   color: #dc3545;
+  transform: scale(1.1);
 }
 
+.wishlist-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* پیام موفقیت */
+.success-message {
+  position: absolute;
+  bottom: -3rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 0.75rem;
+  background: #d4edda;
+  color: #155724;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* حالت‌های بارگذاری و خطا */
 .loading-state,
 .error-state,
 .not-found-state {
@@ -502,8 +658,25 @@ watch(() => route.params.slug, (newSlug) => {
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
+  transition: background 0.3s;
 }
 
+.back-btn:hover {
+  background: #0052a3;
+}
+
+/* انیمیشن fade */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ریسپانسیو */
 @media (max-width: 768px) {
   .product-detail__content {
     grid-template-columns: 1fr;
@@ -512,6 +685,33 @@ watch(() => route.params.slug, (newSlug) => {
   
   .product-detail__container {
     padding: 1rem;
+  }
+  
+  .product-info__title {
+    font-size: 1.5rem;
+  }
+  
+  .current-price {
+    font-size: 1.5rem;
+  }
+  
+  .old-price {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-gallery__thumbs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .product-info__actions {
+    flex-direction: column;
+  }
+  
+  .wishlist-btn {
+    width: 100%;
+    height: 3rem;
   }
 }
 </style>

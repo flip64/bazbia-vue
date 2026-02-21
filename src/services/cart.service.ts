@@ -37,19 +37,24 @@ class CartService {
    * افزودن محصول به سبد خرید
    * @param payload - اطلاعات محصول و session_key (برای مهمان)
    */
-  async addToCart(payload: AddToCartPayload): Promise<Cart> {
-    try {
-      const response = await apiClient.post<Cart>(
-        API_ENDPOINTS.CART.ADD,
-        payload
-      )
-      
-      return response.data
-    } catch (error) {
-      console.error('Error adding to cart:', error)
-      throw error
-    }
+  async addToCart(payload: AddToCartPayload, sessionKey?: string): Promise<Cart> {
+  try {
+    const config = sessionKey
+      ? { params: { session_key: sessionKey } }  // ← اضافه شد
+      : {}
+
+    const response = await apiClient.post<Cart>(
+      API_ENDPOINTS.CART.ADD,
+      payload,
+      config  // ← ارسال config با params
+    )
+
+    return response.data
+  } catch (error) {
+    console.error('Error adding to cart:', error)
+    throw error
   }
+}
 
   /**
    * بروزرسانی تعداد آیتم

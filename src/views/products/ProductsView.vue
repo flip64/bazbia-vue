@@ -100,7 +100,7 @@
 
                   <!-- برچسب تخفیف -->
                   <div v-if="product.discount_price || hasDiscountVariant(product)" class="discount-badge">
-                    ٪{{ calculateMaxDiscount(product) }} تخفیف
+                    %{{ calculateMaxDiscount(product) }} تخفیف
                   </div>
                 </div>
                 
@@ -263,7 +263,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { productService } from '@/services/product.service'
 import { useCartStore } from '@/core/store/cartStore'
@@ -300,7 +300,7 @@ const selectedVariants = ref<Record<number, ProductVariant | null>>({})
 const previewVariants = ref<Record<number, ProductVariant | null>>({})
 
 // ========== Computed ==========
-const totalProducts = () => pagination.total_products
+const totalProducts = computed(() => pagination.total_products)
 
 // ========== Methods ==========
 
@@ -602,4 +602,536 @@ const handleImageError = (e: Event) => {
 
 const getDisplayedPages = () => {
   const total = pagination.total_pages
-  const current = pagination.c
+  const current = pagination.current_page
+  const delta = 2 // تعداد صفحات قبل و بعد
+  
+  const range: number[] = []
+  
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+      range.push(i)
+    }
+  }
+  
+  return range
+}
+
+// ========== Lifecycle ==========
+onMounted(() => {
+  const page = readFiltersFromUrl()
+  loadProducts(page)
+})
+
+// ========== Watchers ==========
+watch(() => route.query, () => {
+  const page = readFiltersFromUrl()
+  loadProducts(page)
+})
+</script>
+
+<style scoped>
+.products-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  direction: rtl;
+}
+
+.products-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.products-header__title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.products-header__count {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.products-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.products-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+}
+
+.products-sidebar {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.filter-section {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1.5rem;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.filter-section h3 {
+  color: #374151;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.filter-section select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.price-range {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.price-range input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: #374151;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.products-main {
+  min-width: 0;
+}
+
+.products-toolbar {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.products-toolbar select {
+  padding: 0.75rem 2rem 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.95rem;
+  min-width: 200px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.product-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.product-card__link {
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+}
+
+.product-card__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.product-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-card__image img {
+  transform: scale(1.05);
+}
+
+.variants-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(102, 126, 234, 0.95);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ef4444;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  z-index: 2;
+}
+
+.product-card__content {
+  padding: 1rem;
+}
+
+.product-card__title {
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-card__category {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.product-variants {
+  margin: 0.75rem 0;
+}
+
+.variant-section {
+  margin-bottom: 0.75rem;
+}
+
+.variant-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.color-variants {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.color-variant {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.color-variant.selected {
+  border-color: #667eea;
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #667eea;
+}
+
+.color-variant.out-of-stock {
+  opacity: 0.5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.color-variant.out-of-stock::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  transform: rotate(45deg);
+}
+
+.size-variants {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.size-variant {
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  padding: 0 0.5rem;
+}
+
+.size-variant.selected {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.size-variant.out-of-stock {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.variant-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: white;
+}
+
+.product-card__price {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.current-price {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #667eea;
+  margin-left: 0.5rem;
+}
+
+.old-price {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.price-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-left: 0.25rem;
+}
+
+.product-card__add-to-cart {
+  width: 100%;
+  padding: 0.75rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: auto;
+  font-weight: 500;
+}
+
+.product-card__add-to-cart:hover:not(:disabled) {
+  background: #5a67d8;
+}
+
+.product-card__add-to-cart:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.product-card__add-to-cart.success {
+  background: #10b981;
+}
+
+.products-loading {
+  text-align: center;
+  padding: 3rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #f3f4f6;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.products-error {
+  text-align: center;
+  padding: 3rem;
+  color: #ef4444;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.products-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+.reset-filters-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.products-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-number {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-number:hover {
+  background: #f3f4f6;
+}
+
+.pagination-number.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+@media (max-width: 768px) {
+  .products-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .products-header__title {
+    font-size: 2rem;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .products-sidebar {
+    position: static;
+    margin-bottom: 1rem;
+  }
+
+  .product-card__title {
+    font-size: 0.9rem;
+  }
+
+  .current-price {
+    font-size: 1rem;
+  }
+
+  .color-variant {
+    width: 24px;
+    height: 24px;
+  }
+
+  .size-variant {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+}
+</style>

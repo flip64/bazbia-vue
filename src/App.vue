@@ -26,6 +26,8 @@
         {{ toast.message }}
       </div>
     </transition>
+    <RouterView />
+    <ToastContainer />
 
     <!-- Modal -->
     <div v-if="modal.show" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
@@ -55,6 +57,7 @@
 </template>
 
 <script setup lang="ts">
+import ToastContainer from "@/components/ui/ToastContainer.vue"
 import { reactive, ref } from "vue"
 import Header from "@/components/layout/header/Header.vue"
 import Footer from "@/components/layout/Footer.vue"

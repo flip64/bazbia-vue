@@ -62,6 +62,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -181,6 +182,7 @@ onMounted(() => {
   loadProducts(page)
 })
 </script>
+
 
 <style scoped>
 .products-page {

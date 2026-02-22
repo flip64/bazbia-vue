@@ -228,3 +228,217 @@
                       <span>سفارش‌های من</span>
                     </router-link>
                   </li>
+                  <li>
+                    <router-link to="/wishlist" class="header__mobile-nav-link" @click="closeMobileMenu">
+                      <Heart :size="18" class="header__mobile-nav-icon" />
+                      <span>علاقه‌مندی‌ها</span>
+                      <span v-if="wishlistCount" class="header__badge">{{ wishlistCount }}</span>
+                    </router-link>
+                  </li>
+                  <li>
+                    <router-link to="/settings" class="header__mobile-nav-link" @click="closeMobileMenu">
+                      <Settings :size="18" class="header__mobile-nav-icon" />
+                      <span>تنظیمات</span>
+                    </router-link>
+                  </li>
+                  <li class="header__mobile-divider"></li>
+                  <li>
+                    <button @click="handleMobileLogout" class="header__mobile-nav-link header__mobile-nav-link--logout">
+                      <LogOut :size="18" class="header__mobile-nav-icon" />
+                      <span>خروج از حساب</span>
+                    </button>
+                  </li>
+                </template>
+              </ul>
+            </nav>
+          </div>
+        </transition>
+
+        <!-- جستجوی موبایل -->
+        <transition name="fade">
+          <div v-if="isMobileSearchOpen" class="header__mobile-search">
+            <form @submit.prevent="handleSearch">
+              <input 
+                type="text"
+                v-model="searchQuery"
+                placeholder="جستجوی محصولات..."
+                class="header__mobile-search-input"
+                ref="mobileSearchInput"
+              >
+            </form>
+          </div>
+        </transition>
+      </div>
+    </div>
+  </header>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { 
+  Search,
+  User,
+  Heart,
+  ShoppingBag,
+  Menu,
+  X,
+  LogOut,
+  LogIn,
+  Settings
+} from 'lucide-vue-next'
+import { useAuthStore } from '@/core/store/authStore'
+import { useCartStore } from '@/core/store/cartStore'
+import { useWishlistStore } from '@/core/store/wishlistStore'
+import { vClickOutside } from '@/directives/clickOutside'
+import './Header.css'
+
+// ========== Router ==========
+const router = useRouter()
+const route = useRoute()
+
+// ========== Stores ==========
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
+
+// ========== Store Refs ==========
+const { 
+  isAuthenticated, 
+  user, 
+  userInitial, 
+  userFullName, 
+  userEmail,
+  userAvatar 
+} = storeToRefs(authStore)
+
+const { totalItems: cartTotalItems } = storeToRefs(cartStore)
+const { totalItems: wishlistCount } = storeToRefs(wishlistStore)
+
+// ========== State ==========
+const isSticky = ref(false)
+const isMobileMenuOpen = ref(false)
+const isMobileSearchOpen = ref(false)
+const isUserMenuOpen = ref(false)
+const searchQuery = ref('')
+const mobileSearchInput = ref<HTMLInputElement | null>(null)
+const logoUrl = ref('https://bazbia.ir/media/logo/bazbialogo.gif')
+
+// ========== Menu Items ==========
+const menuItems = ref([
+  { id: 1, title: 'خانه', path: '/' },
+  { id: 2, title: 'محصولات', path: '/products' },
+  { id: 3, title: 'دسته‌بندی‌ها', path: '/categories' },
+  { id: 4, title: 'تخفیف‌ها', path: '/offers' },
+  { id: 5, title: 'وبلاگ', path: '/blog' },
+  { id: 6, title: 'تماس با ما', path: '/contact' }
+])
+
+// ========== Methods ==========
+const isActiveRoute = (path: string) => route.path === path
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({ 
+      path: '/products', 
+      query: { search: searchQuery.value } 
+    })
+    searchQuery.value = ''
+    closeMobileSearch()
+  }
+}
+
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.src = 'https://via.placeholder.com/150x50?text=بازبیا'
+}
+
+const handleAvatarError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.style.display = 'none'
+}
+
+const toggleUserMenu = () => {
+  if (!isAuthenticated.value) {
+    router.push('/login')
+  } else {
+    isUserMenuOpen.value = !isUserMenuOpen.value
+  }
+}
+
+const closeUserMenu = () => {
+  isUserMenuOpen.value = false
+}
+
+const goToWishlist = () => {
+  if (!isAuthenticated.value) {
+    router.push('/login?redirect=wishlist')
+  } else {
+    router.push('/wishlist')
+  }
+}
+
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+    closeUserMenu()
+    closeMobileMenu()
+    router.push('/')
+  } catch (error) {
+    console.error('خطا در خروج:', error)
+  }
+}
+
+const handleMobileLogout = () => {
+  handleLogout()
+}
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+  document.body.style.overflow = isMobileMenuOpen.value ? 'hidden' : ''
+  if (isMobileMenuOpen.value) {
+    isUserMenuOpen.value = false
+  }
+}
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+  document.body.style.overflow = ''
+}
+
+const toggleSearch = () => {
+  isMobileSearchOpen.value = !isMobileSearchOpen.value
+  if (isMobileSearchOpen.value) {
+    setTimeout(() => mobileSearchInput.value?.focus(), 100)
+  }
+}
+
+const closeMobileSearch = () => {
+  isMobileSearchOpen.value = false
+}
+
+const handleScroll = () => {
+  isSticky.value = window.scrollY > 50
+}
+
+// ========== Watchers ==========
+watch(() => route.path, () => {
+  closeMobileMenu()
+  closeMobileSearch()
+  closeUserMenu()
+})
+
+// ========== Lifecycle ==========
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  
+  // مقداردهی اولیه سبد خرید
+  cartStore.initializeCart()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+  document.body.style.overflow = ''
+})
+</script>

@@ -9,7 +9,7 @@ export const productService = {
   // متد موجود برای لیست محصولات
   async getProducts(params: ProductsQueryParams = {}) {
     try {
-      const response = await axios.get<ProductsResponse>(`${API_BASE_URL}/products/`, {
+      const response = await axios.get<ProductsResponse>(`${API_BASE_URL}/products/full-products/`, {
         params: {
           page: params.page || 1,
           category: params.category,

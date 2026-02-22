@@ -249,6 +249,7 @@ const addToCart = async (product: Product) => {
   
   // انتخاب اولین واریانت (اگه محصول واریانت داره)
   let variantId = product.id
+  console.log("varua" ,product.variants )
   if (product.variants && product.variants.length > 0) {
     variantId = product.variants[0].id
     console.log('🎨 استفاده از واریانت:', {
@@ -256,7 +257,6 @@ const addToCart = async (product: Product) => {
       name: product.variants[0].name
     })
   }
-  
   console.log('📦 درخواست افزودن به سبد خرید:', {
     variant_id: variantId,
     quantity: 1

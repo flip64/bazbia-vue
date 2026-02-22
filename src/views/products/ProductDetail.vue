@@ -142,7 +142,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/core/store/cartStore'
 import { useWishlistStore } from '@/core/store/wishlistStore'
 import { productService } from '@/services/product.service'
-import type { ProductDetail, Variant } from '@/types/product.types'
+import { Variant, type ProductDetail } from '@/types/product.types'
 
 // ========== دیباگ ==========
 console.log('🔥 PRODUCT DETAIL COMPONENT LOADED')
@@ -274,7 +274,7 @@ const addToCart = async () => {
   try {
     // ========== افزودن به سبد خرید ==========
     console.log('🔄 در حال ارسال به store...')
-    
+
     await cartStore.addItem({
       variant_id: currentVariant.value.id,
       quantity: 1

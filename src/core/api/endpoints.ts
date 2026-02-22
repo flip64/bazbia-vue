@@ -68,7 +68,7 @@ export const API_ENDPOINTS = {
   // ========== محصولات ==========
   PRODUCT: {
     /** لیست محصولات - GET */
-    LIST: '/products/',
+    LIST: '/products/full-products/',
     
     /** جزئیات محصول - GET */
     DETAIL: (id: number) => `/products/${id}/`,

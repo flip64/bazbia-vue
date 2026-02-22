@@ -261,7 +261,6 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -431,8 +430,7 @@ const getSizeVariants = (product: Product): ProductVariant[] => {
 const hasDiscountVariant = (product: Product): boolean => {
   return product.variants?.some(v => v.discount_price) || false
 }
-
-const calculateMaxDiscount = (product: Product): number => {
+  const calculateMaxDiscount = (product: Product): number => {
   let maxDiscount = 0
   
   if (product.discount_price) {
@@ -596,14 +594,14 @@ const getProductImage = (thumb: string) => {
 
 const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
-  img.src = '/images/placeholder-product.jpg' // تصویر پیش‌فرض لوکال
-  img.onerror = null // جلوگیری از حلقه بی‌نهایت
+  img.src = '/images/placeholder-product.jpg'
+  img.onerror = null
 }
 
 const getDisplayedPages = () => {
   const total = pagination.total_pages
   const current = pagination.current_page
-  const delta = 2 // تعداد صفحات قبل و بعد
+  const delta = 2
   
   const range: number[] = []
   

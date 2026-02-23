@@ -26,7 +26,7 @@
         {{ toast.message }}
       </div>
     </transition>
-    <RouterView />
+  
     <ToastContainer />
 
     <!-- Modal -->

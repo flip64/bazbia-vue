@@ -1,9 +1,12 @@
+// types/product.types.ts
+
 export interface Category {
   id: number
   name: string
   slug: string
-  image: string
-  subcategories: any[]
+  image: string | null
+  parent_id?: number
+  subcategories: Category[]
 }
 
 export interface Specification {
@@ -14,7 +17,7 @@ export interface Specification {
 export interface Variant {
   id: number
   sku: string
-  price: string
+  price: string  // price به صورت string میاد
   discount_price: string | null
   stock: number
   low_stock_threshold: number
@@ -29,12 +32,12 @@ export interface ProductImage {
   is_main: boolean
 }
 
-export interface ProductDetail {
+export interface Product {
   id: number
   name: string
   slug: string
   description: string
-  base_price: string
+  base_price: string  // string هست نه number
   category: Category
   tags: string[]
   specifications: Specification[]
@@ -46,5 +49,20 @@ export interface ProductDetail {
   updated_at: string
   is_special: boolean
   special_details: any | null
-  quantity: number
-  }
+  quantity: number  // موجودی کل
+  
+  // فیلدهای computed برای استفاده در فرانت
+  price?: number
+  discount_price?: number | null
+  in_stock?: boolean
+  thumb?: string
+}
+
+export interface ProductsResponse {
+  count: number
+  next: string | null
+  previous: string | null
+  current_page: number
+  total_pages: number
+  data: Product[]
+}

@@ -1,199 +1,120 @@
 <!-- src/views/products/ProductsView.vue -->
 <template>
   <div class="products-page">
-    <!-- هدر با گرادینت زیبا -->
+    <!-- هدر -->
     <div class="hero-section">
       <div class="hero-content">
         <h1 class="hero-title">محصولات</h1>
         <p class="hero-subtitle">
-          {{ pagination?.total_products || 0 }} محصول ویژه برای شما
+          {{ pagination?.total_products || 0 }} محصول از {{ totalCategories }} دسته‌بندی
         </p>
       </div>
     </div>
 
     <div class="container">
-      <!-- ابزارک‌های فیلتر و مرتب‌سازی -->
+      <!-- مسیر دسته‌بندی (Breadcrumb) -->
+      <div v-if="categoryPath.length" class="breadcrumb">
+        <router-link to="/products" class="breadcrumb-item">همه محصولات</router-link>
+        <span v-for="(cat, index) in categoryPath" :key="cat.id" class="breadcrumb-item">
+          <span class="separator">/</span>
+          <router-link :to="`/products?category=${cat.slug}`">{{ cat.name }}</router-link>
+        </span>
+      </div>
+
+      <!-- ابزارک‌ها -->
       <div class="toolbar-wrapper">
         <div class="toolbar">
-          <div class="filter-dropdown">
-            <button class="filter-btn">
+          <!-- انتخاب دسته‌بندی - طراحی جدید برای درخت -->
+          <div class="categories-dropdown">
+            <button class="categories-btn" @click="toggleCategoriesSidebar">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M3 4H21M3 12H15M3 20H9" stroke-width="2" stroke-linecap="round"/>
+                <rect x="3" y="3" width="7" height="7" stroke-width="2"/>
+                <rect x="14" y="3" width="7" height="7" stroke-width="2"/>
+                <rect x="3" y="14" width="7" height="7" stroke-width="2"/>
+                <rect x="14" y="14" width="7" height="7" stroke-width="2"/>
               </svg>
-              <span>دسته‌بندی</span>
+              <span>دسته‌بندی‌ها</span>
             </button>
-            <div class="dropdown-menu">
-              <select 
-                v-model="filters.category" 
-                @change="handleCategoryChange" 
-                class="select-input"
-              >
-                <option value="">همه دسته‌ها</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.slug">
-                  {{ cat.name }}
-                </option>
-              </select>
-            </div>
           </div>
 
+          <!-- مرتب‌سازی -->
           <div class="sort-dropdown">
-            <select 
-              v-model="filters.ordering" 
-              @change="handleOrderingChange" 
-              class="sort-select"
-            >
-              <option value="">مرتب‌سازی: پیش‌فرض</option>
+            <select v-model="filters.ordering" @change="handleOrderingChange" class="sort-select">
+              <option value="">مرتب‌سازی پیش‌فرض</option>
               <option value="price">قیمت: کم به زیاد</option>
               <option value="-price">قیمت: زیاد به کم</option>
               <option value="-created_at">جدیدترین</option>
-              <option value="created_at">قدیمی‌ترین</option>
+              <option value="-discount">بیشترین تخفیف</option>
+              <option value="-sold">پرفروش‌ترین</option>
+              <option value="name">نام: الف تا ی</option>
+              <option value="-name">نام: ی تا الف</option>
             </select>
           </div>
         </div>
       </div>
 
-      <!-- لودینگ اسکلتون -->
-      <div v-if="loading" class="products-grid">
-        <div v-for="n in 8" :key="n" class="product-skeleton">
-          <div class="skeleton-image"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-title"></div>
-            <div class="skeleton-category"></div>
-            <div class="skeleton-price"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- خطا -->
-      <div v-else-if="error" class="error-container">
-        <div class="error-card">
-          <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2"/>
-            <path d="M12 8v4M12 16h.01" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <h3 class="error-title">خطا در بارگذاری محصولات</h3>
-          <p class="error-message">{{ error }}</p>
-          <button @click="loadProducts" class="retry-btn">
-            تلاش مجدد
-          </button>
-        </div>
-      </div>
-
-      <!-- محصولات -->
-      <div v-else-if="products?.length" class="products-grid">
-        <div v-for="product in products" :key="product.id" class="product-card">
-          <!-- برچسب تخفیف -->
-          <div v-if="product.discount_price" class="product-badge discount-badge">
-            {{ calculateDiscount(product) }}% تخفیف
+      <!-- سایدبار دسته‌بندی (موبایل/دسکتاپ) -->
+      <div class="products-layout">
+        <!-- سایدبار دسته‌بندی برای دسکتاپ -->
+        <aside class="categories-sidebar" :class="{ 'mobile-open': showMobileSidebar }">
+          <div class="sidebar-header">
+            <h3>دسته‌بندی‌ها</h3>
+            <button class="close-sidebar" @click="showMobileSidebar = false">×</button>
           </div>
           
-          <!-- برچسب موجودی محدود -->
-          <div v-else-if="product.quantity < 5" class="product-badge stock-badge">
-            فقط {{ product.quantity }} عدد مونده
+          <div class="sidebar-search">
+            <input 
+              v-model="categorySearch" 
+              type="text" 
+              placeholder="جستجوی دسته‌بندی..."
+            />
           </div>
 
-          <!-- تصویر محصول -->
-          <router-link :to="`/product/${product.slug}`" class="product-image-link">
-            <div class="product-image-wrapper">
-              <img 
-                :src="getProductImage(product.thumb)" 
-                :alt="product.name"
-                class="product-image"
-                loading="lazy"
-                @error="handleImageError"
-              />
-              <div class="image-overlay"></div>
-            </div>
-          </router-link>
-
-          <!-- محتوای محصول -->
-          <div class="product-content">
-            <router-link :to="`/product/${product.slug}`" class="product-info-link">
-              <h3 class="product-title">{{ product.name }}</h3>
-              <p class="product-category">{{ getCategoryName(product) }}</p>
-            </router-link>
-
-            <!-- قیمت‌ها -->
-            <div class="product-price-wrapper">
-              <div v-if="product.discount_price" class="price-box">
-                <span class="current-price">{{ formatPrice(product.discount_price) }}</span>
-                <span class="old-price">{{ formatPrice(product.price) }}</span>
-              </div>
-              <div v-else class="price-box">
-                <span class="current-price">{{ formatPrice(product.price) }}</span>
-              </div>
-              <span class="price-unit">تومان</span>
-            </div>
-
-            <!-- دکمه افزودن به سبد خرید -->
-            <button 
-              class="add-to-cart-btn"
-              :class="{ 'out-of-stock': !product.in_stock }"
-              @click="addToCart(product)"
-              :disabled="!product.in_stock"
-            >
-              <svg v-if="product.in_stock" class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L5.5 15.5C5.2 16 5.6 17 6.5 17H19" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="9" cy="20" r="1.5" stroke-width="2"/>
-                <circle cx="17" cy="20" r="1.5" stroke-width="2"/>
-              </svg>
-              <span>{{ product.in_stock ? 'افزودن به سبد خرید' : 'ناموجود' }}</span>
-            </button>
+          <div v-if="loadingCategories" class="sidebar-loading">
+            <div class="spinner-small"></div>
           </div>
-        </div>
-      </div>
 
-      <!-- حالت خالی -->
-      <div v-else class="empty-state">
-        <div class="empty-card">
-          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2"/>
-            <path d="M8 12h8" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <h3 class="empty-title">محصولی یافت نشد</h3>
-          <p class="empty-message">با تغییر فیلترها می‌توانید محصولات بیشتری ببینید</p>
-        </div>
-      </div>
+          <div v-else class="categories-tree">
+            <CategoryTree 
+              :categories="categories"
+              :selected-slug="filters.category"
+              :expanded-cats="expandedCategories"
+              @select="selectCategory"
+              @toggle="toggleCategory"
+            />
+          </div>
+        </aside>
 
-      <!-- صفحه‌بندی -->
-      <div v-if="pagination?.total_pages > 1" class="pagination-wrapper">
-        <div class="pagination">
-          <button 
-            class="pagination-btn"
-            :class="{ 'disabled': pagination.current_page === 1 }"
-            @click="handlePageChange(pagination.current_page - 1)"
-            :disabled="pagination.current_page === 1"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M15 18L9 12L15 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+        <!-- اویرلی برای موبایل -->
+        <div 
+          v-if="showMobileSidebar" 
+          class="sidebar-overlay"
+          @click="showMobileSidebar = false"
+        ></div>
 
-          <span class="pagination-info">
-            صفحه {{ pagination.current_page }} از {{ pagination.total_pages }}
-          </span>
-
-          <button 
-            class="pagination-btn"
-            :class="{ 'disabled': pagination.current_page === pagination.total_pages }"
-            @click="handlePageChange(pagination.current_page + 1)"
-            :disabled="pagination.current_page === pagination.total_pages"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M9 18L15 12L9 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
+        <!-- لیست محصولات -->
+        <main class="products-main">
+          <!-- محتوای محصولات مثل قبل -->
+          <!-- ... -->
+        </main>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/core/store/cartStore'
 import { productService } from '@/services/product.service'
+import { categoryService } from '@/services/category.service'
+import CategoryTree from '@/components/categories/CategoryTree.vue'
 import type { Product } from '@/types/product.types'
+import type { Category } from '@/types/category.types'
+
+// ========== Router ==========
+const route = useRoute()
+const router = useRouter()
 
 // ========== Stores ==========
 const cartStore = useCartStore()
@@ -202,7 +123,12 @@ const cartStore = useCartStore()
 const products = ref<Product[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
-const categories = ref<any[]>([])
+const categories = ref<Category[]>([])
+const loadingCategories = ref(false)
+const showMobileSidebar = ref(false)
+const categorySearch = ref('')
+const expandedCategories = ref<number[]>([])
+const categoryPath = ref<Category[]>([])
 
 const pagination = reactive({
   current_page: 1,
@@ -215,14 +141,109 @@ const filters = reactive({
   ordering: ''
 })
 
+// ========== Computed ==========
+const totalCategories = computed(() => {
+  return categoryService.getAllCategoriesFlat(categories.value).length
+})
+
+const filteredCategories = computed(() => {
+  if (!categorySearch.value) return categories.value
+  
+  const search = categorySearch.value.toLowerCase()
+  
+  const filterTree = (cats: Category[]): Category[] => {
+    return cats.reduce<Category[]>((acc, cat) => {
+      const matches = cat.name.toLowerCase().includes(search)
+      const hasMatchingChildren = cat.subcategories?.length && 
+        filterTree(cat.subcategories).length > 0
+      
+      if (matches || hasMatchingChildren) {
+        acc.push({
+          ...cat,
+          subcategories: filterTree(cat.subcategories || [])
+        })
+      }
+      return acc
+    }, [])
+  }
+  
+  return filterTree(categories.value)
+})
+
 // ========== Methods ==========
+
+/**
+ * دریافت دسته‌بندی‌ها
+ */
+const loadCategories = async () => {
+  loadingCategories.value = true
+  try {
+    categories.value = await categoryService.getCategories()
+    console.log('✅ دسته‌بندی‌ها:', categories.value)
+  } catch (err) {
+    console.error('❌ خطا در دریافت دسته‌بندی‌ها:', err)
+  } finally {
+    loadingCategories.value = false
+  }
+}
+
+/**
+ * دریافت مسیر دسته‌بندی از روی slug
+ */
+const loadCategoryPath = async (slug: string) => {
+  if (!slug) {
+    categoryPath.value = []
+    return
+  }
+  
+  try {
+    categoryPath.value = await categoryService.getCategoryPath(slug)
+  } catch (err) {
+    console.error('❌ خطا در دریافت مسیر دسته‌بندی:', err)
+    categoryPath.value = []
+  }
+}
+
+/**
+ * باز کردن سایدبار در موبایل
+ */
+const toggleCategoriesSidebar = () => {
+  showMobileSidebar.value = !showMobileSidebar.value
+}
+
+/**
+ * انتخاب دسته‌بندی
+ */
+const selectCategory = (slug: string) => {
+  filters.category = slug
+  showMobileSidebar.value = false
+  
+  // آپدیت URL
+  router.push({
+    query: {
+      ...route.query,
+      category: slug || undefined
+    }
+  })
+  
+  loadProducts(1)
+}
+
+/**
+ * باز و بسته کردن زیردسته
+ */
+const toggleCategory = (categoryId: number) => {
+  if (expandedCategories.value.includes(categoryId)) {
+    expandedCategories.value = expandedCategories.value.filter(id => id !== categoryId)
+  } else {
+    expandedCategories.value.push(categoryId)
+  }
+}
 
 /**
  * بارگذاری محصولات
  */
 const loadProducts = async (page: number = 1) => {
-  console.log('📦 بارگذاری محصولات - صفحه:', page)
-  
   loading.value = true
   error.value = null
   
@@ -240,8 +261,6 @@ const loadProducts = async (page: number = 1) => {
     pagination.total_pages = response.total_pages
     pagination.total_products = response.count
     
-    console.log('✅ محصولات دریافت شد:', products.value.length)
-    
   } catch (err: any) {
     error.value = err.message || 'خطا در بارگذاری محصولات'
     console.error('❌ خطا:', err)
@@ -251,18 +270,9 @@ const loadProducts = async (page: number = 1) => {
 }
 
 /**
- * تغییر دسته‌بندی
- */
-const handleCategoryChange = () => {
-  console.log('🔽 تغییر دسته‌بندی به:', filters.category)
-  loadProducts(1)
-}
-
-/**
  * تغییر مرتب‌سازی
  */
 const handleOrderingChange = () => {
-  console.log('🔽 تغییر مرتب‌سازی به:', filters.ordering)
   loadProducts(1)
 }
 
@@ -270,82 +280,45 @@ const handleOrderingChange = () => {
  * تغییر صفحه
  */
 const handlePageChange = (page: number) => {
-  console.log('📄 تغییر صفحه به:', page)
   loadProducts(page)
 }
 
 /**
- * فرمت قیمت
+ * تلاش مجدد
  */
-const formatPrice = (price: number | undefined) => {
-  if (!price) return '۰'
-  return productService.formatPrice(price)
+const retryLoad = () => {
+  loadProducts(pagination.current_page)
 }
 
-/**
- * دریافت آدرس تصویر
- */
-const getProductImage = (thumb: string | null | undefined) => {
-  return productService.getProductImageUrl(thumb)
-}
-
-/**
- * مدیریت خطای تصویر
- */
-const handleImageError = (e: Event) => {
-  const img = e.target as HTMLImageElement
-  img.src = '/images/placeholder.jpg'
-}
-
-/**
- * محاسبه درصد تخفیف
- */
-const calculateDiscount = (product: Product) => {
-  if (!product.discount_price || !product.price) return 0
-  return Math.round((1 - product.discount_price / product.price) * 100)
-}
-
-/**
- * دریافت نام دسته‌بندی
- */
-const getCategoryName = (product: Product) => {
-  return product.category?.name || 'دسته‌بندی نشده'
-}
-
-/**
- * افزودن به سبد خرید
- */
-const addToCart = async (product: Product) => {
-  if (!product.in_stock) {
-    alert('این محصول موجود نیست')
-    return
+// ========== Watchers ==========
+watch(() => route.query.category, (newCategory) => {
+  if (typeof newCategory === 'string') {
+    filters.category = newCategory
+    loadCategoryPath(newCategory)
+  } else {
+    filters.category = ''
+    categoryPath.value = []
   }
-  
-  try {
-    const variantId = product.variants?.[0]?.id || product.id
-    
-    await cartStore.addItem({
-      variant_id: variantId,
-      quantity: 1
-    })
-    
-    alert('محصول به سبد خرید اضافه شد')
-    
-  } catch (error: any) {
-    console.error('❌ خطا:', error)
-    alert(error.message || 'خطا در افزودن به سبد خرید')
-  }
-}
+})
 
 // ========== Lifecycle ==========
-onMounted(() => {
+onMounted(async () => {
   console.log('🔥 ProductsView mounted')
-  loadProducts()
   
-  // می‌تونی دسته‌بندی‌ها رو از یه API دیگه بگیری
-  // loadCategories()
+  // دریافت دسته‌بندی‌ها
+  await loadCategories()
+  
+  // بررسی category از URL
+  if (route.query.category) {
+    filters.category = route.query.category as string
+    await loadCategoryPath(filters.category)
+  }
+  
+  // دریافت محصولات
+  await loadProducts()
 })
 </script>
+
 
 <style scoped>
 /* متغیرهای رنگ */

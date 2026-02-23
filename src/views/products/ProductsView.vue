@@ -1,10 +1,13 @@
+<!-- src/views/products/ProductsView.vue -->
 <template>
   <div class="products-page">
     <!-- هدر با گرادینت زیبا -->
     <div class="hero-section">
       <div class="hero-content">
         <h1 class="hero-title">محصولات</h1>
-        <p class="hero-subtitle">{{ totalProducts }} محصول ویژه برای شما</p>
+        <p class="hero-subtitle">
+          {{ pagination?.total_products || 0 }} محصول ویژه برای شما
+        </p>
       </div>
     </div>
 
@@ -20,17 +23,25 @@
               <span>دسته‌بندی</span>
             </button>
             <div class="dropdown-menu">
-              <select v-model="filters.category" @change="handleCategoryChange" class="select-input">
+              <select 
+                v-model="filters.category" 
+                @change="handleCategoryChange" 
+                class="select-input"
+              >
                 <option value="">همه دسته‌ها</option>
-                <option value="الکترونیک">الکترونیک</option>
-                <option value="خانه">خانه</option>
-                <option value="ورزشی">ورزشی</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.slug">
+                  {{ cat.name }}
+                </option>
               </select>
             </div>
           </div>
 
           <div class="sort-dropdown">
-            <select v-model="filters.ordering" @change="handleOrderingChange" class="sort-select">
+            <select 
+              v-model="filters.ordering" 
+              @change="handleOrderingChange" 
+              class="sort-select"
+            >
               <option value="">مرتب‌سازی: پیش‌فرض</option>
               <option value="price">قیمت: کم به زیاد</option>
               <option value="-price">قیمت: زیاد به کم</option>
@@ -62,18 +73,18 @@
           </svg>
           <h3 class="error-title">خطا در بارگذاری محصولات</h3>
           <p class="error-message">{{ error }}</p>
-          <button @click="retryLoad" class="retry-btn">
+          <button @click="loadProducts" class="retry-btn">
             تلاش مجدد
           </button>
         </div>
       </div>
 
       <!-- محصولات -->
-      <div v-else-if="products.length" class="products-grid">
+      <div v-else-if="products?.length" class="products-grid">
         <div v-for="product in products" :key="product.id" class="product-card">
           <!-- برچسب تخفیف -->
           <div v-if="product.discount_price" class="product-badge discount-badge">
-            {{ Math.round((1 - product.discount_price / product.price) * 100) }}% تخفیف
+            {{ calculateDiscount(product) }}% تخفیف
           </div>
           
           <!-- برچسب موجودی محدود -->
@@ -99,7 +110,7 @@
           <div class="product-content">
             <router-link :to="`/product/${product.slug}`" class="product-info-link">
               <h3 class="product-title">{{ product.name }}</h3>
-              <p class="product-category">{{ product.category?.name || 'دسته‌بندی نشده' }}</p>
+              <p class="product-category">{{ getCategoryName(product) }}</p>
             </router-link>
 
             <!-- قیمت‌ها -->
@@ -145,7 +156,7 @@
       </div>
 
       <!-- صفحه‌بندی -->
-      <div v-if="pagination.total_pages > 1" class="pagination-wrapper">
+      <div v-if="pagination?.total_pages > 1" class="pagination-wrapper">
         <div class="pagination">
           <button 
             class="pagination-btn"
@@ -178,6 +189,163 @@
   </div>
 </template>
 
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useCartStore } from '@/core/store/cartStore'
+import { productService } from '@/services/product.service'
+import type { Product } from '@/types/product.types'
+
+// ========== Stores ==========
+const cartStore = useCartStore()
+
+// ========== State ==========
+const products = ref<Product[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+const categories = ref<any[]>([])
+
+const pagination = reactive({
+  current_page: 1,
+  total_pages: 1,
+  total_products: 0
+})
+
+const filters = reactive({
+  category: '',
+  ordering: ''
+})
+
+// ========== Methods ==========
+
+/**
+ * بارگذاری محصولات
+ */
+const loadProducts = async (page: number = 1) => {
+  console.log('📦 بارگذاری محصولات - صفحه:', page)
+  
+  loading.value = true
+  error.value = null
+  
+  try {
+    const params: any = {
+      page,
+      ...(filters.category && { category: filters.category }),
+      ...(filters.ordering && { ordering: filters.ordering })
+    }
+    
+    const response = await productService.getProducts(params)
+    
+    products.value = response.data
+    pagination.current_page = response.current_page
+    pagination.total_pages = response.total_pages
+    pagination.total_products = response.count
+    
+    console.log('✅ محصولات دریافت شد:', products.value.length)
+    
+  } catch (err: any) {
+    error.value = err.message || 'خطا در بارگذاری محصولات'
+    console.error('❌ خطا:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+/**
+ * تغییر دسته‌بندی
+ */
+const handleCategoryChange = () => {
+  console.log('🔽 تغییر دسته‌بندی به:', filters.category)
+  loadProducts(1)
+}
+
+/**
+ * تغییر مرتب‌سازی
+ */
+const handleOrderingChange = () => {
+  console.log('🔽 تغییر مرتب‌سازی به:', filters.ordering)
+  loadProducts(1)
+}
+
+/**
+ * تغییر صفحه
+ */
+const handlePageChange = (page: number) => {
+  console.log('📄 تغییر صفحه به:', page)
+  loadProducts(page)
+}
+
+/**
+ * فرمت قیمت
+ */
+const formatPrice = (price: number | undefined) => {
+  if (!price) return '۰'
+  return productService.formatPrice(price)
+}
+
+/**
+ * دریافت آدرس تصویر
+ */
+const getProductImage = (thumb: string | null | undefined) => {
+  return productService.getProductImageUrl(thumb)
+}
+
+/**
+ * مدیریت خطای تصویر
+ */
+const handleImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.src = '/images/placeholder.jpg'
+}
+
+/**
+ * محاسبه درصد تخفیف
+ */
+const calculateDiscount = (product: Product) => {
+  if (!product.discount_price || !product.price) return 0
+  return Math.round((1 - product.discount_price / product.price) * 100)
+}
+
+/**
+ * دریافت نام دسته‌بندی
+ */
+const getCategoryName = (product: Product) => {
+  return product.category?.name || 'دسته‌بندی نشده'
+}
+
+/**
+ * افزودن به سبد خرید
+ */
+const addToCart = async (product: Product) => {
+  if (!product.in_stock) {
+    alert('این محصول موجود نیست')
+    return
+  }
+  
+  try {
+    const variantId = product.variants?.[0]?.id || product.id
+    
+    await cartStore.addItem({
+      variant_id: variantId,
+      quantity: 1
+    })
+    
+    alert('محصول به سبد خرید اضافه شد')
+    
+  } catch (error: any) {
+    console.error('❌ خطا:', error)
+    alert(error.message || 'خطا در افزودن به سبد خرید')
+  }
+}
+
+// ========== Lifecycle ==========
+onMounted(() => {
+  console.log('🔥 ProductsView mounted')
+  loadProducts()
+  
+  // می‌تونی دسته‌بندی‌ها رو از یه API دیگه بگیری
+  // loadCategories()
+})
+</script>
 
 <style scoped>
 /* متغیرهای رنگ */

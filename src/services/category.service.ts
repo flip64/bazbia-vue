@@ -10,7 +10,7 @@ export const categoryService = {
    */
   async getCategories(): Promise<Category[]> {
     try {
-      const response = await axios.get<Category[]>(`${API_BASE_URL}/categories/`)
+      const response = await axios.get<Category[]>(`${API_BASE_URL}/products/categories/`)
       console.log('📁 دسته‌بندی‌ها:', response.data)
       return response.data
     } catch (error) {

@@ -1,237 +1,448 @@
 <!-- src/views/products/ProductsView.vue -->
 <template>
   <div class="products-page">
-    <!-- هدر -->
-    <div class="hero-section">
-      <div class="hero-content">
-        <h1 class="hero-title"> بازبیا محصولات</h1>
-        <p class="hero-subtitle">
-          {{ pagination?.total_products || 0 }} محصول از {{ totalCategories }} دسته‌بندی
-        </p>
+    <!-- هدر با جستجو -->
+    <div class="products-header">
+      <div class="header-content">
+        <h1 class="page-title">✨ فروشگاه تخصصی</h1>
+        <p class="page-subtitle">بهترین محصولات با بهترین قیمت‌ها</p>
+        
+        <!-- نوار جستجو -->
+        <div class="search-box">
+          <input 
+            type="text"
+            v-model="searchQuery"
+            placeholder="جستجوی محصول مورد نظر..."
+            @input="handleSearch"
+            class="search-input"
+          />
+          <button class="search-btn">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8" stroke-width="2"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="container">
-      <!-- مسیر دسته‌بندی (Breadcrumb) -->
-      <div v-if="categoryPath.length" class="breadcrumb">
-        <router-link to="/products" class="breadcrumb-item">همه محصولات</router-link>
+      <!-- مسیر دسته‌بندی -->
+      <nav class="breadcrumb" v-if="categoryPath.length">
+        <router-link to="/" class="breadcrumb-link">
+          <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 10L12 3L21 10V20H3V10Z" stroke-width="2"/>
+          </svg>
+        </router-link>
+        <span class="separator">›</span>
+        <router-link to="/products" class="breadcrumb-link">محصولات</router-link>
         <span v-for="(cat, index) in categoryPath" :key="cat.id" class="breadcrumb-item">
-          <span class="separator">/</span>
-          <router-link :to="`/products?category=${cat.slug}`">{{ cat.name }}</router-link>
+          <span class="separator">›</span>
+          <span class="breadcrumb-current">{{ cat.name }}</span>
         </span>
+      </nav>
+
+      <!-- فیلترهای سریع -->
+      <div class="quick-filters">
+        <button 
+          v-for="filter in quickFilters" 
+          :key="filter.value"
+          class="quick-filter-btn"
+          :class="{ active: filters.ordering === filter.value }"
+          @click="setQuickFilter(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
       </div>
 
-      <!-- ابزارک‌ها -->
-      <div class="toolbar-wrapper">
-        <div class="toolbar">
-          <!-- انتخاب دسته‌بندی - طراحی جدید برای درخت -->
-          <div class="categories-dropdown">
-            <button class="categories-btn" @click="toggleCategoriesSidebar">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <rect x="3" y="3" width="7" height="7" stroke-width="2"/>
-                <rect x="14" y="3" width="7" height="7" stroke-width="2"/>
-                <rect x="3" y="14" width="7" height="7" stroke-width="2"/>
-                <rect x="14" y="14" width="7" height="7" stroke-width="2"/>
-              </svg>
-              <span>دسته‌بندی‌ها</span>
-            </button>
-          </div>
-
-          <!-- مرتب‌سازی -->
-          <div class="sort-dropdown">
-            <select v-model="filters.ordering" @change="handleOrderingChange" class="sort-select">
-              <option value="">مرتب‌سازی پیش‌فرض</option>
-              <option value="price">قیمت: کم به زیاد</option>
-              <option value="-price">قیمت: زیاد به کم</option>
-              <option value="-created_at">جدیدترین</option>
-              <option value="-discount">بیشترین تخفیف</option>
-              <option value="-sold">پرفروش‌ترین</option>
-              <option value="name">نام: الف تا ی</option>
-              <option value="-name">نام: ی تا الف</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- سایدبار دسته‌بندی (موبایل/دسکتاپ) -->
+      <!-- بخش اصلی -->
       <div class="products-layout">
-        <!-- سایدبار دسته‌بندی برای دسکتاپ -->
-        <aside class="categories-sidebar" :class="{ 'mobile-open': showMobileSidebar }">
+        <!-- سایدبار فیلتر -->
+        <aside class="filter-sidebar" :class="{ 'mobile-open': showFilters }">
           <div class="sidebar-header">
-            <h3>دسته‌بندی‌ها</h3>
-            <button class="close-sidebar" @click="showMobileSidebar = false">×</button>
-          </div>
-          
-          <div class="sidebar-search">
-            <input 
-              v-model="categorySearch" 
-              type="text" 
-              placeholder="جستجوی دسته‌بندی..."
-            />
+            <h3 class="sidebar-title">فیلترها</h3>
+            <button class="close-filters" @click="showFilters = false">✕</button>
           </div>
 
-          <div v-if="loadingCategories" class="sidebar-loading">
-            <div class="spinner-small"></div>
+          <!-- دسته‌بندی‌ها -->
+          <div class="filter-section">
+            <h4 class="filter-title">دسته‌بندی‌ها</h4>
+            <div class="filter-search">
+              <input 
+                v-model="categorySearch" 
+                type="text" 
+                placeholder="جستجوی دسته‌بندی..."
+                class="filter-search-input"
+              />
+            </div>
+            <div v-if="loadingCategories" class="filter-loading">
+              <div class="spinner"></div>
+            </div>
+            <div v-else class="categories-list">
+              <div 
+                v-for="category in filteredCategories" 
+                :key="category.id"
+                class="category-item"
+                :class="{ 'has-children': category.subcategories?.length }"
+              >
+                <div class="category-row" @click="toggleCategory(category)">
+                  <span class="category-name">{{ category.name }}</span>
+                  <span class="category-count">({{ category.products_count || 0 }})</span>
+                  <svg 
+                    v-if="category.subcategories?.length" 
+                    class="chevron" 
+                    :class="{ rotated: expandedCategories.includes(category.id) }"
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor"
+                  >
+                    <polyline points="6 9 12 15 18 9" stroke-width="2"/>
+                  </svg>
+                </div>
+                
+                <!-- زیردسته‌ها -->
+                <div 
+                  v-if="category.subcategories?.length && expandedCategories.includes(category.id)"
+                  class="subcategories"
+                >
+                  <div 
+                    v-for="sub in category.subcategories" 
+                    :key="sub.id"
+                    class="subcategory-item"
+                    @click="selectCategory(sub.slug)"
+                  >
+                    <span>{{ sub.name }}</span>
+                    <span>({{ sub.products_count || 0 }})</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div v-else class="categories-tree">
-            <CategoryTree 
-              :categories="filteredCategories"
-              :selected-slug="filters.category"
-              :expanded-cats="expandedCategories"
-              @select="selectCategory"
-              @toggle="toggleCategory"
-            />
+          <!-- فیلتر قیمت -->
+          <div class="filter-section">
+            <h4 class="filter-title">محدوده قیمت</h4>
+            <div class="price-range">
+              <div class="price-inputs">
+                <div class="price-input">
+                  <label>از</label>
+                  <input 
+                    type="number" 
+                    v-model="priceRange.min" 
+                    placeholder="0"
+                    class="price-field"
+                  />
+                </div>
+                <span class="price-sep">تا</span>
+                <div class="price-input">
+                  <label>تا</label>
+                  <input 
+                    type="number" 
+                    v-model="priceRange.max" 
+                    placeholder="نامحدود"
+                    class="price-field"
+                  />
+                </div>
+              </div>
+              <button class="apply-price" @click="applyPriceFilter">اعمال</button>
+            </div>
           </div>
+
+          <!-- فیلتر موجودی -->
+          <div class="filter-section">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                v-model="filters.inStock" 
+                @change="loadProducts(1)"
+              />
+              <span>فقط محصولات موجود</span>
+            </label>
+          </div>
+
+          <!-- فیلتر تخفیف دار -->
+          <div class="filter-section">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                v-model="filters.hasDiscount" 
+                @change="loadProducts(1)"
+              />
+              <span>محصولات با تخفیف</span>
+            </label>
+          </div>
+
+          <!-- دکمه پاک کردن فیلترها -->
+          <button class="clear-filters" @click="clearAllFilters">
+            پاک کردن همه فیلترها
+          </button>
         </aside>
 
-        <!-- اویرلی برای موبایل -->
-        <div 
-          v-if="showMobileSidebar" 
-          class="sidebar-overlay"
-          @click="showMobileSidebar = false"
-        ></div>
-
-        <!-- لیست محصولات -->
+        <!-- بخش محصولات -->
         <main class="products-main">
-          <!-- حالت بارگذاری -->
-          <div v-if="loading" class="products-grid">
-            <div v-for="n in 8" :key="n" class="product-skeleton">
-              <div class="skeleton-image"></div>
-              <div class="skeleton-content">
-                <div class="skeleton-title"></div>
-                <div class="skeleton-category"></div>
-                <div class="skeleton-price"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- حالت خطا -->
-          <div v-else-if="error" class="error-container">
-            <div class="error-card">
-              <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
-                <line x1="12" y1="8" x2="12" y2="12" stroke-width="1.5"/>
-                <circle cx="12" cy="16" r="1" fill="currentColor"/>
-              </svg>
-              <h3 class="error-title">خطا در بارگذاری</h3>
-              <p class="error-message">{{ error }}</p>
-              <button @click="retryLoad" class="retry-btn">
-                تلاش مجدد
+          <!-- نوار ابزار -->
+          <div class="products-toolbar">
+            <div class="toolbar-left">
+              <button class="filter-toggle" @click="showFilters = true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
+                  <line x1="9" y1="9" x2="15" y2="9" stroke-width="2"/>
+                  <line x1="9" y1="15" x2="15" y2="15" stroke-width="2"/>
+                </svg>
+                <span>فیلترها</span>
               </button>
+              
+              <span class="products-count">
+                {{ pagination.total_products.toLocaleString('fa-IR') }} محصول
+              </span>
             </div>
-          </div>
 
-          <!-- حالت خالی -->
-          <div v-else-if="!products.length" class="empty-state">
-            <div class="empty-card">
-              <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
-                <path d="M8 12h8" stroke-width="1.5"/>
-              </svg>
-              <h3 class="empty-title">محصولی یافت نشد</h3>
-              <p class="empty-message">
-                هیچ محصولی در این دسته‌بندی وجود ندارد.
-              </p>
-              <router-link to="/products" class="retry-btn">
-                مشاهده همه محصولات
-              </router-link>
-            </div>
-          </div>
+            <div class="toolbar-right">
+              <select v-model="filters.ordering" @change="loadProducts(1)" class="sort-select">
+                <option value="">پیش‌فرض</option>
+                <option value="-created_at">جدیدترین</option>
+                <option value="-sold">پرفروش‌ترین</option>
+                <option value="price">قیمت: کم به زیاد</option>
+                <option value="-price">قیمت: زیاد به کم</option>
+                <option value="-discount">بیشترین تخفیف</option>
+              </select>
 
-          <!-- گرید محصولات -->
-          <div v-else class="products-grid">
-            <div v-for="product in products" :key="product.id" class="product-card">
-              <!-- برچسب تخفیف -->
-              <div v-if="product.discount_percent > 0" class="product-badge discount-badge">
-                {{ product.discount_percent }}% تخفیف
-              </div>
-              <div v-else-if="product.stock < 5" class="product-badge stock-badge">
-                فقط {{ product.stock }} عدد باقی‌مانده
-              </div>
-
-              <!-- تصویر محصول -->
-              <router-link :to="`/products/${product.slug}`" class="product-image-link">
-                <div class="product-image-wrapper">
-                  <img 
-                    :src="product.primary_image || '/images/placeholder.jpg'" 
-                    :alt="product.name"
-                    class="product-image"
-                    loading="lazy"
-                  />
-                  <div class="image-overlay"></div>
-                </div>
-              </router-link>
-
-              <!-- محتوای محصول -->
-              <div class="product-content">
-                <router-link :to="`/products/${product.slug}`" class="product-info-link">
-                  <h3 class="product-title">{{ product.name }}</h3>
-                  <p class="product-category">{{ product.category_name }}</p>
-                </router-link>
-
-                <!-- قیمت -->
-                <div class="product-price-wrapper">
-                  <div class="price-box">
-                    <span class="current-price">{{ product.price.toLocaleString('fa-IR') }}</span>
-                    <span class="price-unit">تومان</span>
-                  </div>
-                  <span v-if="product.discount_percent > 0" class="old-price">
-                    {{ product.old_price?.toLocaleString('fa-IR') }}
-                  </span>
-                </div>
-
-                <!-- دکمه افزودن به سبد خرید -->
+              <div class="view-toggle">
                 <button 
-                  class="add-to-cart-btn"
-                  :class="{ 'out-of-stock': product.stock === 0 }"
-                  :disabled="product.stock === 0 || cartStore.loading"
-                  @click="cartStore.addToCart(product)"
+                  class="view-btn" 
+                  :class="{ active: viewMode === 'grid' }"
+                  @click="viewMode = 'grid'"
                 >
-                  <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="9" cy="21" r="1" stroke-width="2"/>
-                    <circle cx="20" cy="21" r="1" stroke-width="2"/>
-                    <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" stroke-width="2"/>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="3" width="7" height="7" stroke-width="2"/>
+                    <rect x="14" y="3" width="7" height="7" stroke-width="2"/>
+                    <rect x="3" y="14" width="7" height="7" stroke-width="2"/>
+                    <rect x="14" y="14" width="7" height="7" stroke-width="2"/>
                   </svg>
-                  <span v-if="product.stock === 0">ناموجود</span>
-                  <span v-else>افزودن به سبد خرید</span>
+                </button>
+                <button 
+                  class="view-btn" 
+                  :class="{ active: viewMode === 'list' }"
+                  @click="viewMode = 'list'"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="3" y1="6" x2="21" y2="6" stroke-width="2"/>
+                    <line x1="3" y1="12" x2="21" y2="12" stroke-width="2"/>
+                    <line x1="3" y1="18" x2="21" y2="18" stroke-width="2"/>
+                  </svg>
                 </button>
               </div>
             </div>
           </div>
 
+          <!-- نتایج -->
+          <div v-if="loading" class="loading-state">
+            <div class="spinner-large"></div>
+            <p>در حال بارگذاری محصولات...</p>
+          </div>
+
+          <div v-else-if="error" class="error-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+              <line x1="12" y1="8" x2="12" y2="12" stroke-width="1.5"/>
+              <circle cx="12" cy="16" r="1" fill="currentColor"/>
+            </svg>
+            <h3>خطا در بارگذاری</h3>
+            <p>{{ error }}</p>
+            <button @click="retryLoad" class="retry-btn">تلاش مجدد</button>
+          </div>
+
+          <div v-else-if="!products.length" class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" stroke-width="1.5"/>
+              <path d="M8 12h8" stroke-width="1.5"/>
+            </svg>
+            <h3>محصولی یافت نشد</h3>
+            <p>هیچ محصولی با این مشخصات وجود ندارد</p>
+            <button @click="clearAllFilters" class="clear-filters-btn">پاک کردن فیلترها</button>
+          </div>
+
+          <!-- نمایش محصولات - گرید یا لیست -->
+          <div v-else :class="['products-container', viewMode]">
+            <div 
+              v-for="product in products" 
+              :key="product.id" 
+              class="product-item"
+            >
+              <!-- حالت گرید -->
+              <template v-if="viewMode === 'grid'">
+                <div class="product-card">
+                  <!-- برچسب‌ها -->
+                  <div class="product-badges">
+                    <span v-if="product.discount_percent > 0" class="badge discount">
+                      {{ product.discount_percent }}% تخفیف
+                    </span>
+                    <span v-if="product.is_new" class="badge new">جدید</span>
+                    <span v-if="product.stock < 5" class="badge stock">
+                      فقط {{ product.stock }} عدد
+                    </span>
+                  </div>
+
+                  <!-- تصویر -->
+                  <router-link :to="`/products/${product.slug}`" class="product-image">
+                    <img 
+                      :src="product.primary_image || '/images/placeholder.jpg'" 
+                      :alt="product.name"
+                      loading="lazy"
+                    />
+                    <button 
+                      v-if="product.stock > 0"
+                      class="quick-add"
+                      @click.prevent="quickAddToCart(product)"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>
+                      </svg>
+                    </button>
+                  </router-link>
+
+                  <!-- اطلاعات -->
+                  <div class="product-info">
+                    <router-link :to="`/products/${product.slug}`" class="product-name">
+                      {{ product.name }}
+                    </router-link>
+                    
+                    <div class="product-rating">
+                      <div class="stars">
+                        <span 
+                          v-for="star in 5" 
+                          :key="star"
+                          class="star"
+                          :class="{ filled: star <= Math.round(product.rating || 0) }"
+                        >★</span>
+                      </div>
+                      <span class="rating-count">({{ product.reviews_count || 0 }})</span>
+                    </div>
+
+                    <div class="product-price">
+                      <span class="current-price">
+                        {{ product.price.toLocaleString('fa-IR') }}
+                      </span>
+                      <span class="currency">تومان</span>
+                      <span v-if="product.discount_percent > 0" class="old-price">
+                        {{ product.old_price?.toLocaleString('fa-IR') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- حالت لیست -->
+              <template v-else>
+                <div class="product-list-item">
+                  <router-link :to="`/products/${product.slug}`" class="list-image">
+                    <img 
+                      :src="product.primary_image || '/images/placeholder.jpg'" 
+                      :alt="product.name"
+                      loading="lazy"
+                    />
+                  </router-link>
+
+                  <div class="list-content">
+                    <div class="list-header">
+                      <router-link :to="`/products/${product.slug}`" class="list-title">
+                        {{ product.name }}
+                      </router-link>
+                      <div class="list-badges">
+                        <span v-if="product.discount_percent > 0" class="badge discount">
+                          {{ product.discount_percent }}% تخفیف
+                        </span>
+                        <span v-if="product.stock < 5" class="badge stock">
+                          فقط {{ product.stock }} عدد
+                        </span>
+                      </div>
+                    </div>
+
+                    <p class="list-description">{{ product.short_description }}</p>
+
+                    <div class="list-rating">
+                      <div class="stars">
+                        <span 
+                          v-for="star in 5" 
+                          :key="star"
+                          class="star"
+                          :class="{ filled: star <= Math.round(product.rating || 0) }"
+                        >★</span>
+                      </div>
+                      <span>({{ product.reviews_count || 0 }} نظر)</span>
+                    </div>
+
+                    <div class="list-footer">
+                      <div class="list-price">
+                        <span class="price-current">
+                          {{ product.price.toLocaleString('fa-IR') }}
+                        </span>
+                        <span class="currency">تومان</span>
+                        <span v-if="product.discount_percent > 0" class="price-old">
+                          {{ product.old_price?.toLocaleString('fa-IR') }}
+                        </span>
+                      </div>
+
+                      <button 
+                        class="add-to-cart"
+                        :disabled="product.stock === 0"
+                        @click="cartStore.addToCart(product)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <circle cx="9" cy="21" r="1"/>
+                          <circle cx="20" cy="21" r="1"/>
+                          <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>
+                        </svg>
+                        <span>افزودن به سبد خرید</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
           <!-- صفحه‌بندی -->
-          <div v-if="pagination.total_pages > 1" class="pagination-wrapper">
-            <div class="pagination">
-              <button 
-                class="pagination-btn"
-                :class="{ disabled: pagination.current_page === 1 }"
-                :disabled="pagination.current_page === 1"
-                @click="handlePageChange(pagination.current_page - 1)"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M15 18l-6-6 6-6" stroke-width="2"/>
-                </svg>
-              </button>
+          <div v-if="pagination.total_pages > 1" class="pagination">
+            <button 
+              class="page-btn"
+              :disabled="pagination.current_page === 1"
+              @click="handlePageChange(pagination.current_page - 1)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="15 18 9 12 15 6" stroke-width="2"/>
+              </svg>
+            </button>
 
-              <span class="pagination-info">
-                صفحه {{ pagination.current_page.toLocaleString('fa-IR') }} از {{ pagination.total_pages.toLocaleString('fa-IR') }}
-              </span>
-
+            <div class="page-numbers">
               <button 
-                class="pagination-btn"
-                :class="{ disabled: pagination.current_page === pagination.total_pages }"
-                :disabled="pagination.current_page === pagination.total_pages"
-                @click="handlePageChange(pagination.current_page + 1)"
+                v-for="page in displayedPages" 
+                :key="page"
+                class="page-number"
+                :class="{ active: page === pagination.current_page }"
+                @click="handlePageChange(page)"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M9 18l6-6-6-6" stroke-width="2"/>
-                </svg>
+                {{ page.toLocaleString('fa-IR') }}
               </button>
             </div>
+
+            <button 
+              class="page-btn"
+              :disabled="pagination.current_page === pagination.total_pages"
+              @click="handlePageChange(pagination.current_page + 1)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="9 18 15 12 9 6" stroke-width="2"/>
+              </svg>
+            </button>
           </div>
         </main>
       </div>
+
+      <!-- اورلی موبایل -->
+      <div v-if="showFilters" class="filter-overlay" @click="showFilters = false"></div>
     </div>
   </div>
 </template>
@@ -242,16 +453,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/core/store/cartStore'
 import { productService } from '@/services/product.service'
 import { categoryService } from '@/services/category.service'
-import CategoryTree from '@/components/categories/CategoryTree.vue'
 import type { Product } from '@/types/product.types'
 import type { Category } from '@/types/category.types'
+import { useToast } from '@/composables/useToast'
 
-// ========== Router ==========
 const route = useRoute()
 const router = useRouter()
-
-// ========== Stores ==========
 const cartStore = useCartStore()
+const toast = useToast()
 
 // ========== State ==========
 const products = ref<Product[]>([])
@@ -259,7 +468,9 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const categories = ref<Category[]>([])
 const loadingCategories = ref(false)
-const showMobileSidebar = ref(false)
+const showFilters = ref(false)
+const viewMode = ref<'grid' | 'list'>('grid')
+const searchQuery = ref('')
 const categorySearch = ref('')
 const expandedCategories = ref<number[]>([])
 const categoryPath = ref<Category[]>([])
@@ -270,15 +481,27 @@ const pagination = reactive({
   total_products: 0
 })
 
+const priceRange = reactive({
+  min: 0,
+  max: null as number | null
+})
+
 const filters = reactive({
   category: '',
-  ordering: ''
+  ordering: '',
+  inStock: false,
+  hasDiscount: false,
+  minPrice: 0,
+  maxPrice: null as number | null
 })
 
 // ========== Computed ==========
-const totalCategories = computed(() => {
-  return categoryService.getAllCategoriesFlat(categories.value).length
-})
+const quickFilters = [
+  { label: 'همه', value: '' },
+  { label: 'پرفروش‌ترین', value: '-sold' },
+  { label: 'تخفیف‌دار', value: '-discount' },
+  { label: 'جدیدترین', value: '-created_at' }
+]
 
 const filteredCategories = computed(() => {
   if (!categorySearch.value) return categories.value
@@ -304,26 +527,38 @@ const filteredCategories = computed(() => {
   return filterTree(categories.value)
 })
 
-// ========== Methods ==========
+const displayedPages = computed(() => {
+  const total = pagination.total_pages
+  const current = pagination.current_page
+  const delta = 2
+  
+  const range: number[] = []
+  
+  for (let i = 1; i <= total; i++) {
+    if (
+      i === 1 ||
+      i === total ||
+      (i >= current - delta && i <= current + delta)
+    ) {
+      range.push(i)
+    }
+  }
+  
+  return range
+})
 
-/**
- * دریافت دسته‌بندی‌ها
- */
+// ========== Methods ==========
 const loadCategories = async () => {
   loadingCategories.value = true
   try {
     categories.value = await categoryService.getCategories()
-    console.log('✅ دسته‌بندی‌ها:', categories.value)
   } catch (err) {
-    console.error('❌ خطا در دریافت دسته‌بندی‌ها:', err)
+    console.error('خطا در دریافت دسته‌بندی‌ها:', err)
   } finally {
     loadingCategories.value = false
   }
 }
 
-/**
- * دریافت مسیر دسته‌بندی از روی slug
- */
 const loadCategoryPath = async (slug: string) => {
   if (!slug) {
     categoryPath.value = []
@@ -333,50 +568,35 @@ const loadCategoryPath = async (slug: string) => {
   try {
     categoryPath.value = await categoryService.getCategoryPath(slug)
   } catch (err) {
-    console.error('❌ خطا در دریافت مسیر دسته‌بندی:', err)
+    console.error('خطا در دریافت مسیر دسته‌بندی:', err)
     categoryPath.value = []
   }
 }
 
-/**
- * باز کردن سایدبار در موبایل
- */
-const toggleCategoriesSidebar = () => {
-  showMobileSidebar.value = !showMobileSidebar.value
+const toggleCategory = (category: Category) => {
+  if (!category.subcategories?.length) {
+    selectCategory(category.slug)
+    return
+  }
+  
+  if (expandedCategories.value.includes(category.id)) {
+    expandedCategories.value = expandedCategories.value.filter(id => id !== category.id)
+  } else {
+    expandedCategories.value.push(category.id)
+  }
 }
 
-/**
- * انتخاب دسته‌بندی
- */
 const selectCategory = (slug: string) => {
   filters.category = slug
-  showMobileSidebar.value = false
+  showFilters.value = false
   
-  // آپدیت URL
   router.push({
-    query: {
-      ...route.query,
-      category: slug || undefined
-    }
+    query: { ...route.query, category: slug || undefined }
   })
   
   loadProducts(1)
 }
 
-/**
- * باز و بسته کردن زیردسته
- */
-const toggleCategory = (categoryId: number) => {
-  if (expandedCategories.value.includes(categoryId)) {
-    expandedCategories.value = expandedCategories.value.filter(id => id !== categoryId)
-  } else {
-    expandedCategories.value.push(categoryId)
-  }
-}
-
-/**
- * بارگذاری محصولات
- */
 const loadProducts = async (page: number = 1) => {
   loading.value = true
   error.value = null
@@ -384,8 +604,13 @@ const loadProducts = async (page: number = 1) => {
   try {
     const params: any = {
       page,
+      search: searchQuery.value,
       ...(filters.category && { category: filters.category }),
-      ...(filters.ordering && { ordering: filters.ordering })
+      ...(filters.ordering && { ordering: filters.ordering }),
+      ...(filters.inStock && { in_stock: true }),
+      ...(filters.hasDiscount && { has_discount: true }),
+      ...(filters.minPrice > 0 && { min_price: filters.minPrice }),
+      ...(filters.maxPrice && { max_price: filters.maxPrice })
     }
     
     const response = await productService.getProducts(params)
@@ -403,25 +628,51 @@ const loadProducts = async (page: number = 1) => {
   }
 }
 
-/**
- * تغییر مرتب‌سازی
- */
-const handleOrderingChange = () => {
+const setQuickFilter = (value: string) => {
+  filters.ordering = value
   loadProducts(1)
 }
 
-/**
- * تغییر صفحه
- */
+const handleSearch = () => {
+  loadProducts(1)
+}
+
+const applyPriceFilter = () => {
+  filters.minPrice = priceRange.min
+  filters.maxPrice = priceRange.max
+  loadProducts(1)
+}
+
+const clearAllFilters = () => {
+  filters.category = ''
+  filters.ordering = ''
+  filters.inStock = false
+  filters.hasDiscount = false
+  filters.minPrice = 0
+  filters.maxPrice = null
+  priceRange.min = 0
+  priceRange.max = null
+  searchQuery.value = ''
+  categorySearch.value = ''
+  
+  router.push({ query: {} })
+  loadProducts(1)
+}
+
 const handlePageChange = (page: number) => {
   loadProducts(page)
-  // اسکرول به بالای صفحه
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-/**
- * تلاش مجدد
- */
+const quickAddToCart = async (product: Product) => {
+  try {
+    await cartStore.addToCart(product)
+    toast.success('محصول به سبد خرید اضافه شد')
+  } catch (err) {
+    toast.error('خطا در افزودن به سبد خرید')
+  }
+}
+
 const retryLoad = () => {
   loadProducts(pagination.current_page)
 }
@@ -439,196 +690,172 @@ watch(() => route.query.category, (newCategory) => {
 
 // ========== Lifecycle ==========
 onMounted(async () => {
-  console.log('🔥 ProductsView mounted')
-  
-  // دریافت دسته‌بندی‌ها
   await loadCategories()
   
-  // بررسی category از URL
   if (route.query.category) {
     filters.category = route.query.category as string
     await loadCategoryPath(filters.category)
   }
   
-  // دریافت محصولات
   await loadProducts()
 })
 </script>
 
 <style scoped>
-/* متغیرهای رنگ */
-:root {
-  --primary: #8B5CF6;
-  --primary-dark: #7C3AED;
-  --primary-light: #A78BFA;
-  --secondary: #EC4899;
-  --success: #10B981;
-  --danger: #EF4444;
-  --warning: #F59E0B;
-  --dark: #1F2937;
-  --gray-50: #F9FAFB;
-  --gray-100: #F3F4F6;
-  --gray-200: #E5E7EB;
-  --gray-300: #D1D5DB;
-  --gray-400: #9CA3AF;
-  --gray-500: #6B7280;
-  --gray-600: #4B5563;
-  --gray-700: #374151;
-  --gray-800: #1F2937;
-  --gray-900: #111827;
-}
-
 .products-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--gray-50) 0%, #FFFFFF 100%);
+  background: #f8fafc;
 }
 
-/* هیرو سکشن */
-.hero-section {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+/* Header */
+.products-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 4rem 2rem;
-  margin-bottom: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 70%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  transform: rotate(30deg);
-}
-
-.hero-content {
-  max-width: 1200px;
-  margin: 0 auto;
   text-align: center;
-  position: relative;
-  z-index: 2;
 }
 
-.hero-title {
-  font-size: 3rem;
-  font-weight: 800;
+.header-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
   color: white;
   margin-bottom: 0.5rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  animation: fadeInUp 0.6s ease;
 }
 
-.hero-subtitle {
-  font-size: 1.25rem;
-  color: rgba(255,255,255,0.9);
-  animation: fadeInUp 0.8s ease;
+.page-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 2rem;
 }
 
-/* کانتینر */
-.container {
-  max-width: 1280px;
+.search-box {
+  position: relative;
+  max-width: 500px;
   margin: 0 auto;
-  padding: 0 2rem 4rem;
 }
 
-/* مسیر دسته‌بندی */
+.search-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 3rem;
+  font-size: 1rem;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.search-input:focus {
+  outline: none;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+}
+
+.search-btn {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #667eea;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+}
+
+.search-btn:hover {
+  background: #764ba2;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Container */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Breadcrumb */
 .breadcrumb {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   font-size: 0.95rem;
-  flex-wrap: wrap;
 }
 
-.breadcrumb-item {
-  color: var(--gray-500);
-  text-decoration: none;
+.breadcrumb-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.breadcrumb-item a {
-  color: var(--gray-700);
+  color: #6b7280;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.breadcrumb-item a:hover {
-  color: var(--primary);
+.breadcrumb-link:hover {
+  color: #667eea;
+}
+
+.home-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .separator {
-  color: var(--gray-400);
-  margin-left: 0.5rem;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
-/* تولبار */
-.toolbar-wrapper {
-  margin-bottom: 2.5rem;
-  background: white;
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  border: 1px solid var(--gray-200);
+.breadcrumb-current {
+  color: #374151;
+  font-weight: 500;
 }
 
-.toolbar {
+/* Quick Filters */
+.quick-filters {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
   gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
-.categories-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: 0.75rem;
-  color: var(--gray-700);
+.quick-filter-btn {
+  padding: 0.5rem 1.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 2rem;
+  color: #4b5563;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.categories-btn:hover {
-  background: var(--gray-100);
-  border-color: var(--gray-300);
+.quick-filter-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
 }
 
-.categories-btn .icon {
-  width: 20px;
-  height: 20px;
+.quick-filter-btn.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
 }
 
-.sort-select {
-  padding: 0.75rem 2.5rem 0.75rem 1.5rem;
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: 0.75rem;
-  color: var(--gray-700);
-  font-size: 0.95rem;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: left 0.75rem center;
-  background-size: 1rem;
-}
-
-.sort-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
-/* لایه‌بندی محصولات */
+/* Layout */
 .products-layout {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -636,13 +863,12 @@ onMounted(async () => {
   position: relative;
 }
 
-/* سایدبار دسته‌بندی */
-.categories-sidebar {
+/* Filter Sidebar */
+.filter-sidebar {
   background: white;
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  border: 1px solid var(--gray-200);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   height: fit-content;
   position: sticky;
   top: 1rem;
@@ -653,219 +879,476 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.sidebar-header h3 {
+.sidebar-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--gray-800);
+  color: #374151;
 }
 
-.close-sidebar {
+.close-filters {
   display: none;
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: var(--gray-500);
+  color: #9ca3af;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   border-radius: 0.5rem;
 }
 
-.close-sidebar:hover {
-  background: var(--gray-100);
-  color: var(--gray-700);
+.close-filters:hover {
+  background: #f3f4f6;
+  color: #4b5563;
 }
 
-.sidebar-search {
-  margin-bottom: 1.5rem;
+/* Filter Sections */
+.filter-section {
+  margin-bottom: 2rem;
 }
 
-.sidebar-search input {
+.filter-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.filter-search-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--gray-200);
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.filter-search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Categories */
+.categories-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.category-item {
+  margin-bottom: 0.5rem;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.category-row:hover {
+  background: #f3f4f6;
+}
+
+.category-name {
+  flex: 1;
+  color: #4b5563;
+}
+
+.category-count {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s;
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.subcategories {
+  padding-right: 1.5rem;
+  margin-top: 0.25rem;
+}
+
+.subcategory-item {
+  padding: 0.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: space-between;
   transition: all 0.2s;
 }
 
-.sidebar-search input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+.subcategory-item:hover {
+  background: #f3f4f6;
+  color: #667eea;
 }
 
-.sidebar-loading {
+/* Price Range */
+.price-range {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.price-inputs {
   display: flex;
-  justify-content: center;
-  padding: 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.spinner-small {
-  width: 30px;
-  height: 30px;
-  border: 3px solid var(--gray-200);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.price-input {
+  flex: 1;
 }
 
-/* اویرلی موبایل */
-.sidebar-overlay {
+.price-input label {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.price-field {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.price-sep {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.apply-price {
+  width: 100%;
+  padding: 0.75rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.apply-price:hover {
+  background: #764ba2;
+}
+
+/* Checkbox */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+/* Clear Filters */
+.clear-filters {
+  width: 100%;
+  padding: 0.75rem;
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-filters:hover {
+  background: #e5e7eb;
+}
+
+/* Products Main */
+.products-main {
+  min-height: 600px;
+}
+
+/* Toolbar */
+.products-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filter-toggle {
   display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  backdrop-filter: blur(4px);
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  color: #4b5563;
+  cursor: pointer;
 }
 
-/* گرید محصولات */
-.products-grid {
+.filter-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.products-count {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+  .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sort-select {
+  padding: 0.5rem 2rem 0.5rem 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  color: #4b5563;
+  font-size: 0.95rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.75rem center;
+  background-size: 1rem;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+}
+
+.view-btn {
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.view-btn:hover {
+  color: #4b5563;
+}
+
+.view-btn.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Products Grid */
+.products-container.grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-/* کارت محصول */
+/* Product Card */
 .product-card {
   background: white;
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
   position: relative;
-  border: 1px solid var(--gray-200);
-  display: flex;
-  flex-direction: column;
 }
 
 .product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 30px -10px rgba(139, 92, 246, 0.2);
-  border-color: var(--primary-light);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
 }
 
-/* برچسب محصول */
-.product-badge {
+.product-badges {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.75rem;
+  right: 0.75rem;
   z-index: 10;
-  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
   border-radius: 2rem;
   font-size: 0.75rem;
   font-weight: 600;
   color: white;
-  animation: slideIn 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.discount-badge {
-  background: linear-gradient(135deg, var(--danger), #F87171);
-  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+.badge.discount {
+  background: linear-gradient(135deg, #ef4444, #f87171);
 }
 
-.stock-badge {
-  background: linear-gradient(135deg, var(--warning), #FBBF24);
-  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+.badge.new {
+  background: linear-gradient(135deg, #10b981, #34d399);
 }
 
-/* تصویر محصول */
-.product-image-link {
-  display: block;
-  text-decoration: none;
-}
-
-.product-image-wrapper {
-  position: relative;
-  padding-top: 100%;
-  background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
-  overflow: hidden;
+.badge.stock {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
 }
 
 .product-image {
+  position: relative;
+  display: block;
+  padding-top: 100%;
+  overflow: hidden;
+}
+
+.product-image img {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s;
 }
 
-.product-card:hover .product-image {
+.product-card:hover .product-image img {
   transform: scale(1.1);
 }
 
-.image-overlay {
+.quick-add {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to top, rgba(0,0,0,0.2), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.product-card:hover .image-overlay {
-  opacity: 1;
-}
-
-/* محتوای محصول */
-.product-content {
-  padding: 1.5rem;
+  bottom: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: none;
+  border-radius: 50%;
   display: flex;
-  flex-direction: column;
-  flex: 1;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #667eea;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
 }
 
-.product-info-link {
-  text-decoration: none;
-  margin-bottom: 1rem;
+.product-card:hover .quick-add {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.product-title {
-  font-size: 1rem;
+.quick-add:hover {
+  background: #667eea;
+  color: white;
+}
+
+.quick-add svg {
+  width: 20px;
+  height: 20px;
+}
+
+.product-info {
+  padding: 1rem;
+}
+
+.product-name {
+  display: block;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--gray-800);
+  color: #374151;
+  text-decoration: none;
+  margin-bottom: 0.5rem;
   line-height: 1.5;
-  margin-bottom: 0.25rem;
-  transition: color 0.2s;
+  height: 3rem;
+  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
+  transition: color 0.2s;
 }
 
-.product-info-link:hover .product-title {
-  color: var(--primary);
+.product-name:hover {
+  color: #667eea;
 }
 
-.product-category {
-  font-size: 0.85rem;
-  color: var(--gray-500);
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* قیمت */
-.product-price-wrapper {
+.product-rating {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
 }
 
-.price-box {
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #d1d5db;
+  font-size: 1rem;
+}
+
+.star.filled {
+  color: #fbbf24;
+}
+
+.rating-count {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.product-price {
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
@@ -875,293 +1358,343 @@ onMounted(async () => {
 .current-price {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--primary);
-  line-height: 1.2;
+  color: #667eea;
+}
+
+.currency {
+  font-size: 0.8rem;
+  color: #9ca3af;
 }
 
 .old-price {
-  font-size: 0.9rem;
-  color: var(--gray-400);
+  font-size: 0.85rem;
+  color: #9ca3af;
   text-decoration: line-through;
 }
 
-.price-unit {
-  font-size: 0.8rem;
-  color: var(--gray-500);
-}
-
-/* دکمه افزودن به سبد خرید */
-.add-to-cart-btn {
+/* List View */
+.products-container.list {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.875rem;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-top: auto;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.add-to-cart-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.4);
-}
-
-.add-to-cart-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.add-to-cart-btn.out-of-stock {
-  background: var(--gray-400);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.add-to-cart-btn:disabled {
-  background: var(--gray-300);
-  cursor: not-allowed;
-}
-
-.cart-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* اسکلتون لودینگ */
-.product-skeleton {
+.product-list-item {
+  display: flex;
   background: white;
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  border: 1px solid var(--gray-200);
-}
-
-.skeleton-image {
-  width: 100%;
-  padding-top: 100%;
-  background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-}
-
-.skeleton-content {
-  padding: 1.5rem;
-}
-
-.skeleton-title {
-  height: 1.5rem;
-  width: 80%;
-  background: var(--gray-200);
-  border-radius: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.skeleton-category {
-  height: 1rem;
-  width: 50%;
-  background: var(--gray-200);
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.skeleton-price {
-  height: 1.75rem;
-  width: 40%;
-  background: var(--gray-200);
-  border-radius: 0.5rem;
-}
-
-/* حالت خطا */
-.error-container,
-.empty-state {
-  min-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.error-card,
-.empty-card {
-  text-align: center;
-  max-width: 400px;
-  padding: 2rem;
-}
-
-.error-icon,
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  color: var(--gray-400);
-  margin: 0 auto 1.5rem;
-}
-
-.error-title,
-.empty-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.5rem;
-}
-
-.error-message,
-.empty-message {
-  color: var(--gray-500);
-  margin-bottom: 2rem;
-}
-
-.retry-btn {
-  display: inline-block;
-  padding: 0.75rem 2rem;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.3s;
 }
 
-.retry-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(139, 92, 246, 0.4);
+.product-list-item:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
 }
 
-/* صفحه‌بندی */
-.pagination-wrapper {
+.list-image {
+  width: 200px;
+  min-width: 200px;
+  height: 200px;
+  overflow: hidden;
+}
+
+.list-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.product-list-item:hover .list-image img {
+  transform: scale(1.05);
+}
+
+.list-content {
+  flex: 1;
+  padding: 1.5rem;
   display: flex;
-  justify-content: center;
-  margin-top: 3rem;
+  flex-direction: column;
 }
 
-.pagination {
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.list-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.list-title:hover {
+  color: #667eea;
+}
+
+.list-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.list-description {
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  }
+
+.list-rating {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: white;
-  padding: 0.75rem;
-  border-radius: 3rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  border: 1px solid var(--gray-200);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
-.pagination-btn {
-  width: 44px;
-  height: 44px;
+.list-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.list-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.price-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.price-old {
+  font-size: 1rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.add-to-cart {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   border: none;
-  background: var(--gray-50);
-  border-radius: 50%;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  color: var(--gray-700);
+  transition: all 0.3s;
 }
 
-.pagination-btn svg {
+.add-to-cart:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.add-to-cart:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+.add-to-cart svg {
   width: 20px;
   height: 20px;
 }
 
-.pagination-btn:hover:not(:disabled) {
-  background: var(--primary);
-  color: white;
-  transform: scale(1.1);
-}
-
-.pagination-btn.disabled,
-.pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: var(--gray-100);
-}
-
-.pagination-info {
-  font-size: 0.95rem;
-  color: var(--gray-700);
-  min-width: 120px;
+/* Loading States */
+.loading-state {
   text-align: center;
+  padding: 4rem;
 }
 
-/* انیمیشن‌ها */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.spinner-large {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* ریسپانسیو */
+/* Error & Empty States */
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.error-state svg,
+.empty-state svg {
+  width: 80px;
+  height: 80px;
+  color: #9ca3af;
+  margin-bottom: 1.5rem;
+}
+
+.error-state h3,
+.empty-state h3 {
+  font-size: 1.5rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.error-state p,
+.empty-state p {
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+.retry-btn,
+.clear-filters-btn {
+  padding: 0.75rem 2rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.retry-btn:hover,
+.clear-filters-btn:hover {
+  background: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.page-btn {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.page-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.page-number {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.page-number:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.page-number.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+/* Mobile Overlay */
+.filter-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
   .products-layout {
     grid-template-columns: 250px 1fr;
-    gap: 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  .hero-title {
+  .page-title {
     font-size: 2rem;
-  }
-  
-  .hero-subtitle {
-    font-size: 1rem;
-  }
-  
-  .container {
-    padding: 0 1rem 2rem;
-  }
-  
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .categories-btn,
-  .sort-select {
-    width: 100%;
   }
   
   .products-layout {
     grid-template-columns: 1fr;
   }
   
-  .categories-sidebar {
+  .filter-sidebar {
     display: none;
     position: fixed;
     top: 0;
@@ -1169,56 +1702,88 @@ onMounted(async () => {
     width: 300px;
     height: 100vh;
     border-radius: 0;
-    z-index: 1000;
+    z-index: 999;
     transition: right 0.3s ease;
     overflow-y: auto;
   }
   
-  .categories-sidebar.mobile-open {
+  .filter-sidebar.mobile-open {
     display: block;
     right: 0;
   }
   
-  .sidebar-header {
+  .filter-toggle {
     display: flex;
   }
   
-  .close-sidebar {
+  .close-filters {
     display: block;
   }
   
-  .sidebar-overlay {
+  .filter-overlay {
     display: block;
   }
   
-  .products-grid {
+  .products-container.grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  
+  .product-list-item {
+    flex-direction: column;
+  }
+  
+  .list-image {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .list-footer {
+    flex-direction: column;
     gap: 1rem;
+    align-items: stretch;
   }
   
-  .product-content {
-    padding: 1rem;
-  }
-  
-  .current-price {
-    font-size: 1rem;
+  .add-to-cart {
+    justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
-  .products-grid {
+  .products-header {
+    padding: 3rem 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .container {
+    padding: 1rem;
+  }
+  
+  .toolbar-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .sort-select {
+    width: 100%;
+  }
+  
+  .products-container.grid {
     grid-template-columns: 1fr;
   }
   
   .pagination {
     flex-wrap: wrap;
-    justify-content: center;
   }
   
-  .pagination-info {
+  .page-numbers {
     order: -1;
     width: 100%;
+    justify-content: center;
     margin-bottom: 0.5rem;
   }
 }
 </style>
+  

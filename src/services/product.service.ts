@@ -7,30 +7,29 @@ const PLACEHOLDER_IMAGE = '/images/placeholder.jpg'
 
 // تابع کمکی برای نرمالایز کردن محصول
 const normalizeProduct = (product: any): Product => {
-  // قیمت از واریانت اول یا base_price
+  // قیمت از واریانت اول
   const mainVariant = product.variants?.[0]
-  const basePrice = parseFloat(product.base_price || '0')
-  const variantPrice = mainVariant ? parseFloat(mainVariant.price) : basePrice
-  const discountPrice = mainVariant?.discount_price 
-    ? parseFloat(mainVariant.discount_price) 
-    : null
+  const variantPrice = mainVariant ? parseFloat(mainVariant.price) : 0
 
-  // تصویر اصلی
-  const mainImage = product.images?.find((img: any) => img.is_main)?.image || 
+  // **تصویر اصلی - اصلاح شده**
+  // اول از thumb مستقیم استفاده کن (برای لیست محصولات)
+  // بعد از images (برای صفحه جزئیات)
+  const mainImage = product.thumb || 
+                   product.images?.find((img: any) => img.is_main)?.image || 
                    product.images?.[0]?.image || 
                    null
 
   return {
     ...product,
-    // فیلدهای computed برای استفاده در فرانت
+    // فیلدهای computed
     price: variantPrice,
-    discount_price: discountPrice,
+    discount_price: mainVariant?.discount_price ? parseFloat(mainVariant.discount_price) : null,
     in_stock: (mainVariant?.stock || product.quantity || 0) > 0,
-    thumb: mainImage,
+    thumb: mainImage,  // <-- حالا مقدار صحیح را دارد
     
-    // اطمینان از وجود آرایه‌ها
+    // اطمینان از وجود آرایه‌ها با مقدار پیش‌فرض
     variants: product.variants || [],
-    images: product.images || [],
+    images: product.images || [],  // <-- اگر نباشد، آرایه خالی
     tags: product.tags || [],
     specifications: product.specifications || []
   }

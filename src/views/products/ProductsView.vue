@@ -305,7 +305,7 @@
 
                   <!-- اطلاعات -->
                   <div class="product-info">
-                    <router-link :to="`/products/${product.slug}`" class="product-name">
+                    <router-link :to="`/product/${product.slug}`" class="product-name">
                       {{ product.name }}
                     </router-link>
                     
@@ -337,7 +337,7 @@
               <!-- حالت لیست -->
               <template v-else>
                 <div class="product-list-item">
-                  <router-link :to="`/products/${product.slug}`" class="list-image">
+                  <router-link :to="`/product/${product.slug}`" class="list-image">
                     <img 
                       :src="product.thumb || '/images/placeholder.jpg'" 
                       :alt="product.name"
@@ -347,7 +347,7 @@
 
                   <div class="list-content">
                     <div class="list-header">
-                      <router-link :to="`/products/${product.slug}`" class="list-title">
+                      <router-link :to="`/product/${product.slug}`" class="list-title">
                         {{ product.name }}
                       </router-link>
                       <div class="list-badges">

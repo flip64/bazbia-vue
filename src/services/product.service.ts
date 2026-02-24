@@ -40,7 +40,7 @@ export const productService = {
   // متد برای لیست محصولات
   async getProducts(params: ProductsQueryParams = {}) {
     try {
-      const response = await axios.get<ProductsResponse>(`${API_BASE_URL}/products/full-products/`, {
+      const response = await axios.get<ProductsResponse>(`${API_BASE_URL}/products/`, {
         params: {
           page: params.page || 1,
           category: params.category,

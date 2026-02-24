@@ -1,4 +1,4 @@
-<!-- views/cart/CartView.vue -->
+ehhg<!-- views/cart/CartView.vue -->
 <template>
   <div class="cart-page" dir="rtl">
     <!-- Header -->

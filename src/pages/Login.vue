@@ -148,7 +148,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   Mail, 
@@ -163,6 +163,23 @@ import {
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/core/store/authStore'
 
+// ========== Types ==========
+interface LoginForm {
+  username: string
+  password: string
+  remember: boolean
+}
+
+interface FormErrors {
+  username: string
+  password: string
+}
+
+interface LoginCredentials {
+  username: string
+  password: string
+}
+
 // ========== Router ==========
 const router = useRouter()
 const route = useRoute()
@@ -171,13 +188,13 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 // ========== State ==========
-const form = reactive({
+const form = reactive<LoginForm>({
   username: '',
   password: '',
   remember: false
 })
 
-const errors = reactive({
+const errors = reactive<FormErrors>({
   username: '',
   password: ''
 })
@@ -214,7 +231,7 @@ const validatePhone = (phone: string): boolean => {
   return phoneRegex.test(cleanPhone)
 }
 
-const validateField = (field: 'username' | 'password') => {
+const validateField = (field: keyof FormErrors): void => {
   if (field === 'username') {
     const value = form.username.trim()
     
@@ -246,20 +263,20 @@ const validateField = (field: 'username' | 'password') => {
   }
 }
 
-const clearFieldError = (field: 'username' | 'password') => {
+const clearFieldError = (field: keyof FormErrors): void => {
   errors[field] = ''
 }
 
-const handleUsernameInput = () => {
+const handleUsernameInput = (): void => {
   errors.username = ''
 }
 
-const clearError = () => {
+const clearError = (): void => {
   authError.value = null
 }
 
 // ========== Login Handler ==========
-const handleLogin = async () => {
+const handleLogin = async (): Promise<void> => {
   // اعتبارسنجی نهایی
   validateField('username')
   validateField('password')
@@ -272,21 +289,27 @@ const handleLogin = async () => {
   authError.value = null
 
   try {
-    await authStore.login({
+    const credentials: LoginCredentials = {
       username: form.username,
       password: form.password
-    })
+    }
+    
+    await authStore.login(credentials)
     
     // ذخیره وضعیت "مرا به خاطر بسپار"
-    if (form.remember) {
-      localStorage.setItem('remember_username', form.username)
-    } else {
-      localStorage.removeItem('remember_username')
+    try {
+      if (form.remember) {
+        localStorage.setItem('remember_username', form.username)
+      } else {
+        localStorage.removeItem('remember_username')
+      }
+    } catch (e) {
+      console.error('خطا در دسترسی به localStorage:', e)
     }
     
     // هدایت به صفحه قبلی یا خانه
     const redirectPath = route.query.redirect?.toString() || '/'
-    router.push(redirectPath)
+    await router.push(redirectPath)
     
   } catch (error: any) {
     authError.value = error.response?.data?.message || 'نام کاربری یا رمز عبور اشتباه است'
@@ -299,10 +322,14 @@ const handleLogin = async () => {
 // ========== Lifecycle ==========
 onMounted(() => {
   // بارگذاری نام کاربری ذخیره شده
-  const remembered = localStorage.getItem('remember_username')
-  if (remembered) {
-    form.username = remembered
-    form.remember = true
+  try {
+    const remembered = localStorage.getItem('remember_username')
+    if (remembered) {
+      form.username = remembered
+      form.remember = true
+    }
+  } catch (e) {
+    console.error('خطا در خواندن از localStorage:', e)
   }
 })
 </script>

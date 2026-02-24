@@ -286,7 +286,7 @@
                   <!-- تصویر -->
                   <router-link :to="`/product/${product.slug}`" class="product-image">
                     <img 
-                      :src="product. || '/images/placeholder.jpg'" 
+                      :src="product.images[0].image || '/images/placeholder.jpg'" 
                       :alt="product.name"
                       loading="lazy"
                     />

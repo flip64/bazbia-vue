@@ -4,7 +4,7 @@
     <!-- هدر -->
     <div class="hero-section">
       <div class="hero-content">
-        <h1 class="hero-title">محصولات</h1>
+        <h1 class="hero-title"> بازبیا محصولات</h1>
         <p class="hero-subtitle">
           {{ pagination?.total_products || 0 }} محصول از {{ totalCategories }} دسته‌بندی
         </p>

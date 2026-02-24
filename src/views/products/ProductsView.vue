@@ -284,9 +284,9 @@
                   </div>
 
                   <!-- تصویر -->
-                  <router-link :to="`/products/${product.slug}`" class="product-image">
+                  <router-link :to="`/product/${product.slug}`" class="product-image">
                     <img 
-                      :src="product.primary_image || '/images/placeholder.jpg'" 
+                      :src="product. || '/images/placeholder.jpg'" 
                       :alt="product.name"
                       loading="lazy"
                     />

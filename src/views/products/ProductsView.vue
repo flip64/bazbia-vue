@@ -339,7 +339,7 @@
                 <div class="product-list-item">
                   <router-link :to="`/products/${product.slug}`" class="list-image">
                     <img 
-                      :src="product.primary_image || '/images/placeholder.jpg'" 
+                      :src="product.thumb || '/images/placeholder.jpg'" 
                       :alt="product.name"
                       loading="lazy"
                     />

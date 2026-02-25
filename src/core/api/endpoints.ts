@@ -47,7 +47,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: number) => `/orders/cart/items/${id}/`,
     
     /** حذف آیتم - DELETE */
-    DELETE: (id: number) => `/orders/cart/items/${id}/delete/`,
+    DELETE: (id: number) => `/orders/cart/items/${id}/`,
     
     /** خالی کردن سبد خرید - DELETE */
     CLEAR: '/orders/cart/clear/',

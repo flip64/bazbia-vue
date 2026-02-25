@@ -210,9 +210,9 @@ const updateQuantity = (newQuantity: number) => {
   if (debounceTimer.value) {
     clearTimeout(debounceTimer.value)
   }
-  console.log(newQuantity,props.item.id)
+  
   debounceTimer.value = setTimeout(() => {
-    emit('update-quantity', props.item.id, newQuantity)
+    emit('update-quantity', props.item.variant_id, newQuantity)
     debounceTimer.value = undefined
   }, 500) as unknown as number
 }

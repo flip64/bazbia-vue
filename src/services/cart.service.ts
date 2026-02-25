@@ -80,7 +80,7 @@ async updateQuantity(
     console.log("item =",item,quantity)
     // payload صحیح: هم quantity و هم variant_id
     const payload = {
-      variant_id: item.variant_id,
+      variant_id: item.id,
       quantity: quantity
     }
     

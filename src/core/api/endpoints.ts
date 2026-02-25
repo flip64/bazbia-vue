@@ -44,7 +44,7 @@ export const API_ENDPOINTS = {
     ADD: '/orders/cart/add/',
     
     /** بروزرسانی آیتم - PUT */
-    UPDATE: (id: number) => `/orders/cart/item/${id}/`,
+    UPDATE: (id: number) => `/orders/cart/item/${id}/update/`,
     
     /** حذف آیتم - DELETE */
     DELETE: (id: number) => `/orders/cart/item/${id}/delete/`,

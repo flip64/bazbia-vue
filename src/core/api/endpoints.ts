@@ -44,10 +44,10 @@ export const API_ENDPOINTS = {
     ADD: '/orders/cart/add/',
     
     /** بروزرسانی آیتم - PUT */
-    UPDATE: (id: number) => `/orders/cart/items/${id}/`,
+    UPDATE: (id: number) => `/orders/cart/item/${id}/`,
     
     /** حذف آیتم - DELETE */
-    DELETE: (id: number) => `/orders/cart/items/${id}/delete/`,
+    DELETE: (id: number) => `/orders/cart/item/${id}/delete/`,
     
     /** خالی کردن سبد خرید - DELETE */
     CLEAR: '/orders/cart/clear/',

@@ -62,29 +62,46 @@ class CartService {
    * @param quantity - تعداد جدید
    * @param sessionKey - کلید جلسه (برای مهمان)
    */
-  async updateQuantity(
-    itemId: number, 
-    quantity: number, 
-    sessionKey?: string
-  ): Promise<Cart> {
-    try {
-      const payload: UpdateQuantityPayload = { quantity }
-      const config = sessionKey 
-        ? { params: { session_key: sessionKey } }
-        : {}
-      
-      const response = await apiClient.put<Cart>(
-        API_ENDPOINTS.CART.UPDATE(itemId),
-        payload,
-        config
-      )
-      
-      return response.data
-    } catch (error) {
-      console.error('Error updating cart item:', error)
-      throw error
+
+async updateQuantity(
+  itemId: number, 
+  quantity: number, 
+  sessionKey?: string
+): Promise<Cart> {
+  try {
+    // بک‌اند به variant_id هم نیاز دارد
+    // باید ابتدا آیتم را پیدا کنیم و variant_id را استخراج کنیم
+    const cart = await this.getCart(sessionKey)
+    const item = cart.items.find(i => i.id === itemId)
+    
+    if (!item) {
+      throw new Error('آیتم مورد نظر یافت نشد')
     }
+    
+    // payload صحیح: هم quantity و هم variant_id
+    const payload = {
+      variant_id: item.variant_id,
+      quantity: quantity
+    }
+    
+    const config = sessionKey 
+      ? { params: { session_key: sessionKey } }
+      : {}
+    
+    console.log('🔍 Sending payload:', payload)
+    
+    const response = await apiClient.put<Cart>(
+      API_ENDPOINTS.CART.UPDATE(itemId),
+      payload,
+      config
+    )
+    
+    return response.data
+  } catch (error) {
+    console.error('❌ Error updating cart item:', error)
+    throw error
   }
+}
 
   /**
    * حذف آیتم از سبد خرید

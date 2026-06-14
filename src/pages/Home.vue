@@ -20,23 +20,35 @@
 
     <!-- CATEGORIES -->
     <section>
-      <h2 class="text-lg font-bold mb-3">دسته‌بندی‌ها</h2>
+  <h2 class="text-lg font-bold mb-4">دسته‌بندی‌ها</h2>
 
-      <div class="flex gap-3 overflow-x-auto pb-2">
-        <div
-          v-for="c in categoryStore.categories"
-          
-          :key="c.id"
-          class="min-w-[110px] bg-white border rounded-xl p-3 text-center hover:shadow transition"
-        >
-          <img
-            :src="c.image"
-            class="w-14 h-14 mx-auto rounded-full object-cover"
-          />
-          <p class="text-xs mt-2">{{ c.name }}</p>
-        </div>
+  <div class="flex gap-4 overflow-x-auto pb-3 scrollbar-hide">
+
+    <div
+      v-for="c in categoryStore.categories"
+      :key="c.id"
+      class="flex flex-col items-center min-w-[90px] cursor-pointer group"
+    >
+
+      <!-- circle card -->
+      <div
+        class="w-16 h-16 rounded-full bg-white border flex items-center justify-center shadow-sm group-hover:shadow-md transition"
+      >
+        <img
+          :src="c.image"
+          class="w-10 h-10 object-contain"
+        />
       </div>
-    </section>
+
+      <!-- text -->
+      <p class="text-xs mt-2 text-center text-gray-700 group-hover:text-blue-500 transition line-clamp-1">
+        {{ c.name }}
+      </p>
+
+    </div>
+
+  </div>
+</section>
 
 
     <!-- FLASH / FEATURED -->

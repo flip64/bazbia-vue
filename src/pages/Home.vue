@@ -97,7 +97,7 @@ import axios from "axios"
 import BannerCarousel from "@/components/BannerCarousel.vue"
 
 import type { Category } from "@/types/category.types"
-import { useCategoryStore } from "@/stores/categoryStore"
+import { useCategoryStore } from "@/core/store/categoryStore"
 
 const categoryStore = useCategoryStore()
 

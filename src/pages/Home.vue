@@ -24,7 +24,8 @@
 
       <div class="flex gap-3 overflow-x-auto pb-2">
         <div
-          v-for="c in categories"
+          v-for="c in categoryStore.categories"
+          
           :key="c.id"
           class="min-w-[110px] bg-white border rounded-xl p-3 text-center hover:shadow transition"
         >

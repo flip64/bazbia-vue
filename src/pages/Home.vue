@@ -97,7 +97,11 @@ import axios from "axios"
 import BannerCarousel from "@/components/BannerCarousel.vue"
 import { categoryService } from "@/services/category.service"
 import type { Category } from "@/types/category.types"
+import { useCategoryStore } from "@/stores/categoryStore"
 
+const categoryStore = useCategoryStore()
+
+  
 /* ---------------- BANNERS ---------------- */
 const banners = ref<any[]>([])
 const bannerLoading = ref(true)

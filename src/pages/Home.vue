@@ -1,71 +1,90 @@
 <template>
-  <div class="home-page">
+  <div class="home-page p-4 md:p-8 bg-gray-50 space-y-10">
 
-    <!-- بنر بالا -->
-    <section class="hero-banner">
-      <div v-if="loading" class="text-center py-10">در حال بارگذاری بنر...</div>
+    <!-- HERO / BANNER -->
+    <section class="hero">
+      <div v-if="bannerLoading" class="py-10 text-center text-gray-500">
+        در حال بارگذاری بنر...
+      </div>
 
       <BannerCarousel
         v-else-if="banners.length"
         :banners="banners"
       />
 
-      <div v-else class="text-center py-10 text-gray-400">
-        بنری وجود ندارد
+      <div v-else class="py-10 text-center text-gray-400">
+        بنری موجود نیست
       </div>
     </section>
 
 
-    <!-- دسته‌بندی‌ها -->
-    <section class="categories my-6">
-      <h2 class="text-xl font-bold mb-4">دسته‌بندی‌ها</h2>
+    <!-- CATEGORIES -->
+    <section>
+      <h2 class="text-lg font-bold mb-3">دسته‌بندی‌ها</h2>
+
+      <div class="flex gap-3 overflow-x-auto pb-2">
+        <div
+          v-for="c in categories"
+          :key="c.id"
+          class="min-w-[110px] bg-white border rounded-xl p-3 text-center hover:shadow transition"
+        >
+          <img
+            :src="c.image"
+            class="w-14 h-14 mx-auto rounded-full object-cover"
+          />
+          <p class="text-xs mt-2">{{ c.name }}</p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- FLASH / FEATURED -->
+    <section>
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-bold">محصولات پیشنهادی</h2>
+        <span class="text-sm text-blue-500 cursor-pointer">مشاهده همه</span>
+      </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div
-          v-for="category in categories"
-          :key="category.id"
-          class="category-card p-2 border rounded hover:shadow transition"
+          v-for="p in featuredProducts"
+          :key="p.id"
+          class="group bg-white border rounded-xl p-3 hover:shadow-lg transition"
         >
+
           <img
-            :src="category.image"
-            :alt="category.name"
-            class="w-full h-20 object-cover rounded"
+            :src="p.image"
+            class="w-full h-36 object-cover rounded-lg group-hover:scale-105 transition"
           />
-          <p class="text-center mt-2">{{ category.name }}</p>
+
+          <h3 class="text-sm font-semibold mt-2 line-clamp-2">
+            {{ p.name }}
+          </h3>
+
+          <p class="text-green-600 font-bold mt-1">
+            {{ formatPrice(p.price) }}
+          </p>
+
+          <button
+            @click="addToCart(p)"
+            class="mt-3 w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 rounded-lg text-sm hover:opacity-90"
+          >
+            افزودن به سبد 🛒
+          </button>
+
         </div>
       </div>
     </section>
 
 
-    <!-- محصولات پرطرفدار -->
-    <section class="featured-products my-6">
-      <h2 class="text-xl font-bold mb-4">محصولات پرطرفدار</h2>
+    <!-- TRUST SECTION -->
+    <section class="bg-white rounded-2xl p-5 border">
+      <h2 class="text-lg font-bold mb-4">چرا بازبیا؟ 🐦</h2>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div
-          v-for="product in featuredProducts"
-          :key="product.id"
-          class="product-card border rounded p-4 hover:shadow transition"
-        >
-          <img
-            :src="product.image"
-            :alt="product.name"
-            class="w-full h-40 object-cover rounded"
-          />
-
-          <h3 class="font-semibold mt-2">{{ product.name }}</h3>
-
-          <p class="text-red-600 font-bold mt-1">
-            {{ formatPrice(product.price) }}
-          </p>
-
-          <button
-            @click="addToCart(product)"
-            class="mt-2 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-          >
-            افزودن به سبد خرید
-          </button>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div>✔ خرید هوشمند بدون تبلیغ مزاحم</div>
+        <div>✔ قیمت واقعی و مقایسه شفاف</div>
+        <div>✔ تجربه سریع و ساده</div>
       </div>
     </section>
 
@@ -78,65 +97,63 @@ import axios from "axios"
 import BannerCarousel from "@/components/BannerCarousel.vue"
 
 
-/* ---------------- banners ---------------- */
-
-const banners = ref([])
-const loading = ref(true)
+/* ---------------- BANNERS ---------------- */
+const banners = ref<any[]>([])
+const bannerLoading = ref(true)
 
 const fetchBanners = async () => {
   try {
-    const res = await axios.get("https://backend.bazbia.ir/api/promotions/banners/")
+    const res = await axios.get(
+      "https://backend.bazbia.ir/api/promotions/banners/"
+    )
     banners.value = res.data
-  } catch (err) {
-    console.error("Banner API Error:", err)
+  } catch (e) {
+    console.error(e)
   } finally {
-    loading.value = false
+    bannerLoading.value = false
   }
 }
 
-onMounted(fetchBanners)
 
-
-
-/* ---------------- categories ---------------- */
-
+/* ---------------- CATEGORIES ---------------- */
 const categories = ref([
   { id: 1, name: "موبایل", image: "/assets/cat-mobile.jpg" },
   { id: 2, name: "لپ‌تاپ", image: "/assets/cat-laptop.jpg" },
   { id: 3, name: "هدفون", image: "/assets/cat-headphone.jpg" },
-  { id: 4, name: "ساعت هوشمند", image: "/assets/cat-watch.jpg" }
+  { id: 4, name: "ساعت", image: "/assets/cat-watch.jpg" }
 ])
 
 
-
-/* ---------------- products ---------------- */
-
+/* ---------------- PRODUCTS ---------------- */
 const featuredProducts = ref([
-  { id: 1, name: "موبایل آیفون ۱۴", price: 40000000, image: "/assets/product-iphone14.jpg" },
-  { id: 2, name: "لپ‌تاپ ایسوس", price: 25000000, image: "/assets/product-laptop.jpg" },
-  { id: 3, name: "هدفون بی‌سیم", price: 1500000, image: "/assets/product-headphone.jpg" },
-  { id: 4, name: "ساعت هوشمند اپل", price: 9000000, image: "/assets/product-watch.jpg" }
+  { id: 1, name: "آیفون 14 پرو مکس", price: 42000000, image: "/assets/p1.jpg" },
+  { id: 2, name: "لپ‌تاپ ایسوس ROG", price: 38000000, image: "/assets/p2.jpg" },
+  { id: 3, name: "هدفون بی‌سیم سونی", price: 2500000, image: "/assets/p3.jpg" },
+  { id: 4, name: "ساعت اپل واچ", price: 12000000, image: "/assets/p4.jpg" }
 ])
 
 
-
-/* ---------------- cart ---------------- */
-
+/* ---------------- CART ---------------- */
 function addToCart(product: any) {
-  console.log("افزودن:", product)
+  console.log("ADD TO CART:", product)
 }
 
 
-
-/* ---------------- utils ---------------- */
-
+/* ---------------- UTILS ---------------- */
 function formatPrice(price: number) {
   return new Intl.NumberFormat("fa-IR").format(price) + " تومان"
 }
+
+
+/* ---------------- INIT ---------------- */
+onMounted(() => {
+  fetchBanners()
+})
 </script>
 
 <style scoped>
-.hero-banner {
-  margin-bottom: 20px;
+.hero {
+  border-radius: 16px;
+  overflow: hidden;
 }
 </style>

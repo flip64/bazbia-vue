@@ -148,9 +148,7 @@ function formatPrice(price: number) {
 
 
 /* ---------------- INIT ---------------- */
-onMounted(() => {
-  fetchBanners()
-})
+
 </script>
 
 <style scoped>

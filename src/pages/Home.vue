@@ -95,7 +95,7 @@
 import { ref, onMounted } from "vue"
 import axios from "axios"
 import BannerCarousel from "@/components/BannerCarousel.vue"
-import { categoryService } from "@/services/category.service"
+
 import type { Category } from "@/types/category.types"
 import { useCategoryStore } from "@/stores/categoryStore"
 
@@ -121,18 +121,10 @@ const fetchBanners = async () => {
 
 
 /* ---------------- CATEGORIES ---------------- */
-const categories = ref<Category[]>([])
-const categoryLoading = ref(true)
-
-const fetchCategories = async () => {
-  try {
-    categories.value = await categoryService.getCategories()
-  } catch (error) {
-    console.error("خطا در دریافت دسته‌بندی‌ها:", error)
-  } finally {
-    categoryLoading.value = false
-  }
-}
+onMounted(() => {
+  fetchBanners()
+  categoryStore.fetchCategories()
+})
 
 /* ---------------- PRODUCTS ---------------- */
 const featuredProducts = ref([

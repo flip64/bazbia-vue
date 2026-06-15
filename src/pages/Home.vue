@@ -25,7 +25,7 @@
 
       <div class="flex justify-between items-center mb-4">
         <h2 class="font-bold text-lg">
-          دسته‌بندی‌ها
+        بازبیا   دسته‌بندی‌ها
         </h2>
 
         <span class="text-blue-500 text-sm cursor-pointer">

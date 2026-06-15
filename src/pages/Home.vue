@@ -42,7 +42,7 @@
         >
 
           <div
-            class="w-16 h-16 rounded-full bg-white border border-gray-200 shadow-sm mx-auto flex items-center justify-center group-hover:shadow-lg transition"
+            class="w-16 h-16 rounded-full bg-white border border-gray-200 shadow-sm  flex items-center justify-center group-hover:shadow-lg transition"
           >
             <img
               :src="c.image || '/images/category-placeholder.webp'"

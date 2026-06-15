@@ -1,10 +1,10 @@
 <template>
-  <div class="home-page p-4 md:p-8 bg-gray-50 space-y-10">
+  <div class="min-h-screen bg-gray-50">
 
-    <!-- HERO / BANNER -->
-    <section class="hero">
-      <div v-if="bannerLoading" class="py-10 text-center text-gray-500">
-        در حال بارگذاری بنر...
+    <!-- Banner -->
+    <section class="px-4 pt-4">
+      <div v-if="bannerLoading" class="h-44 rounded-2xl bg-white flex items-center justify-center">
+        در حال بارگذاری...
       </div>
 
       <BannerCarousel
@@ -12,93 +12,135 @@
         :banners="banners"
       />
 
-      <div v-else class="py-10 text-center text-gray-400">
+      <div
+        v-else
+        class="h-44 rounded-2xl bg-white flex items-center justify-center text-gray-400"
+      >
         بنری موجود نیست
       </div>
     </section>
 
+    <!-- Categories -->
+    <section class="mt-8 px-4">
 
-    <!-- CATEGORIES -->
-    <section>
-  <h2 class="text-lg font-bold mb-4">
-    دسته‌بندی‌ها
-  </h2>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-lg">
+          دسته‌بندی‌ها
+        </h2>
 
-  <div
-    class="flex overflow-x-auto gap-4 pb-2 scrollbar-hide"
-  >
-    <div
-      v-for="c in categoryStore.categories"
-      :key="c.id"
-      class="flex-shrink-0 w-20 text-center group cursor-pointer"
-    >
-      <div
-        class="w-16 h-16 mx-auto rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center"
-      >
-        <img
-          :src="c.image || '/images/category-placeholder.webp'"
-          :alt="c.name"
-          class="w-10 h-10 object-contain"
-        />
+        <span class="text-blue-500 text-sm cursor-pointer">
+          همه
+        </span>
       </div>
 
-      <p
-        class="text-xs mt-2 leading-4 h-8 overflow-hidden"
-      >
-        {{ c.name }}
-      </p>
-    </div>
-  </div>
-</section>
+      <div class="flex flex-nowrap overflow-x-auto gap-4 pb-2 scrollbar-hide">
 
-    <!-- FLASH / FEATURED -->
-    <section>
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-bold">محصولات پیشنهادی</h2>
-        <span class="text-sm text-blue-500 cursor-pointer">مشاهده همه</span>
+        <div
+          v-for="c in categoryStore.categories"
+          :key="c.id"
+          class="flex-shrink-0 w-20 text-center cursor-pointer group"
+        >
+
+          <div
+            class="w-16 h-16 rounded-full bg-white border border-gray-200 shadow-sm mx-auto flex items-center justify-center group-hover:shadow-lg transition"
+          >
+            <img
+              :src="c.image || '/images/category-placeholder.webp'"
+              :alt="c.name"
+              class="w-9 h-9 object-contain"
+            />
+          </div>
+
+          <div
+            class="text-xs mt-2 h-8 leading-4 overflow-hidden text-gray-700"
+          >
+            {{ c.name }}
+          </div>
+
+        </div>
+
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    </section>
+
+    <!-- Featured Products -->
+    <section class="mt-8 px-4">
+
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-lg">
+          محصولات پیشنهادی
+        </h2>
+
+        <span class="text-blue-500 text-sm cursor-pointer">
+          مشاهده همه
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+
         <div
           v-for="p in featuredProducts"
           :key="p.id"
-          class="group bg-white border rounded-xl p-3 hover:shadow-lg transition"
+          class="bg-white rounded-2xl border p-3 transition hover:shadow-lg"
         >
 
           <img
             :src="p.image"
-            class="w-full h-36 object-cover rounded-lg group-hover:scale-105 transition"
+            class="w-full h-36 object-cover rounded-xl"
           />
 
-          <h3 class="text-sm font-semibold mt-2 line-clamp-2">
+          <h3
+            class="mt-3 text-sm font-semibold line-clamp-2 h-10"
+          >
             {{ p.name }}
           </h3>
 
-          <p class="text-green-600 font-bold mt-1">
+          <div
+            class="mt-2 text-green-600 font-bold text-sm"
+          >
             {{ formatPrice(p.price) }}
-          </p>
+          </div>
 
           <button
             @click="addToCart(p)"
-            class="mt-3 w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 rounded-lg text-sm hover:opacity-90"
+            class="mt-3 w-full bg-blue-500 text-white rounded-lg py-2 text-sm"
           >
-            افزودن به سبد 🛒
+            افزودن به سبد
           </button>
 
         </div>
+
       </div>
+
     </section>
 
+    <!-- Trust -->
+    <section class="mt-8 mb-8 px-4">
 
-    <!-- TRUST SECTION -->
-    <section class="bg-white rounded-2xl p-5 border">
-      <h2 class="text-lg font-bold mb-4">چرا بازبیا؟ 🐦</h2>
+      <div class="bg-white rounded-2xl border p-5">
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-        <div>✔ خرید هوشمند بدون تبلیغ مزاحم</div>
-        <div>✔ قیمت واقعی و مقایسه شفاف</div>
-        <div>✔ تجربه سریع و ساده</div>
+        <h2 class="font-bold text-lg mb-4">
+          چرا بازبیا؟
+        </h2>
+
+        <div class="space-y-3 text-sm text-gray-700">
+
+          <div>
+            🐦 خرید هوشمند بدون تبلیغات مزاحم
+          </div>
+
+          <div>
+            💰 مقایسه شفاف قیمت‌ها
+          </div>
+
+          <div>
+            ⚡ تجربه خرید سریع و ساده
+          </div>
+
+        </div>
+
       </div>
+
     </section>
 
   </div>
@@ -108,65 +150,72 @@
 import { ref, onMounted } from "vue"
 import axios from "axios"
 import BannerCarousel from "@/components/BannerCarousel.vue"
-
-import type { Category } from "@/types/category.types"
 import { useCategoryStore } from "@/core/store/categoryStore"
 
 const categoryStore = useCategoryStore()
 
-  
-/* ---------------- BANNERS ---------------- */
-const banners = ref<any[]>([])
+const banners = ref([])
 const bannerLoading = ref(true)
 
-const fetchBanners = async () => {
+const featuredProducts = ref([
+  {
+    id: 1,
+    name: "آیفون 14 پرو مکس",
+    price: 42000000,
+    image: "/assets/p1.jpg"
+  },
+  {
+    id: 2,
+    name: "لپ تاپ ایسوس",
+    price: 38000000,
+    image: "/assets/p2.jpg"
+  },
+  {
+    id: 3,
+    name: "هدفون سونی",
+    price: 2500000,
+    image: "/assets/p3.jpg"
+  },
+  {
+    id: 4,
+    name: "اپل واچ",
+    price: 12000000,
+    image: "/assets/p4.jpg"
+  }
+])
+
+async function fetchBanners() {
   try {
     const res = await axios.get(
       "https://backend.bazbia.ir/api/promotions/banners/"
     )
     banners.value = res.data
-  } catch (e) {
-    console.error(e)
   } finally {
     bannerLoading.value = false
   }
 }
 
-
-/* ---------------- CATEGORIES ---------------- */
-onMounted(() => {
-  fetchBanners()
-  categoryStore.fetchCategories()
-})
-
-/* ---------------- PRODUCTS ---------------- */
-const featuredProducts = ref([
-  { id: 1, name: "آیفون 14 پرو مکس", price: 42000000, image: "/assets/p1.jpg" },
-  { id: 2, name: "لپ‌تاپ ایسوس ROG", price: 38000000, image: "/assets/p2.jpg" },
-  { id: 3, name: "هدفون بی‌سیم سونی", price: 2500000, image: "/assets/p3.jpg" },
-  { id: 4, name: "ساعت اپل واچ", price: 12000000, image: "/assets/p4.jpg" }
-])
-
-
-/* ---------------- CART ---------------- */
 function addToCart(product: any) {
-  console.log("ADD TO CART:", product)
+  console.log(product)
 }
 
-
-/* ---------------- UTILS ---------------- */
 function formatPrice(price: number) {
   return new Intl.NumberFormat("fa-IR").format(price) + " تومان"
 }
 
-
-/* ---------------- INIT ---------------- */
-
+onMounted(() => {
+  fetchBanners()
+  categoryStore.fetchCategories()
+})
 </script>
 
 <style scoped>
-.hero {
-  border-radius: 16px;
-  overflow: hidden;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 </style>

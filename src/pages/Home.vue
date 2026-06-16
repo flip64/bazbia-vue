@@ -44,11 +44,13 @@
           <div
             class="w-16 h-16 rounded-full bg-white border border-gray-200 shadow-sm  flex items-center justify-center group-hover:shadow-lg transition"
           >
-            <img
-              :src="c.image || '/images/category-placeholder.webp'"
-              :alt="c.name"
-              class="w-9 h-9 object-contain"
-            />
+            <div class="mx-auto w-16 h-16 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden">
+  <img
+    :src="c.image"
+    :alt="c.name"
+    class="w-full h-full object-contain p-2"
+  />
+</div>
           </div>
 
           <div

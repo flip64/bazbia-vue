@@ -37,7 +37,7 @@
 import Header from "@/components/layout/header/Header.vue"
 import Footer from "@/components/layout/Footer.vue"
 import ToastContainer from "@/components/ui/ToastContainer.vue"
-import Modal from "@/components/ui/Modal.vue"
+
 
 import { useLoading } from "@/composables/useLoading"
 import { useToast } from "@/composables/useToast"

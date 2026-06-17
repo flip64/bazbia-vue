@@ -109,6 +109,8 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 .slide {
   min-width: 100%;
   flex-shrink: 0;
+  border: 3px solid red;
+  
 }
 
 .slide img {

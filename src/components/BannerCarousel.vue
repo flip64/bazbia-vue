@@ -166,6 +166,7 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 
   
 .carousel {
+  border: 5px solid blue;
   position: relative;
   overflow: hidden;
   width: 100%;

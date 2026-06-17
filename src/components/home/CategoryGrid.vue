@@ -1,6 +1,6 @@
 <template>
   <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-    بازبیا اینجا
+    
     <div
       v-for="category in categories"
       :key="category.id"

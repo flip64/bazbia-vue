@@ -98,11 +98,15 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 
 .slides {
   display: flex;
-  transition: transform 0.6s ease;
+  width: 100%;
+  will-change: transform;
+  transition: transform 0.6s ease
+  
 }
 
 .slide {
   min-width: 100%;
+  flex-shrink: 0;
 }
 
 .slide img {
@@ -154,5 +158,12 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
   .slide img {
     height: 180px;
   }
+}
+
+  
+.carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
 }
 </style>

@@ -94,6 +94,7 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
   position: relative;
   overflow: hidden;
   width: 100%;
+  max-width: 100%;
   border-radius: 16px;
 }
 

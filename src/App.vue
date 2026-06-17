@@ -1,6 +1,6 @@
 <template>
-  <div "dir =" rtl>
-   <DefaultLayout />
+  <div dir="rtl">
+    <DefaultLayout />
   </div>
 </template>
 

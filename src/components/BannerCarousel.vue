@@ -101,16 +101,16 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 .slides {
   display: flex;
   width: 100%;
+  flex-wrap: nowrap;
   will-change: transform;
   transition: transform 0.6s ease
   
 }
 
 .slide {
-  min-width: 100%;
-  flex-shrink: 0;
-  border: 3px solid red;
-  
+  flex: 0 0 100%;
+
+
 }
 
 .slide img {

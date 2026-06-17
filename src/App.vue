@@ -1,5 +1,7 @@
 <template>
-  <DefaultLayout />
+  <div "dir =" rtl>
+   <DefaultLayout />
+  </div>
 </template>
 
 <script setup lang="ts">

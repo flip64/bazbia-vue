@@ -20,16 +20,9 @@ const auth = useAuthStore()
 if (auth.token)
   auth.fetchMe()
 
-app.mount("#app")
-
-
-
-     
-
-
-
 
 
 registerPlugins(app)
+app.mount("#app")
 
 

@@ -3,12 +3,13 @@ import App from "./App.vue"
 
 
 
+
 import router from "@/core/router"
 import { store } from "@/core/store"
 import { registerPlugins } from "@/core/plugins"
 
 import { useAuthStore } from "@/core/store/authStore"
-
+import "./style.css"
 
 const app = createApp(App)
 

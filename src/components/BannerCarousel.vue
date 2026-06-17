@@ -50,6 +50,9 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 </script>
 
 <template>
+  <div v-for="(b, i) in banners" :key="i">
+  {{ b.image }}
+</div>
   <div
     class="carousel"
     @mouseenter="stop"

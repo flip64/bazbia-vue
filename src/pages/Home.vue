@@ -23,15 +23,9 @@
     <!-- Categories -->
     <section class="mt-8 px-4">
 
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="font-bold text-lg">
-        بازبیا   دسته‌بندی‌ها
-        </h2>
-
-        <span class="text-blue-500 text-sm cursor-pointer">
-          همه
-        </span>
-      </div>
+      <CategoryGrid
+  :categories="categoryStore.categories"
+/>
 
       <div class="flex flex-nowrap overflow-x-auto gap-4 pb-2 scrollbar-hide">
 
@@ -149,6 +143,7 @@
 </template>
 
 <script setup lang="ts">
+import CategoryGrid from "@/components/home/CategoryGrid.vue"
 import { ref, onMounted } from "vue"
 import axios from "axios"
 import BannerCarousel from "@/components/BannerCarousel.vue"

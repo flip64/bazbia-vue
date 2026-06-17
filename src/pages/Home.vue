@@ -21,43 +21,21 @@
     </section>
 
     <!-- Categories -->
-    <section class="mt-8 px-4">
+    
+  <section class="mt-8 px-4 w-full">
 
-      <CategoryGrid
-  :categories="categoryStore.categories"
-/>
+    <!-- Title (اختیاری ولی استاندارد) -->
+    <h2 class="text-sm font-semibold text-gray-800 mb-4">
+      دسته‌بندی‌ها
+    </h2>
 
-      <div class="flex flex-nowrap overflow-x-auto gap-4 pb-2 scrollbar-hide">
+    <!-- Grid -->
+    <CategoryGrid
+      :categories="categoryStore.categories"
+    />
 
-        <div
-          v-for="c in categoryStore.categories"
-          :key="c.id"
-          class="flex-shrink-0 w-20 text-center cursor-pointer group"
-        >
+  </section>
 
-          <div
-            class="w-16 h-16 rounded-full bg-white border border-gray-200 shadow-sm  flex items-center justify-center group-hover:shadow-lg transition"
-          >
-            <div class="mx-auto w-16 h-16 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden">
-  <img
-    :src="c.image"
-    :alt="c.name"
-    class="w-full h-full object-contain p-2"
-  />
-</div>
-          </div>
-
-          <div
-            class="text-xs mt-2 h-8 leading-4 overflow-hidden text-gray-700"
-          >
-            {{ c.name }}
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
 
     <!-- Featured Products -->
     <section class="mt-8 px-4">

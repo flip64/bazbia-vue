@@ -1,30 +1,29 @@
 <template>
-  <div class="overflow-x-auto scrollbar-hide">
-    <div class="flex gap-4 w-max px-1">
-
+  <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+    
+    <div
+      v-for="category in categories"
+      :key="category.id"
+      class="flex flex-col items-center"
+    >
+      <!-- Image Box -->
       <div
-        v-for="category in categories"
-        :key="category.id"
-        class="flex flex-col items-center w-24 shrink-0"
+        class="w-20 h-20 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden"
       >
-        <!-- Image Box -->
-        <div
-          class="w-16 h-16 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden"
-        >
-          <img
-            :src="category.image"
-            :alt="category.name"
-            class="w-full h-full object-contain p-2"
-          />
-        </div>
+        <img
+          :src="category.image"
+          :alt="category.name"
+          class="w-full h-full object-contain p-2"
+        />
+      </div>
 
-        <!-- Name -->
-        <div class="text-xs mt-2 text-center text-gray-700 line-clamp-2 h-8">
-          {{ category.name }}
-        </div>
+      <!-- Name -->
+      <div class="text-xs mt-2 text-center text-gray-700 h-10 overflow-hidden leading-4">
+        {{ category.name }}
       </div>
 
     </div>
+
   </div>
 </template>
 
@@ -37,14 +36,3 @@ defineProps<{
   }>
 }>()
 </script>
-
-<style scoped>
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-</style>

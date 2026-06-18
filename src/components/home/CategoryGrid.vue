@@ -8,7 +8,7 @@
         :key="n"
         class="animate-pulse flex flex-col items-center"
       >
-        <div class="w-24 h-24 rounded-2xl bg-gray-200"></div>
+        <div class="w-24 h-24 rounded-3xl bg-gray-200"></div>
         <div class="mt-3 w-16 h-3 bg-gray-200 rounded"></div>
       </div>
     </template>
@@ -28,35 +28,43 @@
                  relative overflow-hidden"
         >
 
-          <!-- Gradient glow background -->
+          <!-- Gradient hover background -->
           <div
             class="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300
                    bg-gradient-to-br from-blue-50 via-white to-purple-50"
           ></div>
 
-          <!-- Image -->
+          <!-- Image container -->
           <div
-            class="relative w-24 h-24 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden"
+            class="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100
+                   flex items-center justify-center shadow-sm overflow-hidden"
           >
-            <img
-              :src="category.image"
-              :alt="category.name"
-              class="w-20 h-20 object-contain transform group-hover:scale-110 transition duration-300"
-            />
+            <div
+              class="w-20 h-20 rounded-2xl bg-white flex items-center justify-center shadow-inner"
+            >
+              <img
+                :src="category.image"
+                :alt="category.name"
+                class="w-14 h-14 object-contain transform group-hover:scale-110 transition duration-300"
+              />
+            </div>
           </div>
 
           <!-- Title -->
           <h3
-            class="relative mt-3 text-sm font-medium text-gray-700 text-center leading-5 line-clamp-2 group-hover:text-gray-900"
+            class="relative mt-3 text-sm font-medium text-gray-700 text-center leading-5 line-clamp-2
+                   group-hover:text-gray-900 transition"
           >
             {{ category.name }}
           </h3>
+
         </a>
       </div>
     </template>
 
   </div>
 </template>
+
 <script setup lang="ts">
 defineProps<{
   categories: {

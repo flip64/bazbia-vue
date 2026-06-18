@@ -8,57 +8,47 @@
         :key="n"
         class="animate-pulse flex flex-col items-center"
       >
-        <div class="w-24 h-24 rounded-3xl bg-gray-200"></div>
+        <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gray-200"></div>
         <div class="mt-3 w-16 h-3 bg-gray-200 rounded"></div>
       </div>
     </template>
 
-    <!-- Cards -->
+    <!-- Categories -->
     <template v-else>
       <div
         v-for="category in categories"
         :key="category.id"
-        class="group relative"
+        class="group flex flex-col items-center
+               bg-white rounded-2xl p-3
+               border border-gray-100
+               hover:border-gray-200
+               hover:shadow-sm
+               transition-all duration-200"
       >
-        <a
-          href="#"
-          class="flex flex-col items-center p-4 bg-white rounded-2xl border border-gray-100
-                 shadow-sm hover:shadow-xl transition-all duration-300
-                 hover:-translate-y-2 hover:scale-[1.03]
-                 relative overflow-hidden"
+
+        <!-- Image -->
+        <div
+          class="w-20 h-20 md:w-24 md:h-24
+                 rounded-2xl overflow-hidden
+                 flex items-center justify-center"
         >
+          <img
+            :src="category.image"
+            :alt="category.name"
+            class="w-full h-full object-contain
+                   group-hover:scale-105 transition duration-200"
+          />
+        </div>
 
-          <!-- Gradient hover background -->
-          <div
-            class="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300
-                   bg-gradient-to-br from-blue-50 via-white to-purple-50"
-          ></div>
+        <!-- Title -->
+        <span
+          class="mt-3 text-xs md:text-sm
+                 text-gray-700 text-center
+                 font-medium line-clamp-2 min-h-[38px]"
+        >
+          {{ category.name }}
+        </span>
 
-          <!-- Image container -->
-          <div
-            class="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100
-                   flex items-center justify-center shadow-sm overflow-hidden"
-          >
-            <div
-              class="w-20 h-20 rounded-2xl bg-white flex items-center justify-center shadow-inner"
-            >
-              <img
-                :src="category.image"
-                :alt="category.name"
-                class="w-14 h-14 object-contain transform group-hover:scale-110 transition duration-300"
-              />
-            </div>
-          </div>
-
-          <!-- Title -->
-          <h3
-            class="relative mt-3 text-sm font-medium text-gray-700 text-center leading-5 line-clamp-2
-                   group-hover:text-gray-900 transition"
-          >
-            {{ category.name }}
-          </h3>
-
-        </a>
       </div>
     </template>
 

@@ -3,7 +3,7 @@ import axios, {
   type AxiosError,
   type AxiosResponse
 } from "axios"
-import { useAuthStore } from "@/core/store/authStore"
+
 import { API_ENDPOINTS } from "./endpoints"
 
 // ================= Base Config =================
@@ -14,7 +14,7 @@ const baseURL =
 const apiClient = axios.create({
   baseURL,
   timeout: 15000,
-  withCredentials: true, // ⭐ حل مشکل سشن
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json"
@@ -28,12 +28,12 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem("access_token")
     const sessionKey = localStorage.getItem("session_key")
 
-    // اگر لاگین شده → JWT
+    // JWT
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    // اگر مهمان → session_key
+    // guest session
     else if (
       sessionKey &&
       !config.params?.session_key &&
@@ -45,7 +45,7 @@ apiClient.interceptors.request.use(
       }
     }
 
-    // جلوگیری از cache در GET
+    // cache bust for GET
     if (config.method === "get") {
       config.params = {
         ...config.params,
@@ -55,10 +55,7 @@ apiClient.interceptors.request.use(
 
     return config
   },
-  (error: AxiosError) => {
-    console.error("Request interceptor error:", error)
-    return Promise.reject(error)
-  }
+  (error: AxiosError) => Promise.reject(error)
 )
 
 // ================= Response Interceptor =================
@@ -70,12 +67,13 @@ apiClient.interceptors.response.use(
     const originalRequest =
       error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    // ---------- 401 Unauthorized ----------
+    // ---------- 401 ----------
     if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true
 
       try {
         const refreshToken = localStorage.getItem("refresh_token")
+
         if (refreshToken) {
           const response = await axios.post(
             `${baseURL}${API_ENDPOINTS.AUTH.REFRESH}`,
@@ -97,27 +95,23 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // ---------- 403 ----------
+    // ---------- logging ----------
     if (error.response?.status === 403) {
       console.error("Forbidden:", error.response.data)
     }
 
-    // ---------- 404 ----------
     if (error.response?.status === 404) {
       console.error("Not Found:", error.config?.url)
     }
 
-    // ---------- Validation ----------
     if (error.response?.status === 422) {
       console.error("Validation:", error.response.data)
     }
 
-    // ---------- Server Error ----------
     if (error.response?.status && error.response.status >= 500) {
       console.error("Server error:", error.response.data)
     }
 
-    // ---------- Network ----------
     if (!error.response) {
       console.error("Network error")
     }
@@ -126,19 +120,15 @@ apiClient.interceptors.response.use(
   }
 )
 
-// ================= Helper Functions =================
+// ================= FIXED logout (no store dependency) =================
 
 function handleLogout() {
   localStorage.removeItem("access_token")
   localStorage.removeItem("refresh_token")
   localStorage.removeItem("user")
+  localStorage.removeItem("session_key")
 
-  const authStore = useAuthStore()
-  authStore.logout()
-
-  if (window.location.pathname !== "/login") {
-    window.location.href = "/login?session=expired"
-  }
+  window.location.href = "/login?session=expired"
 }
 
 // ================= Utilities =================

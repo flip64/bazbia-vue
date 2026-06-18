@@ -13,14 +13,14 @@
       >
         <!-- Image -->
         <div
-          class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center"
-        >
-          <img
-            :src="category.image"
-            :alt="category.name"
-            class="w-full h-full object-contain p-2 group-hover:scale-110 transition duration-300"
-          />
-        </div>
+  class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center"
+>
+  <img
+    :src="category.image"
+    :alt="category.name"
+    class="max-w-full max-h-full object-contain"
+  />
+</div>
 
         <!-- Title -->
         <h3

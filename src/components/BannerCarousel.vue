@@ -50,6 +50,12 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 </script>
 
 <template>
+   <div class="bg-yellow-200 p-2">
+  تعداد بنرها: {{ banners.length }}
+</div>
+
+
+  
   
   <div
     class="carousel"

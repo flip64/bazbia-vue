@@ -124,7 +124,7 @@
 import CategoryGrid from "@/components/home/CategoryGrid.vue"
 import { ref, onMounted } from "vue"
 import axios from "axios"
-import BannerCarousel from "@/components/BannerCarousel.vue"
+import BannerCarousel from "@/components/home/BannerCarousel.vue"
 import { useCategoryStore } from "@/core/store/categoryStore"
 
 const categoryStore = useCategoryStore()

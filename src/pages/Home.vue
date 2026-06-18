@@ -25,9 +25,11 @@
   <section class="mt-8 px-4 w-full">
 
     <!-- Title (اختیاری ولی استاندارد) -->
-    <h2 class="text-sm font-semibold text-gray-800 mb-4">
-      دسته‌بندی‌ها
-    </h2>
+  <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
+  دسته‌بندی‌ها
+
+  <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
+</h2>
 
     <!-- Grid -->
     <CategoryGrid

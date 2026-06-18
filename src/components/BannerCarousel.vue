@@ -7,7 +7,7 @@
     @touchend="touchEnd"
   >
     <div
-      class="slides"
+      class="track"
       :style="{
         transform: `translateX(-${current * 100}%)`
       }"
@@ -17,38 +17,14 @@
         :key="banner.id || i"
         class="slide"
       >
-        <img
-          :src="banner.image"
-          :alt="banner.title || 'banner'"
-        />
-      </div>
-    </div><button
-  v-if="banners.length > 1"
-  class="nav prev"
-  @click="prev"
->
-  ‹
-</button>
-
-<button
-  v-if="banners.length > 1"
-  class="nav next"
-  @click="next"
->
-  ›
-</button>
-
-<div
-  v-if="banners.length > 1"
-  class="dots"
->
-  <span
-    v-for="(_, i) in banners"
-    :key="i"
-    :class="{ active: i === current }"
-    @click="go(i)"
-  />
+        <div class="debug">
+          {{ i }}
+        </div>    <img :src="banner.image" />
+  </div>
 </div>
+
+<button class="nav prev" @click="prev">‹</button>
+<button class="nav next" @click="next">›</button>
 
   </div>
 </template><script setup>
@@ -80,47 +56,31 @@ const prev = () => {
     props.banners.length
 }
 
-const go = (index) => {
-  current.value = index
+const start = () => {
+  stop()
+  if (props.banners.length <= 1) return
+
+  timer = setInterval(next, props.interval)
 }
 
 const stop = () => {
-  if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
+  if (timer) clearInterval(timer)
 }
 
-const start = () => {
-  stop()
-
-  if (props.banners.length <= 1) return
-
-  timer = setInterval(() => {
-    next()
-  }, props.interval)
-}
-
-watch(
-  () => props.banners.length,
-  () => {
-    current.value = 0
-    start()
-  }
-)
+watch(() => props.banners.length, () => {
+  current.value = 0
+  start()
+})
 
 onMounted(start)
 onUnmounted(stop)
 
 let startX = 0
-
 const touchStart = (e) => {
   startX = e.touches[0].clientX
 }
-
 const touchEnd = (e) => {
   const diff = e.changedTouches[0].clientX - startX
-
   if (diff > 50) prev()
   if (diff < -50) next()
 }
@@ -132,65 +92,44 @@ const touchEnd = (e) => {
   border-radius: 16px;
 }
 
-.slides {
+.track {
   display: flex;
+  width: 100%;
   transition: transform 0.5s ease;
 }
 
 .slide {
-  width: 100%;
   flex: 0 0 100%;
+  position: relative;
 }
 
 .slide img {
-  display: block;
   width: 100%;
   height: 220px;
   object-fit: cover;
+  display: block;
+}
+
+.debug {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  z-index: 10;
 }
 
 .nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  background: rgba(255,255,255,0.7);
   border: none;
   padding: 8px 12px;
   cursor: pointer;
-  z-index: 10;
 }
 
-.prev {
-  left: 10px;
-}
-
-.next {
-  right: 10px;
-}
-
-.dots {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 8px;
-}
-
-.dots span {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: #d1d5db;
-  cursor: pointer;
-}
-
-.dots span.active {
-  background: #2563eb;
-}
-
-@media (max-width: 768px) {
-  .slide img {
-    height: 180px;
-  }
-}
+.prev { left: 10px }
+.next { right: 10px }
 </style>

@@ -1,4 +1,4 @@
-import { apiClient } from '@/core/api/client'
+import  apiClient  from '@/core/api/client'
 import type { Category } from '@/types/category.types'
 
 export const categoryService = {

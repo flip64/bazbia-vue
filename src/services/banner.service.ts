@@ -1,4 +1,3 @@
-
 import apiClient from '@/core/api/client'
 export const bannerService = {
   async getBanners() {

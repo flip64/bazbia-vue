@@ -77,6 +77,24 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
       >
         <img :src="banner.image" :alt="banner.title" />
       </a>
+
+
+
+      
+      <a
+  v-for="(banner, i) in banners"
+  :key="i"
+  class="slide"
+>
+  <div class="absolute z-50 bg-red-500 text-white">
+    {{ i }}
+  </div>
+
+  <img :src="banner.image" :alt="banner.title" />
+</a>
+
+
+      
     </div>
 
     <!-- arrows -->

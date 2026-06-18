@@ -20,7 +20,7 @@
         :key="category.id"
         class="group flex flex-col items-center
                bg-gray-50/60 + backdrop-blur-sm rounded-2xl p-3
-               border border-gray-100
+               
                hover:border-gray-200
                hover:shadow-sm
                transition-all duration-200"

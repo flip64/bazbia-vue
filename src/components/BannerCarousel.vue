@@ -61,7 +61,7 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
     <!-- slides -->
     <div
       class="slides"
-      :style="{ transform: `translateX(-${current * 100}%)` }"
+      :style="{ transform: `translateX(-100%)` }"
     >
       <a
         v-for="(banner, i) in banners"
@@ -171,4 +171,6 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
   overflow: hidden;
   width: 100%;
 }
+
+
 </style>

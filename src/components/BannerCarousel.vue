@@ -1,6 +1,6 @@
 <script setup>
 
-
+document.querySelectorAll('.slide').length
 
 
 import { ref, onMounted, onUnmounted } from "vue"

@@ -3,13 +3,16 @@
 
     <!-- Banner -->
     <section class="px-4 pt-4">
-      <div v-if="bannerLoading" class="h-44 rounded-2xl bg-white flex items-center justify-center">
+      <div
+        v-if="bannerStore.loading"
+        class="h-44 rounded-2xl bg-white flex items-center justify-center"
+      >
         در حال بارگذاری...
       </div>
 
       <BannerCarousel
-        v-else-if="banners.length"
-        :banners="banners"
+        v-else-if="bannerStore.banners.length"
+        :banners="bannerStore.banners"
       />
 
       <div
@@ -21,23 +24,18 @@
     </section>
 
     <!-- Categories -->
-    
-  <section class="mt-8 px-4 w-full">
+    <section class="mt-8 px-4 w-full">
 
-    <!-- Title (اختیاری ولی استاندارد) -->
-  <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
-  دسته‌بندی‌ها
+      <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
+        دسته‌بندی‌ها
 
-  <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
-</h2>
+        <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
+      </h2>
 
-    <!-- Grid -->
-    <CategoryGrid
-      :categories="categoryStore.categories"
-    />
-
-  </section>
-
+      <CategoryGrid
+        :categories="categoryStore.categories"
+      />
+    </section>
 
     <!-- Featured Products -->
     <section class="mt-8 px-4">
@@ -52,10 +50,25 @@
         </span>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div
+        v-if="productStore.featuredLoading"
+        class="grid grid-cols-2 gap-4"
+      >
+        <div
+          v-for="i in 4"
+          :key="i"
+          class="bg-white rounded-2xl border p-3 animate-pulse"
+        >
+          <div class="h-36 bg-gray-200 rounded-xl"></div>
+          <div class="h-4 bg-gray-200 mt-3 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 mt-2 rounded w-1/2"></div>
+        </div>
+      </div>
+
+      <div v-else class="grid grid-cols-2 gap-4">
 
         <div
-          v-for="p in featuredProducts"
+          v-for="p in productStore.featuredProducts"
           :key="p.id"
           class="bg-white rounded-2xl border p-3 transition hover:shadow-lg"
         >
@@ -65,15 +78,11 @@
             class="w-full h-36 object-cover rounded-xl"
           />
 
-          <h3
-            class="mt-3 text-sm font-semibold line-clamp-2 h-10"
-          >
+          <h3 class="mt-3 text-sm font-semibold line-clamp-2 h-10">
             {{ p.name }}
           </h3>
 
-          <div
-            class="mt-2 text-green-600 font-bold text-sm"
-          >
+          <div class="mt-2 text-green-600 font-bold text-sm">
             {{ formatPrice(p.price) }}
           </div>
 
@@ -101,17 +110,9 @@
 
         <div class="space-y-3 text-sm text-gray-700">
 
-          <div>
-            🐦 خرید هوشمند بدون تبلیغات مزاحم
-          </div>
-
-          <div>
-            💰 مقایسه شفاف قیمت‌ها
-          </div>
-
-          <div>
-            ⚡ تجربه خرید سریع و ساده
-          </div>
+          <div>🐦 خرید هوشمند بدون تبلیغات مزاحم</div>
+          <div>💰 مقایسه شفاف قیمت‌ها</div>
+          <div>⚡ تجربه خرید سریع و ساده</div>
 
         </div>
 
@@ -122,85 +123,38 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import CategoryGrid from "@/components/home/CategoryGrid.vue"
-import { ref, onMounted } from "vue"
-import axios from "axios"
 import BannerCarousel from "@/components/home/BannerCarousel.vue"
+
+import { onMounted } from "vue"
+
 import { useCategoryStore } from "@/core/store/categoryStore"
+import { useProductStore } from "@/core/store/productStore"
+import { useBannerStore } from "@/core/store/bannerStore"
 
+// stores
 const categoryStore = useCategoryStore()
+const productStore = useProductStore()
+const bannerStore = useBannerStore()
 
-// =====================
-// Banner
-// =====================
-const banners = ref<any[]>([])
-const bannerLoading = ref(true)
-
-// =====================
-// Featured Products (API)
-// =====================
-const featuredProducts = ref<any[]>([])
-const featuredLoading = ref(true)
-
-// =====================
-// Fetch Banners
-// =====================
-async function fetchBanners() {
-  try {
-    const res = await axios.get(
-      "https://backend.bazbia.ir/api/promotions/banners/"
-    )
-    banners.value = res.data
-  } catch (err) {
-    console.error("banner error", err)
-  } finally {
-    bannerLoading.value = false
-  }
-}
-
-// =====================
-// Fetch Featured Products
-// =====================
-async function fetchFeaturedProducts() {
-  try {
-    const res = await axios.get(
-      "https://backend.bazbia.ir/api/products/featured/"
-    )
-    featuredProducts.value = res.data
-  } catch (err) {
-    console.error("featured products error", err)
-  } finally {
-    featuredLoading.value = false
-  }
-}
-
-// =====================
-// Cart
-// =====================
-function addToCart(product: any) {
-  console.log("add to cart:", product)
-}
-
-// =====================
-// Price format
-// =====================
+// format price
 function formatPrice(price: number) {
   return new Intl.NumberFormat("fa-IR").format(price) + " تومان"
 }
 
-// =====================
-// Mounted
-// =====================
+// cart (فعلاً placeholder)
+function addToCart(product: any) {
+  console.log("add to cart:", product)
+}
+
+// load data
 onMounted(() => {
-  fetchBanners()
+  bannerStore.fetchBanners()
   categoryStore.fetchCategories()
-  fetchFeaturedProducts()
+  productStore.fetchFeaturedProducts()
 })
 </script>
-
-
 
 <style scoped>
 .scrollbar-hide::-webkit-scrollbar {

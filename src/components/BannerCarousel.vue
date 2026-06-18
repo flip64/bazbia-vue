@@ -1,20 +1,5 @@
 <template>
   <div
-    style="
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      background: red;
-      color: white;
-      padding: 10px;
-      font-weight: bold;
-    "
-  >
-    current: {{ current }}
-    <br>
-    banners: {{ banners.length }}
-  </div>  <div
     class="carousel"
     @mouseenter="stop"
     @mouseleave="start"
@@ -29,30 +14,16 @@
     >
       <div
         v-for="(banner, i) in banners"
-        :key="i"
+        :key="banner.id || i"
         class="slide"
       >
-        <div
-          style="
-            position:absolute;
-            top:20px;
-            right:20px;
-            background:blue;
-            color:white;
-            z-index:999;
-            padding:8px;
-            font-size:20px;
-          "
-        >
-          slide {{ i }}
-        </div>    <img
-      :src="banner.image"
-      :alt="banner.title"
-    />
-  </div>
-</div>
-
-<button
+        <img
+          :src="banner.image"
+          :alt="banner.title || 'banner'"
+        />
+      </div>
+    </div><button
+  v-if="banners.length > 1"
   class="nav prev"
   @click="prev"
 >
@@ -60,17 +31,27 @@
 </button>
 
 <button
+  v-if="banners.length > 1"
   class="nav next"
   @click="next"
 >
   ›
 </button>
 
+<div
+  v-if="banners.length > 1"
+  class="dots"
+>
+  <span
+    v-for="(_, i) in banners"
+    :key="i"
+    :class="{ active: i === current }"
+    @click="go(i)"
+  />
+</div>
+
   </div>
-</template>
-
-
-<script setup>
+</template><script setup>
 import { ref, onMounted, onUnmounted, watch } from "vue"
 
 const props = defineProps({

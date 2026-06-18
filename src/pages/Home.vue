@@ -122,6 +122,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import CategoryGrid from "@/components/home/CategoryGrid.vue"
 import { ref, onMounted } from "vue"
@@ -131,60 +132,75 @@ import { useCategoryStore } from "@/core/store/categoryStore"
 
 const categoryStore = useCategoryStore()
 
-const banners = ref([])
+// =====================
+// Banner
+// =====================
+const banners = ref<any[]>([])
 const bannerLoading = ref(true)
 
-const featuredProducts = ref([
-  {
-    id: 1,
-    name: "آیفون 14 پرو مکس",
-    price: 42000000,
-    image: "/assets/p1.jpg"
-  },
-  {
-    id: 2,
-    name: "لپ تاپ ایسوس",
-    price: 38000000,
-    image: "/assets/p2.jpg"
-  },
-  {
-    id: 3,
-    name: "هدفون سونی",
-    price: 2500000,
-    image: "/assets/p3.jpg"
-  },
-  {
-    id: 4,
-    name: "اپل واچ",
-    price: 12000000,
-    image: "/assets/p4.jpg"
-  }
-])
+// =====================
+// Featured Products (API)
+// =====================
+const featuredProducts = ref<any[]>([])
+const featuredLoading = ref(true)
 
+// =====================
+// Fetch Banners
+// =====================
 async function fetchBanners() {
   try {
     const res = await axios.get(
       "https://backend.bazbia.ir/api/promotions/banners/"
     )
     banners.value = res.data
+  } catch (err) {
+    console.error("banner error", err)
   } finally {
     bannerLoading.value = false
   }
 }
 
-function addToCart(product: any) {
-  console.log(product)
+// =====================
+// Fetch Featured Products
+// =====================
+async function fetchFeaturedProducts() {
+  try {
+    const res = await axios.get(
+      "https://backend.bazbia.ir/api/products/featured/"
+    )
+    featuredProducts.value = res.data
+  } catch (err) {
+    console.error("featured products error", err)
+  } finally {
+    featuredLoading.value = false
+  }
 }
 
+// =====================
+// Cart
+// =====================
+function addToCart(product: any) {
+  console.log("add to cart:", product)
+}
+
+// =====================
+// Price format
+// =====================
 function formatPrice(price: number) {
   return new Intl.NumberFormat("fa-IR").format(price) + " تومان"
 }
 
+// =====================
+// Mounted
+// =====================
 onMounted(() => {
   fetchBanners()
   categoryStore.fetchCategories()
+  fetchFeaturedProducts()
 })
 </script>
+
+
 
 <style scoped>
 .scrollbar-hide::-webkit-scrollbar {

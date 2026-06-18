@@ -1,62 +1,4 @@
-<script setup>
-
-document.querySelectorAll('.slide').length
-
-
-import { ref, onMounted, onUnmounted } from "vue"
-
-const props = defineProps({
-  banners: { type: Array, required: true },
-  interval: { type: Number, default: 4000 }
-})
-
-const current = ref(0)
-let timer = null
-
-const next = () => {
-  current.value = (current.value + 1) % props.banners.length
-}
-
-const prev = () => {
-  current.value =
-    (current.value - 1 + props.banners.length) % props.banners.length
-}
-
-const go = (i) => (current.value = i)
-
-const start = () => {
-  stop()
-  timer = setInterval(next, props.interval)
-}
-
-const stop = () => {
-  if (timer) clearInterval(timer)
-}
-
-onMounted(start)
-onUnmounted(stop)
-
-// swipe mobile
-let startX = 0
-const touchStart = e => (startX = e.touches[0].clientX)
-const touchEnd = e => {
-  const diff = e.changedTouches[0].clientX - startX
-  if (diff > 50) prev()
-  if (diff < -50) next()
-}
-console.log('🎯 Banner 1 URL:', props.banners[0]?.image)
-console.log('🎯 Banner 2 URL:', props.banners[1]?.image)
-console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
-</script>
-
 <template>
-   <div class="bg-yellow-200 p-2">
-  تعداد بنرها: {{ banners.length }}
-</div>
-
-
-  
-  
   <div
     class="carousel"
     @mouseenter="stop"
@@ -64,102 +6,167 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
     @touchstart="touchStart"
     @touchend="touchEnd"
   >
-    <!-- slides -->
     <div
       class="slides"
-      :style="{ transform: `translateX(-${current * 100}%)` }"
+      :style="{
+        transform: `translateX(-${current * 100}%)`
+      }"
     >
-      <a
+      <div
         v-for="(banner, i) in banners"
-        :key="i"
-        :href="banner.link || '#'"
+        :key="banner.id || i"
         class="slide"
       >
-        <img :src="banner.image" :alt="banner.title" />
-      </a>
-
-
-
-      
-      <a
-  v-for="(banner, i) in banners"
-  :key="i"
-  class="slide"
+        <img
+          :src="banner.image"
+          :alt="banner.title || 'banner'"
+        />
+      </div>
+    </div><button
+  v-if="banners.length > 1"
+  class="nav prev"
+  @click="prev"
 >
-  <div class="absolute z-50 bg-red-500 text-white">
-    {{ i }}
+  ‹
+</button>
+
+<button
+  v-if="banners.length > 1"
+  class="nav next"
+  @click="next"
+>
+  ›
+</button>
+
+<div
+  v-if="banners.length > 1"
+  class="dots"
+>
+  <span
+    v-for="(_, i) in banners"
+    :key="i"
+    :class="{ active: i === current }"
+    @click="go(i)"
+  />
+</div>
+
   </div>
+</template><script setup>
+import { ref, onMounted, onUnmounted, watch } from "vue"
 
-  <img :src="banner.image" :alt="banner.title" />
-</a>
+const props = defineProps({
+  banners: {
+    type: Array,
+    default: () => []
+  },
+  interval: {
+    type: Number,
+    default: 4000
+  }
+})
 
+const current = ref(0)
+let timer = null
 
-      
-    </div>
+const next = () => {
+  if (!props.banners.length) return
+  current.value = (current.value + 1) % props.banners.length
+}
 
-    <!-- arrows -->
-    <button class="nav prev" @click="prev">‹</button>
-    <button class="nav next" @click="next">›</button>
+const prev = () => {
+  if (!props.banners.length) return
+  current.value =
+    (current.value - 1 + props.banners.length) %
+    props.banners.length
+}
 
-    <!-- dots -->
-    <div class="dots">
-      <span
-        v-for="(_, i) in banners"
-        :key="i"
-        :class="{ active: i === current }"
-        @click="go(i)"
-      />
-    </div>
-  </div>
-</template>
+const go = (index) => {
+  current.value = index
+}
 
-<style scoped>
+const stop = () => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+}
+
+const start = () => {
+  stop()
+
+  if (props.banners.length <= 1) return
+
+  timer = setInterval(() => {
+    next()
+  }, props.interval)
+}
+
+watch(
+  () => props.banners.length,
+  () => {
+    current.value = 0
+    start()
+  }
+)
+
+onMounted(start)
+onUnmounted(stop)
+
+let startX = 0
+
+const touchStart = (e) => {
+  startX = e.touches[0].clientX
+}
+
+const touchEnd = (e) => {
+  const diff = e.changedTouches[0].clientX - startX
+
+  if (diff > 50) prev()
+  if (diff < -50) next()
+}
+</script><style scoped>
 .carousel {
   position: relative;
-  overflow: hidden;
   width: 100%;
-  max-width: 100%;
+  overflow: hidden;
   border-radius: 16px;
 }
 
 .slides {
   display: flex;
-  width: 100%;
-  flex-wrap: nowrap;
-  will-change: transform;
-  transition: transform 0.6s ease
-  
+  transition: transform 0.5s ease;
 }
 
 .slide {
+  width: 100%;
   flex: 0 0 100%;
-
-
 }
 
 .slide img {
+  display: block;
   width: 100%;
-  height: 320px;
+  height: 220px;
   object-fit: cover;
 }
 
-/* arrows */
 .nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   border: none;
-  font-size: 28px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   cursor: pointer;
-  border-radius: 50%;
-  backdrop-filter: blur(6px);
+  z-index: 10;
 }
 
-.prev { left: 10px }
-.next { right: 10px }
+.prev {
+  left: 10px;
+}
 
-/* dots */
+.next {
+  right: 10px;
+}
+
 .dots {
   position: absolute;
   bottom: 12px;
@@ -172,29 +179,18 @@ console.log('📦 All banners:', JSON.stringify(props.banners, null, 2))
 .dots span {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
-  background: #ddd;
+  border-radius: 999px;
+  background: #d1d5db;
   cursor: pointer;
 }
 
 .dots span.active {
-  background: #333;
+  background: #2563eb;
 }
 
-/* responsive */
 @media (max-width: 768px) {
   .slide img {
     height: 180px;
   }
 }
-
-  
-.carousel {
-  border: 5px solid blue;
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-}
-
-
 </style>

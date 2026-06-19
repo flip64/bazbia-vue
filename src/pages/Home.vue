@@ -1,4 +1,5 @@
 <template>
+  <pre>{{ featuredStore.featuredProducts }}</pre>
   <div class="min-h-screen bg-gray-50">
 
     <!-- ================= Banner ================= -->

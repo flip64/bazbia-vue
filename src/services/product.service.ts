@@ -81,7 +81,7 @@ async getFeaturedProducts(limit = 8) {
   )
 
   return response.data.map(normalizeProduct)
-}
+},
 
   
   // متد برای دریافت جزئیات محصول با slug

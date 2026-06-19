@@ -15,6 +15,7 @@ export const useFeaturedProductStore = defineStore('featuredProduct', () => {
 
   // ================= Actions =================
   async function fetchFeaturedProducts(limit: number = 8) {
+    console.log("fetchFeaturedProducts called")
     loading.value = true
     error.value = null
 

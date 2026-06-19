@@ -72,11 +72,12 @@ export const productService = {
 
 
  // متدی برای محصولات ویژه 
-async getFeaturedProducts(limit = 8) {
+async getFeaturedProducts(limit = 12) {
   const response = await axios.get(
-    `${API_BASE_URL}/featured-products/`,
+    `${API_BASE_URL}/products/`,
     {
-      params: { limit }
+      special: true,
+      page_size: limit
     }
   )
 

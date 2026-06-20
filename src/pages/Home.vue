@@ -1,5 +1,5 @@
 <template>
-  <pre>{{ featuredStore.featuredProducts }}</pre>
+  <pre>{{ JSON.stringify(featuredStore.featuredProducts, null, 2) }}</pre>
   <div class="min-h-screen bg-gray-50">
 
     <!-- ================= Banner ================= -->

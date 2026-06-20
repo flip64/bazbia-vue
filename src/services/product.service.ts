@@ -83,7 +83,7 @@ async getFeaturedProducts(limit = 12) {
   )
   console.log("🚀 getFeaturedProducts START")
   
-  return response.data.map(normalizeProduct)
+  return response.data.data.map(normalizeProduct)
 },
 
   

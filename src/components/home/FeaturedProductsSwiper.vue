@@ -153,18 +153,30 @@ defineProps<{
 
 const breakpoints = {
   320: {
-    slidesPerView: 1.1,
-    spaceBetween: 16,
+    slidesPerView: 1.05,
+    spaceBetween: 12,
+  },
+  480: {
+    slidesPerView: 1.4,
+    spaceBetween: 14,
   },
   640: {
     slidesPerView: 2.2,
+    spaceBetween: 16,
+  },
+  768: {
+    slidesPerView: 2.8,
     spaceBetween: 18,
   },
   1024: {
-    slidesPerView: 4,
+    slidesPerView: 3.5,
+    spaceBetween: 20,
+  },
+  1280: {
+    slidesPerView: 4.2,
     spaceBetween: 24,
   }
-}
+  }
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'

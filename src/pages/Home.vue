@@ -1,5 +1,4 @@
 <template>
-  <pre>{{ JSON.stringify(featuredStore.featuredProducts, null, 2) }}</pre>
   <div class="min-h-screen bg-gray-50">
 
     <!-- ================= Banner ================= -->
@@ -76,7 +75,7 @@
         >
 
           <img
-            :src="p.image"
+            :src="p.thumb"
             class="w-full h-36 object-cover rounded-xl"
           />
 

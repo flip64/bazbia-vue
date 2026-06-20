@@ -11,7 +11,7 @@
 
           <!-- 🐦 Mascot -->
           <img
-            src="/images/bazbin.png"
+            src="/images/bazbin.svg"
             alt="بازبین"
             class="w-8 h-8"
           />

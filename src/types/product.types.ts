@@ -1,5 +1,6 @@
-// types/product.types.ts
-
+// =========================
+// 🔹 CATEGORY
+// =========================
 export interface Category {
   id: number
   name: string
@@ -7,24 +8,48 @@ export interface Category {
   image: string | null
   parent_id?: number
   subcategories: Category[]
+
+  // computed (frontend)
+  products_count?: number
 }
 
-export interface Specification {
-  name: string
+
+// =========================
+// 🔹 ATTRIBUTE (اختیاری برای variant)
+// =========================
+export interface AttributeValue {
+  id: number
+  attribute_name: string
   value: string
 }
 
+
+// =========================
+// 🔹 VARIANT (طبق Django Serializer)
+// =========================
 export interface Variant {
   id: number
   sku: string
-  price: string  // price به صورت string میاد
+  price: string
   discount_price: string | null
+
   stock: number
   low_stock_threshold: number
   expiration_date: string | null
-  attributes: any[]
+
+  attributes: AttributeValue[]
+
+  // frontend computed
+  name?: string
+  in_stock?: boolean
+  color_code?: string
+  type?: string
 }
 
+
+// =========================
+// 🔹 PRODUCT IMAGE
+// =========================
 export interface ProductImage {
   image: string
   source_url?: string
@@ -32,32 +57,55 @@ export interface ProductImage {
   is_main: boolean
 }
 
+
+// =========================
+// 🔹 SPECIFICATION
+// =========================
+export interface Specification {
+  name: string
+  value: string
+}
+
+
+// =========================
+// 🔹 PRODUCT (MAIN - sync with Django ProductSerializer)
+// =========================
 export interface Product {
   id: number
   name: string
   slug: string
   description: string
-  base_price: string  // string هست نه number
-  category: Category
-  tags: string[]
-  specifications: Specification[]
-  variants: Variant[]
+  base_price: string
+
+  category: string | string[] | Category
   images: ProductImage[]
-  videos: any[]
-  is_active: boolean
+  variants: Variant[]
+  thumb?: string
+
   created_at: string
-  updated_at: string
-  is_special: boolean
-  special_details: any | null
-  quantity: number  // موجودی کل
-  
-  // فیلدهای computed برای استفاده در فرانت
+  updated_at?: string
+
+  quantity: number
+
+  // computed backend (or frontend fallback)
   price?: number
   discount_price?: number | null
-  in_stock?: boolean
-  thumb?: string
+  in_stock?: number
+
+  // frontend-only (used in UI)
+  stock?: number
+  rating?: number
+  reviews_count?: number
+  discount_percent?: number
+  old_price?: number | string
+  short_description?: string
+  is_new?: boolean
 }
 
+
+// =========================
+// 🔹 PRODUCT LIST RESPONSE
+// =========================
 export interface ProductsResponse {
   count: number
   next: string | null

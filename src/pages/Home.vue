@@ -37,42 +37,13 @@
     </section>
 
     <!-- ================= Featured Products ================= -->
-    <section class="mt-8 px-4">
-
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="font-bold text-lg">
-          محصولات ویژه
-        </h2>
-
-        <span class="text-blue-500 text-sm cursor-pointer">
-          مشاهده همه
-        </span>
-      </div>
-
-      <!-- Loading -->
-      <div
-        v-if="featuredStore.loading"
-        class="grid grid-cols-2 gap-4"
-      >
-        <div
-          v-for="i in 4"
-          :key="i"
-          class="bg-white rounded-2xl border p-3 animate-pulse"
-        >
-          <div class="h-36 bg-gray-200 rounded-xl"></div>
-          <div class="h-4 bg-gray-200 mt-3 rounded w-3/4"></div>
-          <div class="h-4 bg-gray-200 mt-2 rounded w-1/2"></div>
-        </div>
-      </div>
-
-      <!-- Products -->
       <section class="px-4">
-  <FeaturedProductsSwiper
+        <FeaturedProductsSwiper
     :products="featuredStore.featuredProducts"
   />
 </section>
 
-    </section>
+    
 
     <!-- ================= Trust ================= -->
     <section class="mt-8 mb-8 px-4">

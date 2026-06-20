@@ -114,3 +114,13 @@ export interface ProductsResponse {
   total_pages: number
   data: Product[]
 }
+
+
+
+export interface ProductsQueryParams {
+  page?: number
+  search?: string
+  category?: string
+  min_price?: number
+  max_price?: number
+  }

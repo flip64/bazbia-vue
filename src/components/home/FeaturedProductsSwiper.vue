@@ -49,7 +49,7 @@
         >
 
           <!-- 🧱 Card -->
-          <div class="group bg-white border rounded-2xl overflow-hidden transition hover:shadow-xl w-full max-w-[240px] mx-auto">
+          <div class="group bg-white border rounded-2xl overflow-hidden transition hover:shadow-xl w-full max-w-[240px] mx-auto ,w-[220px]">
           
 
             <!-- 🖼 Image -->
@@ -154,7 +154,7 @@ defineProps<{
 
 const breakpoints = {
   320: {
-    slidesPerView: 1.05,
+    slidesPerView: auto,
     spaceBetween: 12,
   },
   480: {

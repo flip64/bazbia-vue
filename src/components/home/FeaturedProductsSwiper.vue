@@ -154,7 +154,7 @@ defineProps<{
 
 const breakpoints = {
   320: {
-    slidesPerView: 1,
+    slidesPerView: auto,
     spaceBetween: 2,
   },
   480: {

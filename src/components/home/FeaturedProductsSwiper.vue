@@ -46,7 +46,7 @@
         <SwiperSlide
           v-for="product in products"
           :key="product.id"
-          class="!w-[220px]"
+          class="!w-[120px]"
         >
 
       
@@ -164,7 +164,7 @@ defineProps<{
 const breakpoints = {
   320: {
     slidesPerView: 'auto',
-    spaceBetween: 2,
+    spaceBetween: 3,
   },
   480: {
     slidesPerView: 1.4,

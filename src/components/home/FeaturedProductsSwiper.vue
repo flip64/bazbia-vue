@@ -49,7 +49,8 @@
         >
 
           <!-- 🧱 Card -->
-          <div class="group bg-white border rounded-2xl overflow-hidden transition hover:shadow-xl">
+          <div class="group bg-white border rounded-2xl overflow-hidden transition hover:shadow-xl w-full max-w-[240px] mx-auto">
+          
 
             <!-- 🖼 Image -->
             <div class="relative overflow-hidden">

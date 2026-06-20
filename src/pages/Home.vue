@@ -155,6 +155,7 @@ onMounted(() => {
   categoryStore.fetchCategories()
   featuredStore.fetchFeaturedProducts()
 })
+  console.log("product :", featuredStore)
 </script>
 
 <style scoped>

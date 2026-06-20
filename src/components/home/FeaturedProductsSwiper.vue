@@ -46,10 +46,19 @@
         <SwiperSlide
           v-for="product in products"
           :key="product.id"
+          class="!w-[220px]"
         >
 
+      
+  
+
+
+
+
+          
+
           <!-- 🧱 Card -->
-          <div class="group bg-white border rounded-2xl overflow-hidden transition hover:shadow-xl w-full max-w-[240px] mx-auto ">
+          <div class="group bg-white border rounded-2xl overflow-hidden transition hover:shadow-xl w-full ">
           
 
             <!-- 🖼 Image -->
@@ -154,7 +163,7 @@ defineProps<{
 
 const breakpoints = {
   320: {
-    slidesPerView: auto,
+    slidesPerView: 'auto',
     spaceBetween: 2,
   },
   480: {

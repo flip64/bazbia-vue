@@ -101,7 +101,8 @@ import { onMounted } from "vue"
 
 import CategoryGrid from "@/components/home/CategoryGrid.vue"
 import BannerCarousel from "@/components/home/BannerCarousel.vue"
-
+import FeaturedProductsSwiper from '@/components/home/FeaturedProductsSwiper.vue'
+  
 // stores
 import { useCategoryStore } from "@/core/store/categoryStore"
 import { useBannerStore } from "@/core/store/bannerStore"
@@ -122,6 +123,11 @@ function addToCart(product: any) {
   console.log("add to cart:", product)
 }
 
+
+
+
+
+  
 // load data
 onMounted(() => {
   bannerStore.fetchBanners()

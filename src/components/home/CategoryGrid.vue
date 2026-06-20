@@ -16,15 +16,16 @@
     <!-- Categories -->
     <template v-else>
       <div
-        v-for="category in categories"
-        :key="category.id"
-        class="group flex flex-col items-center
-               bg-gray-50/60 + backdrop-blur-sm rounded-2xl p-3
-               
-               hover:border-gray-200
-               hover:shadow-sm
-               transition-all duration-200"
-      >
+  v-for="category in categories"
+  :key="category.id"
+  @click="goToCategory(category)"
+  class="group flex flex-col items-center
+         bg-gray-50/60 backdrop-blur-sm rounded-2xl p-3
+         hover:border-gray-200
+         hover:shadow-sm
+         transition-all duration-200
+         cursor-pointer"
+>
 
         <!-- Image -->
         <div

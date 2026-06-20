@@ -93,14 +93,14 @@
             <div class="p-4 flex flex-col gap-2">
 
               <!-- Name -->
-              <h3 class="text-sm line-clamp-2 h-10 text-gray-800">
+              <h3 class="text-sm line-clamp-2 h-10 text-gray-800 text-center">
                 {{ product.name }}
               </h3>
 
               <!-- Price -->
               <div class="flex items-center justify-between">
 
-                <div>
+                <div >
                   <div class="font-bold text-green-600">
                     {{ formatPrice(product.price) }}
                   </div>

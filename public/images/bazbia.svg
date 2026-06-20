@@ -1,0 +1,31 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- body -->
+  <ellipse cx="60" cy="70" rx="28" ry="24" fill="#FFD84D"/>
+
+  <!-- head -->
+  <circle cx="60" cy="45" r="18" fill="#FFE27A"/>
+
+  <!-- eyes -->
+  <circle cx="53" cy="42" r="3" fill="#333"/>
+  <circle cx="67" cy="42" r="3" fill="#333"/>
+
+  <!-- beak -->
+  <polygon points="60,48 52,56 68,56" fill="#FF8C42"/>
+
+  <!-- wing -->
+  <ellipse cx="45" cy="70" rx="10" ry="14" fill="#FFC93C"/>
+
+  <!-- speech bubble -->
+  <rect x="75" y="20" rx="8" ry="8" width="40" height="25" fill="#ffffff" stroke="#22C55E"/>
+
+  <text x="95" y="35" font-size="8" text-anchor="middle" fill="#16A34A">
+    فقط امروز
+  </text>
+
+  <!-- small sparkle -->
+  <circle cx="30" cy="30" r="2" fill="#22C55E"/>
+  <circle cx="85" cy="60" r="2" fill="#22C55E"/>
+  <circle cx="75" cy="85" r="2" fill="#22C55E"/>
+
+</svg>

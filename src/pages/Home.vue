@@ -66,37 +66,11 @@
       </div>
 
       <!-- Products -->
-      <div v-else class="grid grid-cols-2 gap-4">
-
-        <div
-          v-for="p in featuredStore.featuredProducts"
-          :key="p.id"
-          class="bg-white rounded-2xl border p-3 transition hover:shadow-lg"
-        >
-
-          <img
-            :src="p.thumb"
-            class="w-full h-36 object-cover rounded-xl"
-          />
-
-          <h3 class="mt-3 text-sm font-semibold line-clamp-2 h-10">
-            {{ p.name }}
-          </h3>
-
-          <div class="mt-2 text-green-600 font-bold text-sm">
-            {{ formatPrice(p.price) }}
-          </div>
-
-          <button
-            @click="addToCart(p)"
-            class="mt-3 w-full bg-blue-500 text-white rounded-lg py-2 text-sm"
-          >
-            افزودن به سبد
-          </button>
-
-        </div>
-
-      </div>
+      <section class="px-4">
+  <FeaturedProductsSwiper
+    :products="featuredStore.featuredProducts"
+  />
+</section>
 
     </section>
 

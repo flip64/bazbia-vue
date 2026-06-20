@@ -65,4 +65,13 @@ defineProps<{
   }[]
   loading?: boolean
 }>()
+
+  function goToCategory(category: any) {
+  router.push({
+    path: "/products",
+    query: {
+      category: category.slug
+    }
+  })
+}
 </script>

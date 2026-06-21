@@ -43,7 +43,20 @@
   />
 </section>
 
+
     
+    <section>
+  <div>
+
+    <!-- سایر بخش‌ها -->
+
+    <LatestProductsCarousel
+      :products="products"
+      :loading="loading"
+    />
+
+  </div>
+</section>
 
     <!-- ================= Trust ================= -->
     <section class="mt-8 mb-8 px-4">

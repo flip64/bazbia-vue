@@ -108,7 +108,24 @@ function addToCart(product: any) {
 }
 
 
+import LatestProductsCarousel from "@/components/LatestProductsCarousel.vue"
+import { ref, onMounted } from "vue"
 
+// دیتا
+const products = ref([])
+const loading = ref(true)
+
+// نمونه API (یا سرویس خودت)
+async function fetchLatestProducts() {
+  loading.value = true
+
+  try {
+    const res = await fetch("/api/products/latest")
+    products.value = await res.json()
+  } finally {
+    loading.value = false
+  }
+}
 
 
   

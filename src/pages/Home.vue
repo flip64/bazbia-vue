@@ -108,7 +108,7 @@ function addToCart(product: any) {
 }
 
 
-import LatestProductsCarousel from "@/components/home/LatestProductsCarousel.vue"
+import LatestProductsCarousel from "@/components/home/LatestProductsCarouel.vue"
 import { ref, onMounted } from "vue"
 
 // دیتا

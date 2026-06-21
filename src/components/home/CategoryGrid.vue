@@ -16,17 +16,16 @@
     <!-- Categories -->
     <template v-else>
       <div
-  v-for="category in categories"
-  :key="category.id"
-  @click="goToCategory(category)"
-  class="group flex flex-col items-center
-         bg-gray-50/60 backdrop-blur-sm rounded-2xl p-3
-         hover:border-gray-200
-         hover:shadow-sm
-         transition-all duration-200
-         cursor-pointer"
->
-
+        v-for="category in categories"
+        :key="category.id"
+        @click="goToCategory(category)"
+        class="group flex flex-col items-center
+               bg-gray-50/60 backdrop-blur-sm rounded-2xl p-3
+               hover:border-gray-200
+               hover:shadow-sm
+               transition-all duration-200
+               cursor-pointer"
+      >
         <!-- Image -->
         <div
           class="w-20 h-20 md:w-24 md:h-24
@@ -49,7 +48,6 @@
         >
           {{ category.name }}
         </span>
-
       </div>
     </template>
 
@@ -57,16 +55,21 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router"
+
+const router = useRouter()
+
 defineProps<{
   categories: {
     id: number | string
     name: string
     image: string
+    slug: string
   }[]
   loading?: boolean
 }>()
 
-  function goToCategory(category: any) {
+function goToCategory(category: any) {
   router.push({
     path: "/products",
     query: {

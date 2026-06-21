@@ -44,7 +44,7 @@
         <span
           class="mt-3 text-xs md:text-sm
                  text-gray-700 text-center
-                 font-medium line-clamp-2 min-h-[38px]"
+                 font-medium line-clamp-2 min-h-[42px]"
         >
           {{ category.name }}
         </span>

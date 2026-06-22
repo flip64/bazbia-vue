@@ -40,7 +40,7 @@
           <div
             v-for="n in 6"
             :key="n"
-            class="min-w-[180px] md:min-w-[220px] animate-pulse bg-gray-100 rounded-2xl p-3"
+            class="min-w-[260px] md:min-w-[290px] animate-pulse bg-gray-100 rounded-2xl p-3"
           >
             <div class="h-40 bg-gray-200 rounded-xl"></div>
             <div class="mt-3 h-3 bg-gray-200 rounded w-3/4"></div>

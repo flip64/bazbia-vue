@@ -1,5 +1,5 @@
 <template>
-  <section class="mt-8 px-4 py-6"">
+  <section class="mt-8 px-4 py-6">
 
     <!-- 🎯 Special Box -->
     <div class="bg-gradient-to-l from-green-50 to-emerald-100 border border-green-200 rounded-2xl p-4">

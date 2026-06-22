@@ -1,95 +1,80 @@
 <template>
-  <div class="min-h-screen bg-gray-50 space-y-10">
+  <div class="min-h-screen bg-gray-50 py-6">
 
-    <!-- ================= Banner ================= -->
-    <section class="px-4 pt-4">
-      <div
-        v-if="bannerStore.loading"
-        class="h-44 rounded-2xl bg-white flex items-center justify-center"
-      >
-        در حال بارگذاری...
-      </div>
+    <div class="space-y-12">
 
-      <BannerCarousel
-        v-else-if="bannerStore.banners.length"
-        :banners="bannerStore.banners"
-      />
-
-      <div
-        v-else
-        class="h-44 rounded-2xl bg-white flex items-center justify-center text-gray-400"
-      >
-        بنری موجود نیست
-      </div>
-    </section>
-
-    <!-- ================= Categories ================= -->
-    <section class="mt-8 px-4 w-full">
-
-      <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
-        دسته‌بندی‌ها
-        <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
-      </h2>
-
-      <CategoryGrid
-        :categories="categoryStore.categories"
-      />
-    </section>
-
-    <!-- ================= Featured Products ================= -->
+      <!-- ================= Banner ================= -->
       <section class="px-4">
-        <FeaturedProductsSwiper
-    :products="featuredStore.featuredProducts"
-  />
-</section>
-
-<!-- سایر بخش‌ها -->
-<!-- ================= new product ================= -->
-
-    
-    <section>
-  <div>
-
-    
-    <LatestProductsCarousel
-      :products="products"
-      :loading="loading"
-    />
-
-  </div>
-</section>
-
-
-
-<!-- ================= chepest Products ================= -->
-      <section class="px-4">
-        <CheapestProductsCarouel
-    :products="featuredStore.featuredProducts"
-  />
-</section>
-    
-
-
-
-    
-    <!-- ================= Trust ================= -->
-    <section class="mt-8 mb-8 px-4">
-
-      <div class="bg-white rounded-2xl border p-5">
-
-        <h2 class="font-bold text-lg mb-4">
-          چرا بازبیا؟
-        </h2>
-
-        <div class="space-y-3 text-sm text-gray-700">
-          <div>🐦 خرید هوشمند بدون تبلیغات مزاحم</div>
-          <div>💰 مقایسه شفاف قیمت‌ها</div>
-          <div>⚡ تجربه خرید سریع و ساده</div>
+        <div
+          v-if="bannerStore.loading"
+          class="h-44 rounded-2xl bg-white flex items-center justify-center"
+        >
+          در حال بارگذاری...
         </div>
 
-      </div>
+        <BannerCarousel
+          v-else-if="bannerStore.banners.length"
+          :banners="bannerStore.banners"
+        />
 
-    </section>
+        <div
+          v-else
+          class="h-44 rounded-2xl bg-white flex items-center justify-center text-gray-400"
+        >
+          بنری موجود نیست
+        </div>
+      </section>
+
+      <!-- ================= Categories ================= -->
+      <section class="px-4">
+        <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
+          دسته‌بندی‌ها
+          <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
+        </h2>
+
+        <CategoryGrid :categories="categoryStore.categories" />
+      </section>
+
+      <!-- ================= Featured ================= -->
+      <section class="px-4">
+        <FeaturedProductsSwiper
+          :products="featuredStore.featuredProducts"
+        />
+      </section>
+
+      <!-- ================= Latest ================= -->
+      <section class="px-4">
+        <LatestProductsCarousel
+          :products="products"
+          :loading="loading"
+        />
+      </section>
+
+      <!-- ================= Cheapest ================= -->
+      <section class="px-4">
+        <CheapestProductsCarouel
+          :products="featuredStore.featuredProducts"
+        />
+      </section>
+
+      <!-- ================= Trust ================= -->
+      <section class="px-4">
+        <div class="bg-white rounded-2xl border p-5">
+
+          <h2 class="font-bold text-lg mb-4">
+            چرا بازبیا؟
+          </h2>
+
+          <div class="space-y-3 text-sm text-gray-700">
+            <div>🐦 خرید هوشمند بدون تبلیغات مزاحم</div>
+            <div>💰 مقایسه شفاف قیمت‌ها</div>
+            <div>⚡ تجربه خرید سریع و ساده</div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
 
   </div>
 </template>

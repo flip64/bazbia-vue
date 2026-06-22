@@ -66,7 +66,7 @@
             <div class="relative h-32 md:h-36 bg-gray-50 flex items-center justify-center">
 
               <img
-                :src="product.image"
+                :src="product.thumb"
                 class="w-full h-full object-contain group-hover:scale-105 transition"
               />
 

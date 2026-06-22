@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 space-y-10>
+  <div class="min-h-screen bg-gray-50 space-y-10">
 
     <!-- ================= Banner ================= -->
     <section class="px-4 pt-4">

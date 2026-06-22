@@ -40,7 +40,7 @@
 
         <!-- Skeleton -->
         <div
-          v-if="loading"
+          v-if=""latestProductStore.loading"
           v-for="n in 6"
           :key="n"
           class="min-w-[160px] md:min-w-[200px] animate-pulse bg-gray-100 rounded-2xl p-3"
@@ -125,18 +125,13 @@ import { useRouter } from "vue-router"
 const router = useRouter()
 const slider = ref<HTMLElement | null>(null)
 
-defineProps<{
-  products: {
-    id: number | string
-    name: string
-    image: string
-    price: number
-    old_price?: number
-    discount?: number
-    slug?: string
-  }[]
-  loading?: boolean
-}>()
+import { useLatestProductStore } from '@/core/store/latestProductStore'
+
+const store = useLatestProductStore()
+
+onMounted(() => {
+  store.fetchLatestProducts()
+})
 
 function scrollLeft() {
   slider.value?.scrollBy({ left: -300, behavior: "smooth" })

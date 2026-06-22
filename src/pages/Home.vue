@@ -4,7 +4,7 @@
     <div class="space-y-12">
 
       <!-- ================= Banner ================= -->
-      <section class="px-4">
+      <section class="px-4 py-6">
         <div
           v-if="bannerStore.loading"
           class="h-44 rounded-2xl bg-white flex items-center justify-center"
@@ -26,7 +26,7 @@
       </section>
 
       <!-- ================= Categories ================= -->
-      <section class="px-4">
+      <section class="px-4 py-6">
         <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
           دسته‌بندی‌ها
           <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
@@ -36,14 +36,14 @@
       </section>
 
       <!-- ================= Featured ================= -->
-      <section class="px-4">
+      <section class=""px-4 py-6">
         <FeaturedProductsSwiper
           :products="featuredStore.featuredProducts"
         />
       </section>
 
       <!-- ================= Latest ================= -->
-      <section class="px-4">
+      <section class="px-4 py-6">
         <LatestProductsCarousel
           :products="products"
           :loading="loading"
@@ -51,7 +51,7 @@
       </section>
 
       <!-- ================= Cheapest ================= -->
-      <section class="px-4">
+      <section class="px-4 py-6">
         <CheapestProductsCarouel
           :products="featuredStore.featuredProducts"
         />

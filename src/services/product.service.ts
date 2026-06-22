@@ -93,7 +93,7 @@ async getLatestProducts(limit = 12) {
         page_size: limit,
         ordering: 'newest' // یا '-id' اگر backend اینو ساپورت کنه
       }
-    })
+    },
 
     console.log("🆕 Latest products loaded")
 

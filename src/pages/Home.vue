@@ -63,7 +63,7 @@
 
 <!-- ================= chepest Products ================= -->
       <section class="px-4">
-        <CheapestProductsSwiper
+        <CheapestProductsCarouel
     :products="featuredStore.featuredProducts"
   />
 </section>
@@ -100,7 +100,7 @@ import { onMounted } from "vue"
 import CategoryGrid from "@/components/home/CategoryGrid.vue"
 import BannerCarousel from "@/components/home/BannerCarousel.vue"
 import FeaturedProductsSwiper from '@/components/home/FeaturedProductsSwiper.vue'
-import CheapestProductsSwiper from '@/components/home/CheapestProductsSwiper.vue'
+import CheapestProductsCarouel from '@/components/home/CheapestProductsCarouel.vue'
     
 // stores
 import { useCategoryStore } from "@/core/store/categoryStore"

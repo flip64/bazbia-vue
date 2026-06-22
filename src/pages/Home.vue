@@ -59,6 +59,19 @@
   </div>
 </section>
 
+
+
+<!-- ================= chepest Products ================= -->
+      <section class="px-4">
+        <CheapestProductsSwiper
+    :products="featuredStore.featuredProducts"
+  />
+</section>
+    
+
+
+
+    
     <!-- ================= Trust ================= -->
     <section class="mt-8 mb-8 px-4">
 
@@ -87,7 +100,8 @@ import { onMounted } from "vue"
 import CategoryGrid from "@/components/home/CategoryGrid.vue"
 import BannerCarousel from "@/components/home/BannerCarousel.vue"
 import FeaturedProductsSwiper from '@/components/home/FeaturedProductsSwiper.vue'
-  
+import CheapestProductsSwiper from '@/components/home/CheapestProductsSwiper.vue'
+    
 // stores
 import { useCategoryStore } from "@/core/store/categoryStore"
 import { useBannerStore } from "@/core/store/bannerStore"

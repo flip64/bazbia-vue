@@ -2,18 +2,27 @@
   <section class="mt-10 px-4">
 
     <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg md:text-xl font-bold text-gray-800">
-        جدیدترین محصولات
-      </h2>
+<div class="flex items-center justify-between mb-4">
+  <h2 class="flex items-center gap-2 text-lg md:text-xl font-bold text-gray-800">
 
-      <button
-        class="text-sm text-green-600 hover:text-green-700"
-        @click="goToAll"
-      >
-        مشاهده همه
-      </button>
-    </div>
+    <!-- آیکن -->
+    <span
+      class="flex items-center justify-center w-9 h-9 rounded-full bg-green-600 text-white"
+    >
+      🆕
+    </span>
+
+    جدیدترین محصولات
+
+  </h2>
+
+  <button
+    class="text-sm text-green-600 hover:text-green-700"
+    @click="goToAll"
+  >
+    مشاهده همه
+  </button>
+</div>
 
     <div class="relative">
 

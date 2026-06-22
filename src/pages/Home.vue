@@ -43,13 +43,14 @@
   />
 </section>
 
+<!-- سایر بخش‌ها -->
+!-- ================= new product ================= -->
 
     
     <section>
   <div>
 
-    <!-- سایر بخش‌ها -->
-
+    
     <LatestProductsCarousel
       :products="products"
       :loading="loading"

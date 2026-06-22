@@ -15,39 +15,38 @@
       </button>
     </div>
 
-    <!-- Slider wrapper -->
     <div class="relative">
 
-      <!-- Left button -->
+      <!-- Left -->
       <button
         @click="scrollLeft"
-        class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-8 h-8 hidden md:flex items-center justify-center"
+        class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-9 h-9 hidden md:flex items-center justify-center"
       >
         ‹
       </button>
 
-      <!-- Right button -->
+      <!-- Right -->
       <button
         @click="scrollRight"
-        class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-8 h-8 hidden md:flex items-center justify-center"
+        class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-9 h-9 hidden md:flex items-center justify-center"
       >
         ›
       </button>
 
-      <!-- Products list -->
+      <!-- List -->
       <div
         ref="slider"
         class="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar pb-2"
       >
 
-        <!-- Skeleton loading -->
+        <!-- Skeleton -->
         <template v-if="store.loading">
           <div
             v-for="n in 6"
             :key="n"
-            class="min-w-[160px] md:min-w-[200px] animate-pulse bg-gray-100 rounded-2xl p-3"
+            class="min-w-[180px] md:min-w-[220px] animate-pulse bg-gray-100 rounded-2xl p-3"
           >
-            <div class="h-32 bg-gray-200 rounded-xl"></div>
+            <div class="h-40 bg-gray-200 rounded-xl"></div>
             <div class="mt-3 h-3 bg-gray-200 rounded w-3/4"></div>
             <div class="mt-2 h-3 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -58,16 +57,16 @@
           <div
             v-for="product in store.products"
             :key="product.id"
-            class="min-w-[160px] md:min-w-[200px] bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer group"
+            class="group min-w-[180px] md:min-w-[220px] bg-white border rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition cursor-pointer"
             @click="goToProduct(product)"
           >
 
             <!-- Image -->
-            <div class="relative h-32 md:h-36 bg-gray-50 flex items-center justify-center">
+            <div class="relative overflow-hidden bg-gray-50">
 
               <img
                 :src="product.thumb"
-                class="w-full h-full object-contain group-hover:scale-105 transition"
+                class="w-full h-44 object-cover group-hover:scale-105 transition duration-300"
               />
 
               <!-- Discount -->
@@ -75,20 +74,20 @@
                 v-if="product.discount"
                 class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full"
               >
-                {{ product.discount }}%
+                -{{ product.discount }}%
               </span>
 
             </div>
 
-            <!-- Info -->
-            <div class="p-3">
+            <!-- Content -->
+            <div class="p-3 flex flex-col gap-2">
 
-              <h3 class="text-sm font-medium text-gray-800 line-clamp-2 min-h-[38px]">
+              <h3 class="text-sm text-gray-800 line-clamp-2 min-h-[40px] text-center">
                 {{ product.name }}
               </h3>
 
               <!-- Price -->
-              <div class="mt-2 flex items-center justify-between">
+              <div class="flex items-center justify-between">
 
                 <span class="text-green-600 font-bold text-sm">
                   {{ formatPrice(product.price) }}
@@ -103,9 +102,9 @@
 
               </div>
 
-              <!-- Add to cart -->
+              <!-- Button -->
               <button
-                class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition"
+                class="mt-2 w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition active:scale-95"
                 @click.stop="addToCart(product)"
               >
                 افزودن به سبد

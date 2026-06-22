@@ -84,15 +84,17 @@ async getFeaturedProducts(limit = 12) {
 
   return response.data.data.map(normalizeProduct)
 },
+
+  
 // متدی برای جدیدترین محصولات
 async getLatestProducts(limit = 12) {
   try {
     const response = await axios.get(`${API_BASE_URL}/products/`, {
       params: {
         page_size: limit,
-        ordering: 'newest' // یا '-id' اگر backend اینو ساپورت کنه
+        ordering: '-id' // یا '-created_at'
       }
-    },
+    })
 
     console.log("🆕 Latest products loaded")
 
@@ -102,9 +104,7 @@ async getLatestProducts(limit = 12) {
     console.error('❌ خطا در دریافت جدیدترین محصولات:', error)
     return []
   }
-}
-
-
+},
 
   // متد برای دریافت جزئیات محصول با slug
   async getProductBySlug(slug: string) {

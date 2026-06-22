@@ -27,20 +27,7 @@
     <div class="relative">
 
       <!-- Left -->
-      <button
-        @click="scrollLeft"
-        class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-9 h-9 hidden md:flex items-center justify-center"
-      >
-        ‹
-      </button>
-
-      <!-- Right -->
-      <button
-        @click="scrollRight"
-        class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-9 h-9 hidden md:flex items-center justify-center"
-      >
-        ›
-      </button>
+      
 
       <!-- List -->
       <div

@@ -91,7 +91,7 @@ async getLatestProducts(limit = 12) {
     const response = await axios.get(`${API_BASE_URL}/products/`, {
       params: {
         page_size: limit,
-        ordering: '-created_at' // یا '-id' اگر backend اینو ساپورت کنه
+        ordering: ''newest' // یا '-id' اگر backend اینو ساپورت کنه
       }
     })
 

@@ -1,5 +1,5 @@
 <template>
-  <section class="mt-10 px-4">
+  <section class="mt-10 mx-4 p-5 bg-yellow-100 border border-yellow-300 rounded-2xl shadow-md">
 
     <!-- Header -->
 <div class="flex items-center justify-between mb-4">

@@ -40,7 +40,7 @@
 
         <!-- Skeleton -->
         <div
-          v-if=""latestProductStore.loading"
+          v-if= "latestProductStore.loading"
           v-for="n in 6"
           :key="n"
           class="min-w-[160px] md:min-w-[200px] animate-pulse bg-gray-100 rounded-2xl p-3"

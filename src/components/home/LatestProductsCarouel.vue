@@ -15,9 +15,10 @@
       </button>
     </div>
 
-    <!-- Left/Right Buttons -->
+    <!-- Slider wrapper -->
     <div class="relative">
 
+      <!-- Left button -->
       <button
         @click="scrollLeft"
         class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-8 h-8 hidden md:flex items-center justify-center"
@@ -25,6 +26,7 @@
         ‹
       </button>
 
+      <!-- Right button -->
       <button
         @click="scrollRight"
         class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow rounded-full w-8 h-8 hidden md:flex items-center justify-center"
@@ -32,59 +34,61 @@
         ›
       </button>
 
-      <!-- Slider -->
+      <!-- Products list -->
       <div
         ref="slider"
         class="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar pb-2"
       >
 
-        <!-- Skeleton -->
-        <div
-          v-if= "latestProductStore.loading"
-          v-for="n in 6"
-          :key="n"
-          class="min-w-[160px] md:min-w-[200px] animate-pulse bg-gray-100 rounded-2xl p-3"
-        >
-          <div class="h-32 bg-gray-200 rounded-xl"></div>
-          <div class="mt-3 h-3 bg-gray-200 rounded w-3/4"></div>
-          <div class="mt-2 h-3 bg-gray-200 rounded w-1/2"></div>
-        </div>
+        <!-- Skeleton loading -->
+        <template v-if="store.loading">
+          <div
+            v-for="n in 6"
+            :key="n"
+            class="min-w-[160px] md:min-w-[200px] animate-pulse bg-gray-100 rounded-2xl p-3"
+          >
+            <div class="h-32 bg-gray-200 rounded-xl"></div>
+            <div class="mt-3 h-3 bg-gray-200 rounded w-3/4"></div>
+            <div class="mt-2 h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </template>
 
         <!-- Products -->
-        <div
-          v-else
-          v-for="product in products"
-          :key="product.id"
-          class="min-w-[160px] md:min-w-[200px] bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer group"
-          @click="goToProduct(product)"
-        >
+        <template v-else>
+          <div
+            v-for="product in store.products"
+            :key="product.id"
+            class="min-w-[160px] md:min-w-[200px] bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer group"
+            @click="goToProduct(product)"
+          >
 
-          <!-- Image -->
-          <div class="relative h-32 md:h-36 bg-gray-50 flex items-center justify-center">
-            <img
-              :src="product.image"
-              class="w-full h-full object-contain group-hover:scale-105 transition"
-            />
+            <!-- Image -->
+            <div class="relative h-32 md:h-36 bg-gray-50 flex items-center justify-center">
 
-            <!-- Discount Badge -->
-            <span
-              v-if="product.discount"
-              class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full"
-            >
-              {{ product.discount }}%
-            </span>
-          </div>
+              <img
+                :src="product.image"
+                class="w-full h-full object-contain group-hover:scale-105 transition"
+              />
 
-          <!-- Info -->
-          <div class="p-3">
+              <!-- Discount -->
+              <span
+                v-if="product.discount"
+                class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full"
+              >
+                {{ product.discount }}%
+              </span>
 
-            <h3 class="text-sm font-medium text-gray-800 line-clamp-2 min-h-[38px]">
-              {{ product.name }}
-            </h3>
+            </div>
 
-            <!-- Price -->
-            <div class="mt-2">
-              <div class="flex items-center justify-between">
+            <!-- Info -->
+            <div class="p-3">
+
+              <h3 class="text-sm font-medium text-gray-800 line-clamp-2 min-h-[38px]">
+                {{ product.name }}
+              </h3>
+
+              <!-- Price -->
+              <div class="mt-2 flex items-center justify-between">
 
                 <span class="text-green-600 font-bold text-sm">
                   {{ formatPrice(product.price) }}
@@ -98,19 +102,19 @@
                 </span>
 
               </div>
+
+              <!-- Add to cart -->
+              <button
+                class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition"
+                @click.stop="addToCart(product)"
+              >
+                افزودن به سبد
+              </button>
+
             </div>
 
-            <!-- Add to cart -->
-            <button
-              class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition"
-              @click.stop="addToCart(product)"
-            >
-              افزودن به سبد
-            </button>
-
           </div>
-
-        </div>
+        </template>
 
       </div>
     </div>
@@ -119,13 +123,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
+import { useLatestProductStore } from "@/core/store/latestProductStore"
 
 const router = useRouter()
 const slider = ref<HTMLElement | null>(null)
-
-import { useLatestProductStore } from '@/core/store/latestProductStore'
 
 const store = useLatestProductStore()
 
@@ -162,6 +165,7 @@ function formatPrice(price: number) {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

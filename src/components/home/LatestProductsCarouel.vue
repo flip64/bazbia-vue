@@ -1,5 +1,5 @@
 <template>
-  <section class="mt-10 mx-4 p-5 bg-yellow-100 border border-yellow-300 rounded-2xl shadow-md. py-6">
+  <section class="mt-10 mx-4 p-5 bg-white-100 border border-yellow-300 rounded-2xl shadow-md. py-6">
 
     <!-- Header -->
 <div class="flex items-center justify-between mb-4">

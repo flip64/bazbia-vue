@@ -34,14 +34,14 @@
     </section>
 
     <!-- ================= Featured ================= -->
-    <section class="px-4 py-10 "px-4 border-4 border-red-500">
+    <section class="px-4 py-10 border-4 border-red-500">
       <FeaturedProductsSwiper
         :products="featuredStore.featuredProducts"
       />
     </section>
  <p> </p>
     <!-- ================= Latest ================= -->
-    <section class="px-4 py-10 "px-4 border-4 border-blue-500">
+    <section class="px-4 py-10 border-4 border-blue-500">
       <LatestProductsCarousel
         :products="products"
         :loading="loading"

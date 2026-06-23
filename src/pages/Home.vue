@@ -24,7 +24,7 @@
     </section>
 
     <!-- ================= Categories ================= -->
-    <section class="px-4 py-10">
+    <section class="px-4 py-10 border-4 border-blue-500">
       <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
         دسته‌بندی‌ها
         <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
@@ -34,14 +34,14 @@
     </section>
 
     <!-- ================= Featured ================= -->
-    <section class="px-4 py-10">
+    <section class="px-4 py-10 "px-4 border-4 border-red-500">">
       <FeaturedProductsSwiper
         :products="featuredStore.featuredProducts"
       />
     </section>
  <p> </p>
     <!-- ================= Latest ================= -->
-    <section class="px-4 py-10">
+    <section class="px-4 py-10 "px-4 border-4 border-blue-500">">
       <LatestProductsCarousel
         :products="products"
         :loading="loading"

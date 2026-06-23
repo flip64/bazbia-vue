@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import { productService } from '@/services/product.service'
 import type { Product } from '@/types/product.types'
 
-export const usechepsettProductStore = defineStore('latestProducts', () => {
+export const useChepsettProductStore = defineStore('latestProducts', () => {
   const products = ref<Product[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)

@@ -34,7 +34,7 @@
     </section>
 
     <!-- ================= Featured ================= -->
-    <section class="px-4 py-10 border-4 border-red-500">
+    <section class="px-4 py-50 border-4 border-red-500">
       <FeaturedProductsSwiper
         :products="featuredStore.featuredProducts"
       />

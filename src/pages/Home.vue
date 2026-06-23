@@ -24,7 +24,7 @@
     </section>
 
     <!-- ================= Categories ================= -->
-    <section class="px-4">
+    <section class="px-4 py-10">
       <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
         دسته‌بندی‌ها
         <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
@@ -34,14 +34,14 @@
     </section>
 
     <!-- ================= Featured ================= -->
-    <section class="px-4">
+    <section class="px-4 py-10">
       <FeaturedProductsSwiper
         :products="featuredStore.featuredProducts"
       />
     </section>
 
     <!-- ================= Latest ================= -->
-    <section class="px-4">
+    <section class="px-4 py-10">
       <LatestProductsCarousel
         :products="products"
         :loading="loading"
@@ -49,14 +49,14 @@
     </section>
 
     <!-- ================= Cheapest ================= -->
-    <section class="px-4">
+    <section class="px-4 py-10">
       <CheapestProductsCarouel
         :products="featuredStore.featuredProducts"
       />
     </section>
 
     <!-- ================= Trust ================= -->
-    <section class="px-4">
+    <section class="px-4 py-10">
       <div class="bg-white rounded-2xl border p-5">
         <h2 class="font-bold text-lg mb-4">چرا بازبیا؟</h2>
 

@@ -125,10 +125,10 @@ import { useChepsetProductStore } from "@/core/store/chepsetProductStore"
 const router = useRouter()
 const slider = ref<HTMLElement | null>(null)
 
-const store = useLatestProductStore()
+const store = useChepsetProductStore()
 
 onMounted(() => {
-  store.fetchLatestProducts()
+  store.fetchChepsetProducts()
 })
 
 function scrollLeft() {

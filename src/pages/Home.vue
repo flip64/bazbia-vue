@@ -47,14 +47,14 @@
         :loading="loading"
       />
     </section>
-
+ <div class="h-10"></div>
     <!-- ================= Cheapest ================= -->
     <section class="px-4 ">
       <CheapestProductsCarouel
         :products="featuredStore.featuredProducts"
       />
     </section>
-
+ <div class="h-10"></div>
     <!-- ================= Trust ================= -->
     <section class="px-4 ">
       <div class="bg-white rounded-2xl border p-5">

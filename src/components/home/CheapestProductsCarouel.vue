@@ -125,7 +125,7 @@ import { cheapestProductStore } from "@/core/store/cheapstProductStore"
 const router = useRouter()
 const slider = ref<HTMLElement | null>(null)
 
-const store = useChepsetProductStore()
+const store = cheapestProductStore()
 
 onMounted(() => {
   store.fetchChepsetProducts()

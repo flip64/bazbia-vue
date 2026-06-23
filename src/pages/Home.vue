@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 py-8 space-y-10">
 
     <!-- ================= Banner ================= -->
-    <section class="px-4">
+    <section class="px-4 py-10">
       <div
         v-if="bannerStore.loading"
         class="h-44 rounded-2xl bg-white flex items-center justify-center"

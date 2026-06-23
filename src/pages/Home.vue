@@ -1,4 +1,7 @@
 <template>
+  <div class="mt-20 bg-red-500 h-20">
+  تست فاصله
+</div>
   <div class="min-h-screen bg-gray-50 py-8 space-y-10">
 
     <!-- ================= Banner ================= -->

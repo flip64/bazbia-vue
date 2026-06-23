@@ -105,7 +105,25 @@ async getLatestProducts(limit = 12) {
     return []
   }
 },
+// متدی برای ارزانترین محصولات
+async getChesetProducts(limit = 12) {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/products/`, {
+      params: {
+        page_size: limit,
+        ordering: '-id' // یا '-created_at'
+      }
+    })
 
+    console.log("🆕 chepset products loaded")
+
+    return (response.data.data ?? []).map(normalizeProduct)
+
+  } catch (error) {
+    console.error('❌ خطا در دریافت ارزانترین محصولات:', error)
+    return []
+  }
+},
   // متد برای دریافت جزئیات محصول با slug
   async getProductBySlug(slug: string) {
     try {

@@ -39,7 +39,7 @@
         :products="featuredStore.featuredProducts"
       />
     </section>
- <p> ff</p>
+ <p> </p>
     <!-- ================= Latest ================= -->
     <section class="px-4 py-10">
       <LatestProductsCarousel

@@ -120,7 +120,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import { useLatestProductStore } from "@/core/store/latestProductStore"
+import { useChepsetProductStore } from "@/core/store/chepsetProductStore"
 
 const router = useRouter()
 const slider = ref<HTMLElement | null>(null)

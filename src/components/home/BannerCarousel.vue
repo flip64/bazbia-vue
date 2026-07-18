@@ -134,6 +134,7 @@ const touchEnd = (e) => {
 
 .slides {
   display: flex;
+  direction: ltr;
   transition: transform 0.5s ease;
 }
 

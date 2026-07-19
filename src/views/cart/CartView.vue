@@ -1,298 +1,320 @@
-<!-- views/cart/CartView.vue -->
+
 <template>
-  <div class="cart-page" dir="rtl">
-    <!-- Header -->
-    <div class="cart-header">
-      <div class="cart-header__title">
-        <h1>سبد خرید</h1>
-        <span v-if="!cartStore.isEmpty" class="cart-header__count">
-          {{ totalItems }} کالا
+  <article
+    class="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg"
+  >
+    <!-- تصویر محصول -->
+    <RouterLink
+      :to="`/product/${product.slug}`"
+      class="relative block aspect-square overflow-hidden bg-gray-50"
+    >
+      <img
+        v-if="product.thumb && !imageHasError"
+        :src="product.thumb"
+        :alt="product.name"
+        loading="lazy"
+        class="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
+        @error="handleImageError"
+      />
+
+      <div
+        v-else
+        class="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-400"
+      >
+        <svg
+          class="h-12 w-12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5A1.5 1.5 0 0 0 21.75 18V6A1.5 1.5 0 0 0 20.25 4.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"
+          />
+        </svg>
+
+        <span class="text-xs">
+          تصویر موجود نیست
         </span>
       </div>
-      
-      <!-- Select All -->
-      <div v-if="!cartStore.isEmpty" class="cart-header__actions">
-        <label class="select-all">
-          <input 
-            type="checkbox" 
-            :checked="cartStore.isAllSelected"
-            @change="cartStore.selectAll"
-          />
-          <span>انتخاب همه</span>
-        </label>
-        
-        <button 
-          v-if="selectedCount > 0"
-          class="remove-selected-btn"
-          @click="handleRemoveSelected"
-          :disabled="cartStore.loading"
+
+      <!-- درصد تخفیف -->
+      <span
+        v-if="hasDiscount"
+        class="absolute right-3 top-3 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+      >
+        {{ discountPercent }}٪
+      </span>
+
+      <!-- وضعیت موجودی -->
+      <span
+        class="absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm"
+        :class="
+          isInStock
+            ? 'bg-emerald-50 text-emerald-700'
+            : 'bg-gray-800 text-white'
+        "
+      >
+        {{ stockLabel }}
+      </span>
+    </RouterLink>
+
+    <!-- اطلاعات محصول -->
+    <div class="flex flex-1 flex-col p-4">
+      <RouterLink
+        :to="`/product/${product.slug}`"
+        class="mb-4 line-clamp-2 min-h-12 text-sm font-semibold leading-6 text-gray-800 transition hover:text-emerald-700"
+      >
+        {{ product.name }}
+      </RouterLink>
+
+      <!-- قیمت -->
+      <div class="mb-4 mt-auto">
+        <div
+          v-if="hasDiscount"
+          class="mb-1 text-xs text-gray-400 line-through"
         >
-          <Trash2 :size="16" />
-          حذف موارد انتخاب شده ({{ selectedCount }})
-        </button>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="cartStore.loading && isEmpty" class="loading-state">
-      <div class="spinner"></div>
-      <p>در حال دریافت سبد خرید...</p>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="cartStore.error" class="error-state">
-      <AlertCircle class="error-icon" :size="48" />
-      <h3>خطا در دریافت اطلاعات</h3>
-      <p>{{ cartStore.error }}</p>
-      <button @click="retryLoad" class="retry-btn">
-        تلاش مجدد
-      </button>
-    </div>
-
-    <!-- Empty Cart -->
-    <div v-else-if="isEmpty" class="empty-cart">
-      <ShoppingBag class="empty-icon" :size="64" />
-      <h2>سبد خرید شما خالی است</h2>
-      <p>برای مشاهده محصولات بیشتر به صفحه محصولات بروید</p>
-      <router-link to="/products" class="continue-shopping-btn">
-        مشاهده محصولات
-      </router-link>
-    </div>
-
-    <!-- Cart Items -->
-    <div v-else class="cart-content">
-      <div class="cart-items">
-        <CartItemCard
-          v-for="item in items"
-          :key="item.id"
-          :item="item"
-          :selected="selectedItems.includes(item.id)"
-          :updating="updatingItems.has(item.id)"
-          :removing="removingItems.has(item.id)"
-          :error="itemErrors[item.id]"
-          @update:selected="(value) => handleItemSelection(item.id, value)"
-          @update-quantity="handleUpdateQuantity"
-          @remove="handleRemoveItem"
-          @clear-error="clearItemError(item.id)"
-        />
-        
-        <!-- Continue Shopping -->
-        <router-link to="/products" class="continue-link">
-          <ArrowRight class="icon" />
-          ادامه خرید
-        </router-link>
-      </div>
-
-      <!-- Cart Summary -->
-      <div class="cart-summary" :class="{ 'cart-summary--sticky': !cartStore.loading }">
-        <h3>خلاصه سبد خرید</h3>
-        
-        <div class="summary-row">
-          <span>تعداد کالاها</span>
-          <span>{{ selectedCount || totalItems }}</span>
+          {{ formatPrice(product.price) }}
+          تومان
         </div>
-        
-        <div class="summary-row">
-          <span>مبلغ کل</span>
-          <span>{{ formatPrice(selectedTotalPrice || totalPrice) }}</span>
-        </div>
-        
-        <div class="summary-row">
-          <span>هزینه ارسال</span>
-          <span>
-            <span v-if="shippingCost === 0" class="free-shipping">رایگان</span>
-            <span v-else>{{ formatPrice(shippingCost) }}</span>
+
+        <div class="flex items-end gap-1 text-emerald-700">
+          <span class="text-lg font-black">
+            {{ formatPrice(finalPrice) }}
+          </span>
+
+          <span class="pb-0.5 text-xs font-medium">
+            تومان
           </span>
         </div>
-        
-        <div class="summary-total">
-          <span>مبلغ قابل پرداخت</span>
-          <span class="total-price">{{ formatPrice(finalPrice) }}</span>
-        </div>
-        
-        <!-- Free shipping progress -->
-        <div v-if="shippingCost > 0" class="shipping-progress">
-          <p>{{ formatPrice(minPurchaseForFreeShipping - (selectedTotalPrice || totalPrice)) }} دیگر خرید کنید تا ارسال رایگان شود</p>
-          <div class="progress-bar">
-            <div 
-              class="progress-fill" 
-              :style="{ width: shippingProgress + '%' }"
-            ></div>
-          </div>
-        </div>
-        
-        <button 
-          class="checkout-btn"
-          @click="goToCheckout"
-          :disabled="selectedCount === 0 || cartStore.loading"
-        >
-          <span v-if="!cartStore.loading">ادامه فرآیند خرید</span>
-          <span v-else class="btn-loading">
-            <Loader :size="18" class="spin" />
-            در حال پردازش...
-          </span>
-        </button>
-        
-        <!-- Suggestions -->
-        <div v-if="suggestedProducts.length" class="suggestions">
-          <h4>پیشنهاد ویژه</h4>
-          <div class="suggestion-items">
-            <ProductCardMini
-              v-for="product in suggestedProducts"
-              :key="product.id"
-              :product="product"
-              @add-to-cart="handleAddSuggested"
+      </div>
+
+      <!-- دکمه افزودن -->
+      <button
+        type="button"
+        class="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100"
+        :class="[
+          !isInStock
+            ? 'bg-gray-100 text-gray-400'
+            : addSuccess
+              ? 'bg-emerald-100 text-emerald-700'
+              : 'bg-emerald-600 text-white hover:bg-emerald-700',
+        ]"
+        :disabled="!isInStock || isAdding"
+        @click="handleAddToCart"
+      >
+        <!-- در حال افزودن -->
+        <template v-if="isAdding">
+          <svg
+            class="h-5 w-5 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
             />
-          </div>
-        </div>
-      </div>
+
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z"
+            />
+          </svg>
+
+          در حال افزودن
+        </template>
+
+        <!-- موفقیت -->
+        <template v-else-if="addSuccess">
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m4.5 12.75 6 6 9-13.5"
+            />
+          </svg>
+
+          به سبد اضافه شد
+        </template>
+
+        <!-- ناموجود -->
+        <template v-else-if="!isInStock">
+          ناموجود
+        </template>
+
+        <!-- حالت عادی -->
+        <template v-else>
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M2.25 3h1.386a1.5 1.5 0 0 1 1.455 1.136l.383 1.534m0 0L6.75 10.5h10.878a1.5 1.5 0 0 0 1.455-1.136l.75-3A1.5 1.5 0 0 0 18.378 4.5H5.182M5.474 5.67 7.5 13.5h9.75m-9.75 0a2.25 2.25 0 1 0 0 4.5m9.75-4.5a2.25 2.25 0 1 1 0 4.5M7.5 18h9.75"
+            />
+          </svg>
+
+          افزودن به سبد
+        </template>
+      </button>
+
+      <!-- خطای سبد -->
+      <p
+        v-if="cartStore.error"
+        class="mt-2 line-clamp-1 text-center text-xs text-red-500"
+      >
+        {{ cartStore.error }}
+      </p>
     </div>
-
-    <!-- Remove Confirmation Modal -->
-    <Teleport to="body">
-      <div v-if="showRemoveModal" class="modal-overlay" @click.self="closeRemoveModal">
-        <div class="modal-content">
-          <h3>حذف آیتم‌ها</h3>
-          <p>آیا از حذف {{ removeModalCount }} آیتم انتخاب شده اطمینان دارید؟</p>
-          <div class="modal-actions">
-            <button @click="closeRemoveModal" class="modal-btn modal-btn--cancel">
-              انصراف
-            </button>
-            <button @click="confirmRemoveSelected" class="modal-btn modal-btn--confirm">
-              تایید و حذف
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-  </div>
+  </article>
 </template>
-
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { ShoppingBag, ArrowRight, Trash2, AlertCircle, Loader } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useCartStore } from '@/core/store/cartStore'
-import { useProductStore } from '@/core/store/productStore'
-import CartItemCard from '@/components/CartItemCard.vue'
-import ProductCardMini from '@/components/ProductCardMini.vue'
-import type { Product } from '@/types/product.types'
 
-// ========== Stores ==========
-const router = useRouter()
+interface ProductVariant {
+  id: number
+  sku: string
+  price: string
+  discount_price: string | null
+  stock: number
+  low_stock_threshold: number
+  expiration_date: string | null
+  attributes: unknown[]
+}
+
+interface Product {
+  id: number
+  name: string
+  slug: string
+  price: number
+  discount_price: number | null
+  category: unknown | null
+  thumb: string | null
+  variants: ProductVariant[]
+  created_at: string
+  in_stock: number
+}
+
+const props = defineProps<{
+  product: Product
+}>()
+
 const cartStore = useCartStore()
-const productStore = useProductStore()
 
-// ========== State ==========
-const updatingItems = ref<Set<number>>(new Set())
-const removingItems = ref<Set<number>>(new Set())
-const itemErrors = ref<Record<number, string>>({})
-const showRemoveModal = ref(false)
-const removeModalCount = ref(0)
+const isAdding = ref(false)
+const addSuccess = ref(false)
+const imageHasError = ref(false)
 
-// ========== Computed ==========
-const items = computed(() => cartStore.items ?? [])
-const totalItems = computed(() => (cartStore.items ?? []).length)
-const selectedItems = computed(() => cartStore.selectedItems ?? [])
-const selectedCount = computed(() => selectedItems.value.length)
-const selectedTotalPrice = computed(() => cartStore.selectedTotalPrice ?? 0)
-const totalPrice = computed(() => cartStore.totalPrice ?? 0)
-const isEmpty = computed(() => !items.value.length)
+const mainVariant = computed(() => {
+  return props.product.variants[0] ?? null
+})
 
-const shippingCost = computed(() => {
-  const baseTotal = selectedCount.value ? selectedTotalPrice.value : totalPrice.value
-  return baseTotal > 500000 ? 0 : 30000
+const isInStock = computed(() => {
+  return (
+    props.product.in_stock > 0 &&
+    mainVariant.value !== null &&
+    mainVariant.value.stock > 0
+  )
+})
+
+const hasDiscount = computed(() => {
+  return (
+    props.product.discount_price !== null &&
+    props.product.discount_price > 0 &&
+    props.product.discount_price < props.product.price
+  )
 })
 
 const finalPrice = computed(() => {
-  const baseTotal = selectedCount.value ? selectedTotalPrice.value : totalPrice.value
-  return baseTotal + shippingCost.value
+  return hasDiscount.value
+    ? props.product.discount_price!
+    : props.product.price
 })
 
-const shippingProgress = computed(() => {
-  const baseTotal = selectedCount.value ? selectedTotalPrice.value : totalPrice.value
-  return Math.min((baseTotal / 500000) * 100, 100)
-})
-
-const minPurchaseForFreeShipping = 500000
-
-const suggestedProducts = computed(() => productStore.suggestedProducts ?? [])
-
-// ========== Methods ==========
-const formatPrice = (price: number) => new Intl.NumberFormat('fa-IR').format(price)
-
-const handleItemSelection = (itemId: number, selected: boolean) => {
-  if (selected) {
-    if (!cartStore.selectedItems.includes(itemId)) cartStore.selectedItems.push(itemId)
-  } else {
-    cartStore.selectedItems = cartStore.selectedItems.filter(id => id !== itemId)
+const discountPercent = computed(() => {
+  if (!hasDiscount.value) {
+    return 0
   }
+
+  return Math.round(
+    ((props.product.price - props.product.discount_price!) /
+      props.product.price) *
+      100,
+  )
+})
+
+const stockLabel = computed(() => {
+  if (!isInStock.value) {
+    return 'ناموجود'
+  }
+
+  if (
+    mainVariant.value &&
+    mainVariant.value.stock <= mainVariant.value.low_stock_threshold
+  ) {
+    return `تنها ${mainVariant.value.stock} عدد`
+  }
+
+  return 'موجود'
+})
+
+const formatPrice = (price: number | string) => {
+  const numericPrice = Number(price)
+
+  if (!Number.isFinite(numericPrice)) {
+    return '۰'
+  }
+
+  return new Intl.NumberFormat('fa-IR').format(numericPrice)
 }
 
-const handleUpdateQuantity = async (itemId: number, quantity: number) => {
-  updatingItems.value.add(itemId)
-  delete itemErrors.value[itemId]
-  try { await cartStore.updateQuantity(itemId, quantity) }
-  catch (err: any) { itemErrors.value[itemId] = err.message || 'خطا در بروزرسانی' }
-  finally { updatingItems.value.delete(itemId) }
+const handleImageError = () => {
+  imageHasError.value = true
 }
 
-const handleRemoveItem = async (itemId: number) => {
-  removingItems.value.add(itemId)
-  delete itemErrors.value[itemId]
-  try { await cartStore.removeItem(itemId) }
-  catch (err: any) { itemErrors.value[itemId] = err.message || 'خطا در حذف آیتم' }
-  finally { removingItems.value.delete(itemId) }
-}
+const handleAddToCart = async () => {
+  if (!mainVariant.value || !isInStock.value || isAdding.value) {
+    return
+  }
 
-const handleRemoveSelected = () => {
-  removeModalCount.value = selectedCount.value
-  showRemoveModal.value = true
-}
+  isAdding.value = true
+  addSuccess.value = false
 
-const closeRemoveModal = () => {
-  showRemoveModal.value = false
-  removeModalCount.value = 0
-}
-
-const confirmRemoveSelected = async () => {
-  showRemoveModal.value = false
-  for (const itemId of selectedItems.value) await handleRemoveItem(itemId)
-  cartStore.selectedItems = []
-}
-
-const clearItemError = (itemId: number) => { delete itemErrors.value[itemId] }
-
-const handleAddSuggested = async (product: Product) => {
   try {
     await cartStore.addItem({
-      variant_id: product.variants[0].id,
+      variant_id: mainVariant.value.id,
       quantity: 1,
-      session_key: cartStore.sessionKey // اضافه شد
     })
-  } catch (err) {
-    console.error('Error adding suggested product:', err)
+
+    addSuccess.value = true
+
+    window.setTimeout(() => {
+      addSuccess.value = false
+    }, 1800)
+  } catch (error) {
+    console.error('خطا در افزودن محصول به سبد خرید:', error)
+  } finally {
+    isAdding.value = false
   }
 }
-
-const goToCheckout = () => {
-  if (selectedCount.value === 0) cartStore.selectAll()
-  router.push('/checkout')
-}
-
-const retryLoad = async () => await cartStore.fetchCart()
-
-// ========== Lifecycle ==========
-onMounted(async () => {
-  await cartStore.fetchCart()
-  await productStore.fetchSuggestedProducts()
-})
-
-// پاکسازی خطاها بعد از 5 ثانیه
-watch(itemErrors, (newErrors) => {
-  Object.keys(newErrors).forEach(itemId => {
-    setTimeout(() => delete itemErrors.value[Number(itemId)], 5000)
-  })
-}, { deep: true })
 </script>
+

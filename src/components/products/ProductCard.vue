@@ -1,31 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import {
+  computed,
+  ref,
+} from 'vue'
 import { RouterLink } from 'vue-router'
+
 import { useCartStore } from '@/core/store/cartStore'
 
-interface ProductVariant {
-  id: number
-  sku: string
-  price: string
-  discount_price: string | null
-  stock: number
-  low_stock_threshold: number
-  expiration_date: string | null
-  attributes: unknown[]
-}
-
-interface Product {
-  id: number
-  name: string
-  slug: string
-  price: number
-  discount_price: number | null
-  category: unknown | null
-  thumb: string | null
-  variants: ProductVariant[]
-  created_at: string
-  in_stock: number
-}
+import type { Product } from '@/types/product.types'
 
 const props = defineProps<{
   product: Product
@@ -35,10 +17,13 @@ const cartStore = useCartStore()
 
 const isAdding = ref(false)
 const addSuccess = ref(false)
-const imageHasError = ref(false)
+const imageError = ref(false)
 
 const mainVariant = computed(() => {
-  return props.product.variants[0] ?? null
+  return (
+    props.product.variants?.[0] ??
+    null
+  )
 })
 
 const isInStock = computed(() => {
@@ -51,16 +36,21 @@ const isInStock = computed(() => {
 
 const hasDiscount = computed(() => {
   return (
-    props.product.discount_price !== null &&
+    props.product.discount_price !==
+      null &&
     props.product.discount_price > 0 &&
-    props.product.discount_price < props.product.price
+    props.product.discount_price <
+      props.product.price
   )
 })
 
 const finalPrice = computed(() => {
-  return hasDiscount.value
-    ? props.product.discount_price!
-    : props.product.price
+  if (hasDiscount.value) {
+    return props.product
+      .discount_price as number
+  }
+
+  return props.product.price
 })
 
 const discountPercent = computed(() => {
@@ -69,7 +59,10 @@ const discountPercent = computed(() => {
   }
 
   return Math.round(
-    ((props.product.price - props.product.discount_price!) /
+    ((props.product.price -
+      Number(
+        props.product.discount_price,
+      )) /
       props.product.price) *
       100,
   )
@@ -82,30 +75,28 @@ const stockLabel = computed(() => {
 
   if (
     mainVariant.value &&
-    mainVariant.value.stock <= mainVariant.value.low_stock_threshold
+    mainVariant.value.stock <= 5
   ) {
-    return `تنها ${mainVariant.value.stock} عدد`
+    return `فقط ${mainVariant.value.stock} عدد`
   }
 
   return 'موجود'
 })
 
-const formatPrice = (price: number | string) => {
-  const numericPrice = Number(price)
-
-  if (!Number.isFinite(numericPrice)) {
-    return '۰'
-  }
-
-  return new Intl.NumberFormat('fa-IR').format(numericPrice)
-}
-
-const handleImageError = () => {
-  imageHasError.value = true
+const formatPrice = (
+  price: number | string,
+) => {
+  return Number(price).toLocaleString(
+    'fa-IR',
+  )
 }
 
 const handleAddToCart = async () => {
-  if (!mainVariant.value || !isInStock.value || isAdding.value) {
+  if (
+    !mainVariant.value ||
+    !isInStock.value ||
+    isAdding.value
+  ) {
     return
   }
 
@@ -114,7 +105,9 @@ const handleAddToCart = async () => {
 
   try {
     await cartStore.addItem({
-      variant_id: mainVariant.value.id,
+      variant_id:
+        mainVariant.value.id,
+
       quantity: 1,
     })
 
@@ -123,8 +116,11 @@ const handleAddToCart = async () => {
     window.setTimeout(() => {
       addSuccess.value = false
     }, 1800)
-  } catch (error) {
-    console.error('خطا در افزودن محصول به سبد خرید:', error)
+  } catch (err) {
+    console.error(
+      'خطا در افزودن به سبد:',
+      err,
+    )
   } finally {
     isAdding.value = false
   }
@@ -132,188 +128,309 @@ const handleAddToCart = async () => {
 </script>
 
 <template>
-  <article
-    class="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg"
-  >
-    <!-- تصویر محصول -->
+  <article class="product-card">
     <RouterLink
       :to="`/product/${product.slug}`"
-      class="relative block aspect-square overflow-hidden bg-gray-50"
+      class="product-image"
     >
       <img
-        v-if="product.thumb && !imageHasError"
+        v-if="
+          product.thumb &&
+          !imageError
+        "
         :src="product.thumb"
         :alt="product.name"
         loading="lazy"
-        class="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
-        @error="handleImageError"
+        @error="imageError = true"
       />
 
       <div
         v-else
-        class="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-400"
+        class="product-image__empty"
       >
-        <svg
-          class="h-12 w-12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5A1.5 1.5 0 0 0 21.75 18V6A1.5 1.5 0 0 0 20.25 4.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"
-          />
-        </svg>
-
-        <span class="text-xs">
-          تصویر موجود نیست
-        </span>
+        تصویر موجود نیست
       </div>
 
-      <!-- درصد تخفیف -->
       <span
         v-if="hasDiscount"
-        class="absolute right-3 top-3 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+        class="discount-badge"
       >
         {{ discountPercent }}٪
       </span>
 
-      <!-- وضعیت موجودی -->
       <span
-        class="absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm"
-        :class="
-          isInStock
-            ? 'bg-emerald-50 text-emerald-700'
-            : 'bg-gray-800 text-white'
-        "
+        class="stock-badge"
+        :class="{
+          'stock-badge--empty':
+            !isInStock,
+        }"
       >
         {{ stockLabel }}
       </span>
     </RouterLink>
 
-    <!-- اطلاعات محصول -->
-    <div class="flex flex-1 flex-col p-4">
+    <div class="product-content">
       <RouterLink
         :to="`/product/${product.slug}`"
-        class="mb-4 line-clamp-2 min-h-12 text-sm font-semibold leading-6 text-gray-800 transition hover:text-emerald-700"
+        class="product-name"
       >
         {{ product.name }}
       </RouterLink>
 
-      <!-- قیمت -->
-      <div class="mb-4 mt-auto">
-        <div
+      <div class="product-price">
+        <span
           v-if="hasDiscount"
-          class="mb-1 text-xs text-gray-400 line-through"
+          class="product-price__old"
         >
-          {{ formatPrice(product.price) }}
+          {{
+            formatPrice(
+              product.price,
+            )
+          }}
           تومان
-        </div>
+        </span>
 
-        <div class="flex items-end gap-1 text-emerald-700">
-          <span class="text-lg font-black">
-            {{ formatPrice(finalPrice) }}
-          </span>
+        <div class="product-price__current">
+          <strong>
+            {{
+              formatPrice(
+                finalPrice,
+              )
+            }}
+          </strong>
 
-          <span class="pb-0.5 text-xs font-medium">
-            تومان
-          </span>
+          <span>تومان</span>
         </div>
       </div>
 
-      <!-- دکمه افزودن -->
       <button
         type="button"
-        class="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100"
-        :class="[
-          !isInStock
-            ? 'bg-gray-100 text-gray-400'
-            : addSuccess
-              ? 'bg-emerald-100 text-emerald-700'
-              : 'bg-emerald-600 text-white hover:bg-emerald-700',
-        ]"
-        :disabled="!isInStock || isAdding"
+        class="add-button"
+        :class="{
+          'add-button--success':
+            addSuccess,
+        }"
+        :disabled="
+          !isInStock || isAdding
+        "
         @click="handleAddToCart"
       >
-        <!-- در حال افزودن -->
         <template v-if="isAdding">
-          <svg
-            class="h-5 w-5 animate-spin"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            />
-
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z"
-            />
-          </svg>
-
-          در حال افزودن
+          در حال افزودن...
         </template>
 
-        <!-- موفقیت -->
-        <template v-else-if="addSuccess">
-          <svg
-            class="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="m4.5 12.75 6 6 9-13.5"
-            />
-          </svg>
-
+        <template
+          v-else-if="addSuccess"
+        >
           به سبد اضافه شد
         </template>
 
-        <!-- ناموجود -->
-        <template v-else-if="!isInStock">
+        <template
+          v-else-if="!isInStock"
+        >
           ناموجود
         </template>
 
-        <!-- حالت عادی -->
         <template v-else>
-          <svg
-            class="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M2.25 3h1.386a1.5 1.5 0 0 1 1.455 1.136l.383 1.534m0 0L6.75 10.5h10.878a1.5 1.5 0 0 0 1.455-1.136l.75-3A1.5 1.5 0 0 0 18.378 4.5H5.182M5.474 5.67 7.5 13.5h9.75m-9.75 0a2.25 2.25 0 1 0 0 4.5m9.75-4.5a2.25 2.25 0 1 1 0 4.5M7.5 18h9.75"
-            />
-          </svg>
-
           افزودن به سبد
         </template>
       </button>
-
-      <!-- خطای سبد -->
-      <p
-        v-if="cartStore.error"
-        class="mt-2 line-clamp-1 text-center text-xs text-red-500"
-      >
-        {{ cartStore.error }}
-      </p>
     </div>
   </article>
 </template>
+
+<style scoped>
+.product-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e6eee9;
+  border-radius: 18px;
+  background: white;
+  box-shadow:
+    0 8px 24px
+    rgba(15, 23, 42, 0.045);
+  transition: 0.25s;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  border-color: #a7f3d0;
+  box-shadow:
+    0 18px 35px
+    rgba(4, 120, 87, 0.12);
+}
+
+.product-image {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  object-fit: contain;
+  transition: 0.35s;
+}
+
+.product-card:hover
+  .product-image img {
+  transform: scale(1.05);
+}
+
+.product-image__empty {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.discount-badge,
+.stock-badge {
+  position: absolute;
+  top: 10px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.discount-badge {
+  right: 10px;
+  background: #ef4444;
+  color: white;
+}
+
+.stock-badge {
+  left: 10px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.stock-badge--empty {
+  background: #334155;
+  color: white;
+}
+
+.product-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 14px;
+}
+
+.product-name {
+  display: -webkit-box;
+  min-height: 48px;
+  overflow: hidden;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.8;
+  text-decoration: none;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.product-name:hover {
+  color: #047857;
+}
+
+.product-price {
+  margin-top: auto;
+  padding: 18px 0 13px;
+}
+
+.product-price__old {
+  display: block;
+  margin-bottom: 4px;
+  color: #94a3b8;
+  font-size: 10px;
+  text-decoration: line-through;
+}
+
+.product-price__current {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  color: #047857;
+}
+
+.product-price__current strong {
+  font-size: 17px;
+}
+
+.product-price__current span {
+  font-size: 10px;
+}
+
+.add-button {
+  width: 100%;
+  height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: #059669;
+  color: white;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-button:hover:not(:disabled) {
+  background: #047857;
+}
+
+.add-button:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.add-button--success {
+  background: #d1fae5;
+  color: #047857;
+}
+
+@media (max-width: 520px) {
+  .product-content {
+    padding: 10px;
+  }
+
+  .product-name {
+    min-height: 43px;
+    font-size: 11px;
+  }
+
+  .product-price__current strong {
+    font-size: 14px;
+  }
+
+  .add-button {
+    height: 38px;
+    font-size: 11px;
+  }
+
+  .stock-badge,
+  .discount-badge {
+    top: 7px;
+    padding: 4px 7px;
+    font-size: 9px;
+  }
+
+  .discount-badge {
+    right: 7px;
+  }
+
+  .stock-badge {
+    left: 7px;
+  }
+}
+</style>

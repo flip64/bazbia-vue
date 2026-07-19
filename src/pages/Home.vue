@@ -24,41 +24,46 @@
     </section>
 
     <!-- ================= Categories ================= -->
-    <section class="px-4 ">
+    <section class="px-4">
       <h2 class="mb-4 text-base font-bold text-gray-800 relative inline-block">
         دسته‌بندی‌ها
-        <span class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"></span>
+
+        <span
+          class="absolute left-0 -bottom-1 w-12 h-1 bg-blue-500 rounded-full"
+        ></span>
       </h2>
 
       <CategoryGrid :categories="categoryStore.categories" />
     </section>
 
     <!-- ================= Featured ================= -->
-    <section class="px-4 ">
+    <section class="px-4">
       <FeaturedProductsSwiper
         :products="featuredStore.featuredProducts"
       />
     </section>
- <div class="h-10"></div>
+
     <!-- ================= Latest ================= -->
-    <section class="px-4 ">
+    <section class="px-4">
       <LatestProductsCarousel
         :products="products"
         :loading="loading"
       />
     </section>
- <div class="h-10"></div>
+
     <!-- ================= Cheapest ================= -->
-    <section class="px-4 ">
+    <section class="px-4">
       <CheapestProductsCarouel
         :products="featuredStore.featuredProducts"
       />
     </section>
- <div class="h-10"></div>
+
     <!-- ================= Trust ================= -->
-    <section class="px-4 ">
+    <section class="px-4">
       <div class="bg-white rounded-2xl border p-5">
-        <h2 class="font-bold text-lg mb-4">چرا بازبیا؟</h2>
+        <h2 class="font-bold text-lg mb-4">
+          چرا بازبیا؟
+        </h2>
 
         <div class="space-y-3 text-sm text-gray-700">
           <div>🐦 خرید هوشمند بدون تبلیغات مزاحم</div>

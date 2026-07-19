@@ -1,399 +1,319 @@
-<template>
-  <div class="product-card" :class="{ 'product-card--out-of-stock': !product.inStock }">
-    <div class="product-card__image-wrapper">
-      <router-link :to="`/product/${product.id}`">
-        <img 
-          :src="product.image" 
-          :alt="product.name"
-          class="product-card__image"
-          loading="lazy"
-          @error="handleImageError"
-        >
-      </router-link>
-      
-      <!-- برچسب‌ها -->
-      <div class="product-card__badges">
-        <span v-if="product.discount" class="product-card__badge product-card__badge--discount">
-          {{ product.discount }}% تخفیف
-        </span>
-        <span v-if="!product.inStock" class="product-card__badge product-card__badge--out">
-          ناموجود
-        </span>
-      </div>
-
-      <!-- دکمه‌های سریع -->
-      <div class="product-card__quick-actions">
-        <button 
-          class="product-card__quick-action" 
-          @click="$emit('add-to-wishlist', product.id)"
-          :title="'افزودن به علاقه‌مندی‌ها'"
-        >
-          <HeartIcon :size="18" />
-        </button>
-        <button 
-          class="product-card__quick-action" 
-          @click="$emit('quick-view', product.id)"
-          :title="'مشاهده سریع'"
-        >
-          <EyeIcon :size="18" />
-        </button>
-      </div>
-    </div>
-
-    <div class="product-card__content">
-      <!-- دسته‌بندی و برند -->
-      <div class="product-card__meta">
-        <span class="product-card__category">{{ product.category }}</span>
-        <span class="product-card__brand">{{ product.brand }}</span>
-      </div>
-
-      <!-- نام محصول -->
-      <router-link :to="`/product/${product.id}`" class="product-card__title">
-        {{ product.name }}
-      </router-link>
-
-      <!-- امتیاز -->
-      <div class="product-card__rating">
-        <div class="product-card__stars">
-          <StarIcon 
-            v-for="star in 5" 
-            :key="star"
-            :size="16"
-            class="product-card__star"
-            :class="{ 'product-card__star--filled': star <= product.rating }"
-          />
-        </div>
-        <span class="product-card__reviews">({{ product.reviewCount }} نظر)</span>
-      </div>
-
-      <!-- قیمت -->
-      <div class="product-card__prices">
-        <span class="product-card__price">{{ formatPrice(product.price) }}</span>
-        <span v-if="product.oldPrice" class="product-card__old-price">
-          {{ formatPrice(product.oldPrice) }}
-        </span>
-      </div>
-
-      <!-- دکمه افزودن به سبد خرید با state لودینگ -->
-      <button 
-        @click="addToCart" 
-        class="product-card__add-to-cart"
-        :disabled="!product.inStock || cartStore.loading"
-      >
-        <span v-if="cartStore.loading" class="loading-spinner-small"></span>
-        <ShoppingCart v-else :size="16" />
-        {{ getButtonText() }}
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ShoppingCart, HeartIcon, EyeIcon, StarIcon } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useCartStore } from '@/core/store/cartStore'
-import { useToast } from '@/composables/useToast'
 
-// تعریف اینترفیس محصول
+interface ProductVariant {
+  id: number
+  sku: string
+  price: string
+  discount_price: string | null
+  stock: number
+  low_stock_threshold: number
+  expiration_date: string | null
+  attributes: unknown[]
+}
+
 interface Product {
   id: number
   name: string
+  slug: string
   price: number
-  oldPrice?: number
-  image: string
-  category: string
-  brand: string
-  rating: number
-  reviewCount: number
-  inStock: boolean
-  discount?: number
-  images?: string[] // برای سازگاری با API
-  stock?: number    // برای سازگاری با API
+  discount_price: number | null
+  category: unknown | null
+  thumb: string | null
+  variants: ProductVariant[]
+  created_at: string
+  in_stock: number
 }
 
-// Props
 const props = defineProps<{
   product: Product
 }>()
 
-// Emits
-const emit = defineEmits<{
-  (e: 'add-to-wishlist', id: number): void
-  (e: 'quick-view', id: number): void
-}>()
-
-// Stores
 const cartStore = useCartStore()
-const { showToast } = useToast()
 
-// توابع کمکی
-const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
+const isAdding = ref(false)
+const addSuccess = ref(false)
+const imageHasError = ref(false)
+
+const mainVariant = computed(() => {
+  return props.product.variants[0] ?? null
+})
+
+const isInStock = computed(() => {
+  return (
+    props.product.in_stock > 0 &&
+    mainVariant.value !== null &&
+    mainVariant.value.stock > 0
+  )
+})
+
+const hasDiscount = computed(() => {
+  return (
+    props.product.discount_price !== null &&
+    props.product.discount_price > 0 &&
+    props.product.discount_price < props.product.price
+  )
+})
+
+const finalPrice = computed(() => {
+  return hasDiscount.value
+    ? props.product.discount_price!
+    : props.product.price
+})
+
+const discountPercent = computed(() => {
+  if (!hasDiscount.value) {
+    return 0
+  }
+
+  return Math.round(
+    ((props.product.price - props.product.discount_price!) /
+      props.product.price) *
+      100,
+  )
+})
+
+const stockLabel = computed(() => {
+  if (!isInStock.value) {
+    return 'ناموجود'
+  }
+
+  if (
+    mainVariant.value &&
+    mainVariant.value.stock <= mainVariant.value.low_stock_threshold
+  ) {
+    return `تنها ${mainVariant.value.stock} عدد`
+  }
+
+  return 'موجود'
+})
+
+const formatPrice = (price: number | string) => {
+  const numericPrice = Number(price)
+
+  if (!Number.isFinite(numericPrice)) {
+    return '۰'
+  }
+
+  return new Intl.NumberFormat('fa-IR').format(numericPrice)
 }
 
-const handleImageError = (e: Event) => {
-  const img = e.target as HTMLImageElement
-  img.src = '/placeholder-product.jpg'
+const handleImageError = () => {
+  imageHasError.value = true
 }
 
-const getButtonText = (): string => {
-  if (!props.product.inStock) return 'ناموجود'
-  if (cartStore.loading) return 'در حال افزودن...'
-  return 'افزودن به سبد خرید'
-}
+const handleAddToCart = async () => {
+  if (!mainVariant.value || !isInStock.value || isAdding.value) {
+    return
+  }
 
-// افزودن به سبد خرید (async)
-const addToCart = async () => {
-  if (!props.product.inStock) return
-  
+  isAdding.value = true
+  addSuccess.value = false
+
   try {
-    // تبدیل محصول به فرمت مورد قبول استور
-    const productForStore = {
-      id: props.product.id,
-      name: props.product.name,
-      price: props.product.price,
-      images: [props.product.image],
-      stock: props.product.stock || 10
-    }
-    
-    await cartStore.addItem(productForStore, 1)
-    showToast('محصول با موفقیت به سبد خرید اضافه شد', 'success')
-  } catch (error: any) {
-    showToast(error.message || 'خطا در افزودن به سبد خرید', 'error')
+    await cartStore.addItem({
+      variant_id: mainVariant.value.id,
+      quantity: 1,
+    })
+
+    addSuccess.value = true
+
+    window.setTimeout(() => {
+      addSuccess.value = false
+    }, 1800)
+  } catch (error) {
+    console.error('خطا در افزودن محصول به سبد خرید:', error)
+  } finally {
+    isAdding.value = false
   }
 }
 </script>
 
-<style scoped>
-.product-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  position: relative;
-  border: 1px solid #f0f0f0;
-}
+<template>
+  <article
+    class="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg"
+  >
+    <!-- تصویر محصول -->
+    <RouterLink
+      :to="`/product/${product.slug}`"
+      class="relative block aspect-square overflow-hidden bg-gray-50"
+    >
+      <img
+        v-if="product.thumb && !imageHasError"
+        :src="product.thumb"
+        :alt="product.name"
+        loading="lazy"
+        class="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
+        @error="handleImageError"
+      />
 
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border-color: transparent;
-}
+      <div
+        v-else
+        class="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-400"
+      >
+        <svg
+          class="h-12 w-12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5A1.5 1.5 0 0 0 21.75 18V6A1.5 1.5 0 0 0 20.25 4.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"
+          />
+        </svg>
 
-.product-card--out-of-stock {
-  opacity: 0.7;
-}
+        <span class="text-xs">
+          تصویر موجود نیست
+        </span>
+      </div>
 
-.product-card__image-wrapper {
-  position: relative;
-  padding-top: 100%;
-  overflow: hidden;
-}
+      <!-- درصد تخفیف -->
+      <span
+        v-if="hasDiscount"
+        class="absolute right-3 top-3 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+      >
+        {{ discountPercent }}٪
+      </span>
 
-.product-card__image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
+      <!-- وضعیت موجودی -->
+      <span
+        class="absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm"
+        :class="
+          isInStock
+            ? 'bg-emerald-50 text-emerald-700'
+            : 'bg-gray-800 text-white'
+        "
+      >
+        {{ stockLabel }}
+      </span>
+    </RouterLink>
 
-.product-card:hover .product-card__image {
-  transform: scale(1.05);
-}
+    <!-- اطلاعات محصول -->
+    <div class="flex flex-1 flex-col p-4">
+      <RouterLink
+        :to="`/product/${product.slug}`"
+        class="mb-4 line-clamp-2 min-h-12 text-sm font-semibold leading-6 text-gray-800 transition hover:text-emerald-700"
+      >
+        {{ product.name }}
+      </RouterLink>
 
-.product-card__badges {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+      <!-- قیمت -->
+      <div class="mb-4 mt-auto">
+        <div
+          v-if="hasDiscount"
+          class="mb-1 text-xs text-gray-400 line-through"
+        >
+          {{ formatPrice(product.price) }}
+          تومان
+        </div>
 
-.product-card__badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  color: white;
-}
+        <div class="flex items-end gap-1 text-emerald-700">
+          <span class="text-lg font-black">
+            {{ formatPrice(finalPrice) }}
+          </span>
 
-.product-card__badge--discount {
-  background: #ef4444;
-}
+          <span class="pb-0.5 text-xs font-medium">
+            تومان
+          </span>
+        </div>
+      </div>
 
-.product-card__badge--out {
-  background: #6b7280;
-}
+      <!-- دکمه افزودن -->
+      <button
+        type="button"
+        class="flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100"
+        :class="[
+          !isInStock
+            ? 'bg-gray-100 text-gray-400'
+            : addSuccess
+              ? 'bg-emerald-100 text-emerald-700'
+              : 'bg-emerald-600 text-white hover:bg-emerald-700',
+        ]"
+        :disabled="!isInStock || isAdding"
+        @click="handleAddToCart"
+      >
+        <!-- در حال افزودن -->
+        <template v-if="isAdding">
+          <svg
+            class="h-5 w-5 animate-spin"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
 
-.product-card__quick-actions {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  opacity: 0;
-  transform: translateX(-10px);
-  transition: all 0.3s ease;
-}
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z"
+            />
+          </svg>
 
-.product-card:hover .product-card__quick-actions {
-  opacity: 1;
-  transform: translateX(0);
-}
+          در حال افزودن
+        </template>
 
-.product-card__quick-action {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: white;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4b5563;
-  transition: all 0.3s ease;
-}
+        <!-- موفقیت -->
+        <template v-else-if="addSuccess">
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m4.5 12.75 6 6 9-13.5"
+            />
+          </svg>
 
-.product-card__quick-action:hover {
-  background: #667eea;
-  color: white;
-  transform: scale(1.1);
-}
+          به سبد اضافه شد
+        </template>
 
-.product-card__content {
-  padding: 1.5rem;
-}
+        <!-- ناموجود -->
+        <template v-else-if="!isInStock">
+          ناموجود
+        </template>
 
-.product-card__meta {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-  color: #6b7280;
-}
+        <!-- حالت عادی -->
+        <template v-else>
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M2.25 3h1.386a1.5 1.5 0 0 1 1.455 1.136l.383 1.534m0 0L6.75 10.5h10.878a1.5 1.5 0 0 0 1.455-1.136l.75-3A1.5 1.5 0 0 0 18.378 4.5H5.182M5.474 5.67 7.5 13.5h9.75m-9.75 0a2.25 2.25 0 1 0 0 4.5m9.75-4.5a2.25 2.25 0 1 1 0 4.5M7.5 18h9.75"
+            />
+          </svg>
 
-.product-card__title {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
-  text-decoration: none;
-  margin-bottom: 0.5rem;
-  transition: color 0.3s ease;
-}
+          افزودن به سبد
+        </template>
+      </button>
 
-.product-card__title:hover {
-  color: #667eea;
-}
-
-.product-card__rating {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.product-card__stars {
-  display: flex;
-  gap: 2px;
-}
-
-.product-card__star {
-  color: #d1d5db;
-}
-
-.product-card__star--filled {
-  color: #fbbf24;
-  fill: currentColor;
-}
-
-.product-card__reviews {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.product-card__prices {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.product-card__price {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #374151;
-}
-
-.product-card__old-price {
-  font-size: 0.95rem;
-  color: #9ca3af;
-  text-decoration: line-through;
-}
-
-.product-card__add-to-cart {
-  width: 100%;
-  padding: 0.75rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.product-card__add-to-cart:hover:not(:disabled) {
-  background: #5a67d8;
-}
-
-.product-card__add-to-cart:disabled {
-  background: #d1d5db;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-/* اسپینر کوچک برای حالت لودینگ */
-.loading-spinner-small {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #ffffff;
-  border-bottom-color: transparent;
-  border-radius: 50%;
-  display: inline-block;
-  animation: rotation 1s linear infinite;
-}
-
-@keyframes rotation {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Responsive */
-@media (max-width: 640px) {
-  .product-card__content {
-    padding: 1rem;
-  }
-  
-  .product-card__title {
-    font-size: 1rem;
-  }
-  
-  .product-card__price {
-    font-size: 1.1rem;
-  }
-}
-</style>
+      <!-- خطای سبد -->
+      <p
+        v-if="cartStore.error"
+        class="mt-2 line-clamp-1 text-center text-xs text-red-500"
+      >
+        {{ cartStore.error }}
+      </p>
+    </div>
+  </article>
+</template>

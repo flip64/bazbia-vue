@@ -19,9 +19,7 @@
           <h2 class="font-bold text-lg text-green-800">
             محصولات ویژه
           </h2>
-          <span class="text-xs text-gray-500">
-  تعداد: {{ products.length }}
-</span>
+          
 
           <!-- 🔴 Only Today Badge -->
           <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">

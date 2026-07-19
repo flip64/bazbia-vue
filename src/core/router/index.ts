@@ -69,7 +69,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/login",
     name: "login",
-    component: () => import("@/pages/Login.vue"),
+    component: () => import("@/views/Login.vue"),
     meta: { 
       guestOnly: true,
       title: 'ورود'
@@ -78,7 +78,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/register",
     name: "register",
-    component: () => import("@/pages/Register.vue"),
+    component: () => import("@/view/Register.vue"),
     meta: { 
       guestOnly: true,
       title: 'ثبت‌نام'
@@ -150,7 +150,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/contact",
     name: "contact",
-    component: () => import("@/pages/Contact.vue"),
+    component: () => import("@/views/Contact.vue"),
     meta: { 
       requiresAuth: false,
       title: 'تماس با ما'
@@ -159,7 +159,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/about",
     name: "about",
-    component: () => import("@/pages/About.vue"),
+    component: () => import("@/views/AboutView.vue"),
     meta: { 
       requiresAuth: false,
       title: 'درباره ما'
@@ -168,7 +168,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/faq",
     name: "faq",
-    component: () => import("@/pages/FAQ.vue"),
+    component: () => import("@/views/FAQ.vue"),
     meta: { 
       requiresAuth: false,
       title: 'سوالات متداول'
@@ -179,7 +179,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/:pathMatch(.*)*",
     name: "not-found",
-    component: () => import("@/pages/NotFound.vue"),
+    component: () => import("@/views/NotFound.vue"),
     meta: { 
       title: 'صفحه یافت نشد'
     }

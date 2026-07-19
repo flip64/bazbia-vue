@@ -1,79 +1,152 @@
 // core/store/productStore.ts
+
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+
 import { productService } from '@/services/product.service'
+
 import type { Product } from '@/types/product.types'
 
-export const useProductStore = defineStore('product', () => {
-  // ================= STATE =================
-  const products = ref<Product[]>([])
-  const suggestedProducts = ref<Product[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+export const useProductStore = defineStore(
+  'product',
+  () => {
+    // ================= STATE =================
 
-  // ================= GETTERS =================
-  const totalProducts = computed(() => products.value.length)
-  const hasProducts = computed(() => products.value.length > 0)
+    const products = ref<Product[]>([])
 
-  // ================= ACTIONS =================
+    const suggestedProducts = ref<
+      Product[]
+    >([])
 
-  // دریافت همه محصولات
-  async function fetchProducts(params?: any) {
-    loading.value = true
-    error.value = null
+    const loading = ref(false)
 
-    try {
-      const res = await productService.getProducts(params)
+    const error = ref<string | null>(
+      null,
+    )
 
-      // اگر API مستقیم array داد
-      if (Array.isArray(res)) {
-        products.value = res
-      } else {
-        // اگر response paginated بود
-        products.value = res.data ?? res.results ?? []
+    // ================= GETTERS =================
+
+    const totalProducts = computed(
+      () => products.value.length,
+    )
+
+    const hasProducts = computed(
+      () => products.value.length > 0,
+    )
+
+    // ================= ACTIONS =================
+
+    async function fetchProducts(
+      params?: Record<string, unknown>,
+    ) {
+      loading.value = true
+      error.value = null
+
+      try {
+        const res =
+          await productService.getProducts(
+            params,
+          )
+
+        console.log(
+          'product response:',
+          res,
+        )
+
+        if (Array.isArray(res)) {
+          products.value = res
+        } else if (
+          Array.isArray(res?.data?.data)
+        ) {
+          // پاسخ کامل Axios:
+          // res.data.data
+          products.value = res.data.data
+        } else if (
+          Array.isArray(res?.data)
+        ) {
+          // اگر سرویس response.data
+          // را برگرداند
+          products.value = res.data
+        } else if (
+          Array.isArray(res?.results)
+        ) {
+          products.value = res.results
+        } else {
+          products.value = []
+        }
+      } catch (err: unknown) {
+        console.error(
+          'خطا در دریافت محصولات:',
+          err,
+        )
+
+        if (err instanceof Error) {
+          error.value = err.message
+        } else {
+          error.value =
+            'خطا در دریافت محصولات'
+        }
+
+        products.value = []
+      } finally {
+        loading.value = false
       }
-
-    } catch (err: any) {
-      error.value = err.message || 'خطا در دریافت محصولات'
-    } finally {
-      loading.value = false
     }
-  }
 
-  // 🔥 پیشنهاد محصولات (Fix error تو)
-  async function fetchSuggestedProducts() {
-    loading.value = true
-    error.value = null
+    async function fetchSuggestedProducts() {
+      loading.value = true
+      error.value = null
 
-    try {
-      const res = await productService.getSuggestedProducts?.()
+      try {
+        const res =
+          await productService
+            .getSuggestedProducts?.()
 
-      if (Array.isArray(res)) {
-        suggestedProducts.value = res
-      } else {
-        suggestedProducts.value = res?.data ?? []
+        if (Array.isArray(res)) {
+          suggestedProducts.value = res
+        } else if (
+          Array.isArray(res?.data?.data)
+        ) {
+          suggestedProducts.value =
+            res.data.data
+        } else if (
+          Array.isArray(res?.data)
+        ) {
+          suggestedProducts.value =
+            res.data
+        } else {
+          suggestedProducts.value = []
+        }
+      } catch (err: unknown) {
+        console.error(
+          'خطا در دریافت محصولات پیشنهادی:',
+          err,
+        )
+
+        if (err instanceof Error) {
+          error.value = err.message
+        } else {
+          error.value =
+            'خطا در دریافت محصولات پیشنهادی'
+        }
+
+        suggestedProducts.value = []
+      } finally {
+        loading.value = false
       }
-
-    } catch (err: any) {
-      error.value = err.message || 'خطا در دریافت محصولات پیشنهادی'
-    } finally {
-      loading.value = false
     }
-  }
 
-  return {
-    // state
-    products,
-    suggestedProducts,
-    loading,
-    error,
+    return {
+      products,
+      suggestedProducts,
+      loading,
+      error,
 
-    // getters
-    totalProducts,
-    hasProducts,
+      totalProducts,
+      hasProducts,
 
-    // actions
-    fetchProducts,
-    fetchSuggestedProducts
-  }
-})
+      fetchProducts,
+      fetchSuggestedProducts,
+    }
+  },
+)

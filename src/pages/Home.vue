@@ -43,6 +43,10 @@
       />
     </section>
 
+
+
+    
+ <section class="px-4 mt-8">
     <!-- ================= Latest ================= -->
     <section class="px-4">
       <LatestProductsCarousel

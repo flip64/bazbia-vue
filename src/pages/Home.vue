@@ -51,6 +51,11 @@
       />
     </section>
 
+<!-- ================= Promotion ================= -->
+<section class="px-4">
+  <PromoBanner />
+</section>
+
     <!-- ================= Cheapest ================= -->
     <section class="px-4">
       <CheapestProductsCarouel
@@ -150,7 +155,7 @@ import BannerCarousel from "@/components/home/BannerCarousel.vue"
 import FeaturedProductsSwiper from "@/components/home/FeaturedProductsSwiper.vue"
 import CheapestProductsCarouel from "@/components/home/CheapestProductsCarouel.vue"
 import LatestProductsCarousel from "@/components/home/LatestProductsCarouel.vue"
-
+import PromoBanner from "@/components/home/PromoBanner.vue"
 // stores
 import { useCategoryStore } from "@/core/store/categoryStore"
 import { useBannerStore } from "@/core/store/bannerStore"

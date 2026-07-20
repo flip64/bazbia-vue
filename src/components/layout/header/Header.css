@@ -1,4 +1,25 @@
-/* Header.css - استایل‌های کامپوننت هدر */
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(-100%);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+/* استایل‌های منوی کاربر */
+.header__user-menu {
+  position: relative;
+}/* Header.css - استایل‌های کامپوننت هدر */
 
 /* استایل‌های اصلی */
 .header {
@@ -242,7 +263,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
   z-index: 1000;
   overflow-y: auto;
 }
@@ -305,28 +326,7 @@
 
 /* انیمیشن‌ها */
 .slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
 
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-100%);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-/* استایل‌های منوی کاربر */
-.header__user-menu {
-  position: relative;
-}
 
 .header__user-btn {
   position: relative;

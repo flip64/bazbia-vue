@@ -1,81 +1,31 @@
 <!-- views/cart/CartView.vue -->
 <template>
   <div class="cart-page" dir="rtl">
-    <!-- Header -->
-    <div class="cart-header">
-      <div class="cart-header__title">
-        <h1>سبد خرید</h1>
+    <header class="cart-header">
+      <h1>سبد خرید</h1>
+      <span v-if="!isEmpty">{{ totalItems }} کالا</span>
+    </header>
 
-        <span
-          v-if="!isEmpty"
-          class="cart-header__count"
-        >
-          {{ totalItems }} کالا
-        </span>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div
-      v-if="cartStore.loading && isEmpty"
-      class="loading-state"
-    >
+    <section v-if="cartStore.loading && isEmpty" class="page-state">
       <div class="spinner"></div>
       <p>در حال دریافت سبد خرید...</p>
-    </div>
+    </section>
 
-    <!-- Error State -->
-    <div
-      v-else-if="cartStore.error"
-      class="error-state"
-    >
-      <AlertCircle
-        class="error-icon"
-        :size="48"
-      />
-
-      <h3>خطا در دریافت اطلاعات</h3>
-
+    <section v-else-if="cartStore.error" class="page-state">
+      <AlertCircle class="error-icon" :size="48" />
+      <h2>خطا در دریافت اطلاعات</h2>
       <p>{{ cartStore.error }}</p>
+      <button class="retry-btn" @click="cartStore.fetchCart()">تلاش مجدد</button>
+    </section>
 
-      <button
-        class="retry-btn"
-        @click="retryLoad"
-      >
-        تلاش مجدد
-      </button>
-    </div>
-
-    <!-- Empty Cart -->
-    <div
-      v-else-if="isEmpty"
-      class="empty-cart"
-    >
-      <ShoppingBag
-        class="empty-icon"
-        :size="64"
-      />
-
+    <section v-else-if="isEmpty" class="page-state">
+      <ShoppingBag class="empty-icon" :size="64" />
       <h2>سبد خرید شما خالی است</h2>
+      <p>برای مشاهده محصولات به صفحه محصولات بروید.</p>
+      <RouterLink to="/products" class="products-btn">مشاهده محصولات</RouterLink>
+    </section>
 
-      <p>
-        برای مشاهده محصولات بیشتر به صفحه محصولات بروید
-      </p>
-
-      <router-link
-        to="/products"
-        class="continue-shopping-btn"
-      >
-        مشاهده محصولات
-      </router-link>
-    </div>
-
-    <!-- Cart Content -->
-    <div
-      v-else
-      class="cart-content"
-    >
-      <!-- Cart Items -->
+    <main v-else class="cart-content">
       <div class="cart-items">
         <CartItemCard
           v-for="item in items"
@@ -84,684 +34,418 @@
           :updating="updatingItems.has(item.id)"
           :removing="removingItems.has(item.id)"
           :error="itemErrors[item.id]"
-          @update-quantity="handleUpdateQuantity"
-          @remove="handleRemoveItem"
-          @clear-error="clearItemError(item.id)"
+          @update-quantity="updateQuantity"
+          @remove="removeItem"
+          @clear-error="delete itemErrors[item.id]"
         />
 
-        <!-- Continue Shopping -->
-        <router-link
-          to="/products"
-          class="continue-link"
-        >
-          <ArrowRight class="icon" />
+        <RouterLink to="/products" class="continue-link">
+          <ArrowRight :size="18" />
           ادامه خرید
-        </router-link>
+        </RouterLink>
       </div>
 
-      <!-- Cart Summary -->
-      <div
-        class="cart-summary"
-        :class="{
-          'cart-summary--sticky': !cartStore.loading
-        }"
-      >
+      <aside class="cart-summary">
         <h3>خلاصه سبد خرید</h3>
 
         <div class="summary-row">
           <span>تعداد کالاها</span>
-          <span>{{ totalItems }}</span>
+          <strong>{{ totalItems }}</strong>
         </div>
 
         <div class="summary-row">
-          <span>مبلغ کل</span>
-          <span>{{ formatPrice(totalPrice) }}</span>
-        </div>
-
-        <div class="summary-row">
-          <span>هزینه ارسال</span>
-
-          <span>
-            <span
-              v-if="shippingCost === 0"
-              class="free-shipping"
-            >
-              رایگان
-            </span>
-
-            <span v-else>
-              {{ formatPrice(shippingCost) }}
-            </span>
-          </span>
+          <span>مبلغ کالاها</span>
+          <strong>{{ formatPrice(totalPrice) }} تومان</strong>
         </div>
 
         <div class="summary-total">
           <span>مبلغ قابل پرداخت</span>
-
-          <span class="total-price">
-            {{ formatPrice(finalPrice) }}
-          </span>
+          <strong>{{ formatPrice(totalPrice) }} تومان</strong>
         </div>
 
-        <!-- Free Shipping Progress -->
-        <div
-          v-if="shippingCost > 0"
-          class="shipping-progress"
-        >
-          <p>
-            {{ formatPrice(remainingForFreeShipping) }}
-            دیگر خرید کنید تا ارسال رایگان شود
-          </p>
+        <div class="bazbin-box" :class="{ complete: bazbinCompleted }">
+          <div class="bazbin-head">
+            <div>
+              <strong v-if="bazbinCompleted">
+                تبریک! یک تخم بازبین هدیه می‌گیرید
+              </strong>
 
-          <div class="progress-bar">
+              <strong v-else>
+                {{ formatPrice(remainingForBazbin) }} تومان دیگر خرید کنید
+              </strong>
+
+              <p v-if="bazbinCompleted">
+                هدیه پس از پرداخت موفق سفارش صادر می‌شود.
+              </p>
+
+              <p v-else>
+                تا یک تخم بازبین هدیه بگیرید.
+              </p>
+            </div>
+
+            <img
+              src="/images/bazbin-egg.webp"
+              alt="تخم بازبین"
+              class="bazbin-egg"
+            />
+          </div>
+
+          <div class="progress">
             <div
-              class="progress-fill"
-              :style="{
-                width: `${shippingProgress}%`
-              }"
+              class="progress__fill"
+              :style="{ width: `${bazbinProgress}%` }"
             ></div>
           </div>
-        </div>
 
-        <!-- Checkout -->
-        <button
-          class="checkout-btn"
-          :disabled="isEmpty || cartStore.loading"
-          @click="goToCheckout"
-        >
-          <span v-if="!cartStore.loading">
-            ادامه فرایند خرید
-          </span>
-
-          <span
-            v-else
-            class="btn-loading"
-          >
-            <Loader
-              :size="18"
-              class="spin"
-            />
-
-            در حال پردازش...
-          </span>
-        </button>
-
-        <!-- Suggestions -->
-        <div
-          v-if="suggestedProducts.length"
-          class="suggestions"
-        >
-          <h4>پیشنهاد ویژه</h4>
-
-          <div class="suggestion-items">
-            <ProductCardMini
-              v-for="product in suggestedProducts"
-              :key="product.id"
-              :product="product"
-              @add-to-cart="handleAddSuggested"
-            />
+          <div class="progress-values">
+            <span>{{ formatPrice(totalPrice) }}</span>
+            <span>{{ formatPrice(BAZBIN_LIMIT) }} تومان</span>
           </div>
         </div>
-      </div>
-    </div>
+
+        <button
+          class="checkout-btn"
+          :disabled="cartStore.loading"
+          @click="router.push('/checkout')"
+        >
+          <Loader v-if="cartStore.loading" :size="18" class="spin" />
+          {{ cartStore.loading ? 'در حال پردازش...' : 'ادامه تسویه حساب' }}
+        </button>
+
+        <div v-if="suggestedProducts.length" class="suggestions">
+          <h4>پیشنهاد ویژه</h4>
+
+          <ProductCardMini
+            v-for="product in suggestedProducts"
+            :key="product.id"
+            :product="product"
+            @add-to-cart="addSuggestedProduct"
+          />
+        </div>
+      </aside>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  computed,
-  onMounted,
-  watch,
-} from 'vue'
-
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-
 import {
-  ShoppingBag,
-  ArrowRight,
   AlertCircle,
+  ArrowRight,
   Loader,
+  ShoppingBag,
 } from 'lucide-vue-next'
 
 import { useCartStore } from '@/core/store/cartStore'
 import { useProductStore } from '@/core/store/productStore'
-
 import CartItemCard from '@/components/CartItemCard.vue'
 import ProductCardMini from '@/components/ProductCardMini.vue'
-
 import type { Product } from '@/types/product.types'
-
-// ========== Stores ==========
 
 const router = useRouter()
 const cartStore = useCartStore()
 const productStore = useProductStore()
 
-// ========== State ==========
+const BAZBIN_LIMIT = 2_000_000
 
-const updatingItems = ref<Set<number>>(
-  new Set(),
+const updatingItems = ref(new Set<number>())
+const removingItems = ref(new Set<number>())
+const itemErrors = reactive<Record<number, string>>({})
+
+const items = computed(() => cartStore.items ?? [])
+const totalPrice = computed(() => cartStore.totalPrice ?? 0)
+const totalItems = computed(() => items.value.length)
+const isEmpty = computed(() => totalItems.value === 0)
+const suggestedProducts = computed(
+  () => productStore.suggestedProducts ?? [],
 )
 
-const removingItems = ref<Set<number>>(
-  new Set(),
+const remainingForBazbin = computed(() =>
+  Math.max(BAZBIN_LIMIT - totalPrice.value, 0),
 )
 
-const itemErrors = ref<Record<number, string>>(
-  {},
+const bazbinProgress = computed(() =>
+  Math.min((totalPrice.value / BAZBIN_LIMIT) * 100, 100),
 )
 
-// ========== Constants ==========
+const bazbinCompleted = computed(
+  () => totalPrice.value >= BAZBIN_LIMIT,
+)
 
-const minPurchaseForFreeShipping = 500000
-const normalShippingCost = 30000
+const formatPrice = (value: number) =>
+  new Intl.NumberFormat('fa-IR').format(value)
 
-// ========== Computed ==========
-
-const items = computed(() => {
-  return cartStore.items ?? []
-})
-
-const totalItems = computed(() => {
-  return items.value.length
-})
-
-const totalPrice = computed(() => {
-  return cartStore.totalPrice ?? 0
-})
-
-const isEmpty = computed(() => {
-  return items.value.length === 0
-})
-
-const shippingCost = computed(() => {
-  if (
-    totalPrice.value >=
-    minPurchaseForFreeShipping
-  ) {
-    return 0
-  }
-
-  return normalShippingCost
-})
-
-const finalPrice = computed(() => {
-  return (
-    totalPrice.value +
-    shippingCost.value
-  )
-})
-
-const shippingProgress = computed(() => {
-  const progress =
-    (
-      totalPrice.value /
-      minPurchaseForFreeShipping
-    ) * 100
-
-  return Math.min(
-    Math.max(progress, 0),
-    100,
-  )
-})
-
-const remainingForFreeShipping = computed(() => {
-  return Math.max(
-    minPurchaseForFreeShipping -
-      totalPrice.value,
-    0,
-  )
-})
-
-const suggestedProducts = computed(() => {
-  return (
-    productStore.suggestedProducts ?? []
-  )
-})
-
-// ========== Methods ==========
-
-const formatPrice = (
-  price: number,
-): string => {
-  return new Intl.NumberFormat(
-    'fa-IR',
-  ).format(price)
-}
-
-const handleUpdateQuantity = async (
+const runItemAction = async (
   itemId: number,
-  quantity: number,
+  state: Set<number>,
+  action: () => Promise<unknown>,
+  message: string,
 ) => {
-  updatingItems.value.add(itemId)
-
-  delete itemErrors.value[itemId]
+  state.add(itemId)
+  delete itemErrors[itemId]
 
   try {
-    await cartStore.updateQuantity(
-      itemId,
-      quantity,
-    )
-  } catch (error: unknown) {
-    itemErrors.value[itemId] =
-      error instanceof Error
-        ? error.message
-        : 'خطا در به‌روزرسانی تعداد کالا'
-  } finally {
-    updatingItems.value.delete(itemId)
-  }
-}
-
-const handleRemoveItem = async (
-  itemId: number,
-) => {
-  removingItems.value.add(itemId)
-
-  delete itemErrors.value[itemId]
-
-  try {
-    await cartStore.removeItem(itemId)
-  } catch (error: unknown) {
-    itemErrors.value[itemId] =
-      error instanceof Error
-        ? error.message
-        : 'خطا در حذف کالا'
-  } finally {
-    removingItems.value.delete(itemId)
-  }
-}
-
-const clearItemError = (
-  itemId: number,
-) => {
-  delete itemErrors.value[itemId]
-}
-
-const handleAddSuggested = async (
-  product: Product,
-) => {
-  const firstVariant =
-    product.variants?.[0]
-
-  if (!firstVariant) {
-    console.error(
-      'این محصول واریانت قابل خرید ندارد.',
-    )
-
-    return
-  }
-
-  try {
-    await cartStore.addItem({
-      variant_id: firstVariant.id,
-      quantity: 1,
-      session_key: cartStore.sessionKey,
-    })
+    await action()
   } catch (error) {
-    console.error(
-      'Error adding suggested product:',
-      error,
-    )
+    itemErrors[itemId] =
+      error instanceof Error ? error.message : message
+  } finally {
+    state.delete(itemId)
   }
 }
 
-const goToCheckout = () => {
-  if (isEmpty.value) {
-    return
-  }
+const updateQuantity = (itemId: number, quantity: number) =>
+  runItemAction(
+    itemId,
+    updatingItems.value,
+    () => cartStore.updateQuantity(itemId, quantity),
+    'خطا در به‌روزرسانی تعداد کالا',
+  )
 
-  router.push('/checkout')
+const removeItem = (itemId: number) =>
+  runItemAction(
+    itemId,
+    removingItems.value,
+    () => cartStore.removeItem(itemId),
+    'خطا در حذف کالا',
+  )
+
+const addSuggestedProduct = async (product: Product) => {
+  const variant = product.variants?.[0]
+  if (!variant) return
+
+  await cartStore.addItem({
+    variant_id: variant.id,
+    quantity: 1,
+    session_key: cartStore.sessionKey,
+  })
 }
 
-const retryLoad = async () => {
-  await cartStore.fetchCart()
-}
-
-// ========== Lifecycle ==========
-
-onMounted(async () => {
-  await cartStore.fetchCart()
-  await productStore.fetchSuggestedProducts()
+onMounted(() => {
+  cartStore.fetchCart()
+  productStore.fetchSuggestedProducts()
 })
-
-// پاک‌سازی خودکار خطاها بعد از ۵ ثانیه
-watch(
-  itemErrors,
-  newErrors => {
-    Object.keys(newErrors).forEach(
-      itemId => {
-        setTimeout(() => {
-          delete itemErrors.value[
-            Number(itemId)
-          ]
-        }, 5000)
-      },
-    )
-  },
-  {
-    deep: true,
-  },
-)
 </script>
 
 <style scoped>
 .cart-page {
-  width: 100%;
-  max-width: 1280px;
+  width: min(1280px, 100%);
   min-height: 70vh;
-  margin: 0 auto;
+  margin: auto;
   padding: 2rem 1rem 4rem;
-  color: #111827;
+  color: #1e293b;
 }
-
-/* =========================
-   هدر صفحه
-========================= */
 
 .cart-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
-  padding: 1.25rem 1.5rem;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(240, 253, 244, 0.95),
-      rgba(236, 253, 245, 0.75)
-    );
+  padding: 1.2rem 1.5rem;
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
   border: 1px solid #dcfce7;
   border-radius: 20px;
 }
 
-.cart-header__title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.cart-header__title h1 {
+.cart-header h1 {
   margin: 0;
   color: #14532d;
   font-size: 1.65rem;
-  font-weight: 900;
 }
 
-.cart-header__count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 30px;
-  padding: 0.25rem 0.75rem;
+.cart-header span {
+  padding: 0.3rem 0.75rem;
   color: #15803d;
-  background: #ffffff;
+  background: white;
   border: 1px solid #bbf7d0;
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
-/* =========================
-   چیدمان اصلی
-========================= */
-
 .cart-content {
   display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    360px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: 1.5rem;
+  align-items: start;
 }
 
 .cart-items {
-  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-width: 0;
 }
 
 .continue-link {
-  width: fit-content;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.25rem;
-  padding: 0.65rem 0.2rem;
+  gap: 0.4rem;
+  width: fit-content;
   color: #15803d;
   text-decoration: none;
-  font-size: 0.9rem;
   font-weight: 700;
-  transition:
-    color 0.2s ease,
-    transform 0.2s ease;
 }
-
-.continue-link:hover {
-  color: #166534;
-  transform: translateX(3px);
-}
-
-.continue-link .icon {
-  width: 18px;
-  height: 18px;
-}
-
-/* =========================
-   خلاصه سبد خرید
-========================= */
 
 .cart-summary {
-  padding: 1.4rem;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  box-shadow:
-    0 4px 12px
-      rgba(15, 23, 42, 0.04),
-    0 18px 40px
-      rgba(15, 23, 42, 0.05);
-}
-
-.cart-summary--sticky {
   position: sticky;
   top: 90px;
+  padding: 1.4rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgb(15 23 42 / 7%);
 }
 
 .cart-summary h3 {
-  margin: 0 0 1.25rem;
+  margin: 0 0 1rem;
   padding-bottom: 1rem;
   color: #14532d;
   border-bottom: 1px solid #e5e7eb;
-  font-size: 1.08rem;
-  font-weight: 900;
+}
+
+.summary-row,
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .summary-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
   padding: 0.65rem 0;
   color: #64748b;
   font-size: 0.87rem;
 }
 
-.summary-row > span:last-child {
+.summary-row strong {
   color: #334155;
-  font-weight: 700;
-}
-
-.free-shipping {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.6rem;
-  color: #15803d;
-  background: #ecfdf5;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 800;
 }
 
 .summary-total {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 0.75rem;
+  margin-top: 0.6rem;
   padding: 1rem 0;
   border-top: 1px dashed #cbd5e1;
-}
-
-.summary-total > span:first-child {
-  color: #334155;
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.total-price {
-  color: #15803d;
-  font-size: 1.25rem;
   font-weight: 900;
-  white-space: nowrap;
 }
 
-.total-price::after {
-  content: " تومان";
-  margin-inline-start: 0.2rem;
-  color: #64748b;
-  font-size: 0.7rem;
-  font-weight: 500;
+.summary-total strong {
+  color: #15803d;
+  font-size: 1.05rem;
 }
 
-/* =========================
-   نوار ارسال رایگان
-========================= */
-
-.shipping-progress {
-  margin: 0.3rem 0 1.1rem;
-  padding: 0.8rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+.bazbin-box {
+  margin: 0.4rem 0 1.2rem;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, #fffbeb, #fefce8);
+  border: 1px solid #fde68a;
+  border-radius: 15px;
 }
 
-.shipping-progress p {
-  margin: 0 0 0.65rem;
-  color: #64748b;
-  font-size: 0.76rem;
-  line-height: 1.8;
+.bazbin-box.complete {
+  background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+  border-color: #86efac;
 }
 
-.progress-bar {
-  width: 100%;
-  height: 8px;
+.bazbin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.bazbin-head strong {
+  color: #92400e;
+  font-size: 0.82rem;
+}
+
+.bazbin-head p {
+  margin: 0.25rem 0 0;
+  color: #a16207;
+  font-size: 0.72rem;
+  line-height: 1.7;
+}
+
+.complete .bazbin-head strong {
+  color: #166534;
+}
+
+.complete .bazbin-head p {
+  color: #15803d;
+}
+
+.bazbin-egg {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 5px 7px rgb(146 64 14 / 18%));
+}
+
+.progress {
+  height: 9px;
   overflow: hidden;
-  background: #e2e8f0;
+  background: #fef3c7;
   border-radius: 999px;
 }
 
-.progress-fill {
+.progress__fill {
   height: 100%;
   min-width: 2%;
-  background:
-    linear-gradient(
-      90deg,
-      #22c55e,
-      #16a34a
-    );
+  background: linear-gradient(90deg, #facc15, #f59e0b);
   border-radius: inherit;
-  transition: width 0.4s ease;
+  transition: width 0.35s ease;
 }
 
-/* =========================
-   دکمه ادامه خرید
-========================= */
+.complete .progress__fill {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.progress-values {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  color: #a16207;
+  font-size: 0.67rem;
+  font-weight: 700;
+}
 
 .checkout-btn {
   width: 100%;
-  min-height: 52px;
-  padding: 0.8rem 1rem;
-  color: #ffffff;
-  background:
-    linear-gradient(
-      135deg,
-      #16a34a,
-      #15803d
-    );
-  border: none;
+  min-height: 50px;
+  color: white;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  border: 0;
   border-radius: 14px;
-  box-shadow:
-    0 10px 24px
-      rgba(22, 163, 74, 0.22);
+  box-shadow: 0 10px 24px rgb(22 163 74 / 22%);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
   font-weight: 900;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.checkout-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow:
-    0 14px 30px
-      rgba(22, 163, 74, 0.28);
 }
 
 .checkout-btn:disabled {
-  opacity: 0.48;
-  cursor: not-allowed;
-  box-shadow: none;
+  opacity: 0.55;
+  cursor: wait;
 }
-
-.btn-loading {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* =========================
-   محصولات پیشنهادی
-========================= */
 
 .suggestions {
-  margin-top: 1.4rem;
-  padding-top: 1.1rem;
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.3rem;
+  padding-top: 1rem;
   border-top: 1px solid #e5e7eb;
 }
 
 .suggestions h4 {
-  margin: 0 0 0.9rem;
-  color: #334155;
-  font-size: 0.9rem;
-  font-weight: 800;
+  margin: 0;
 }
 
-.suggestion-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-/* =========================
-   حالت بارگذاری، خطا و خالی
-========================= */
-
-.loading-state,
-.error-state,
-.empty-cart {
-  min-height: 420px;
-  padding: 3rem 1.5rem;
-  background: #ffffff;
+.page-state {
+  min-height: 400px;
+  padding: 2rem;
+  background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 22px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -769,36 +453,12 @@ watch(
   text-align: center;
 }
 
-.loading-state p,
-.error-state p,
-.empty-cart p {
-  max-width: 420px;
-  margin: 0.75rem 0 1.25rem;
+.page-state p {
   color: #64748b;
-  font-size: 0.9rem;
-  line-height: 1.9;
 }
 
-.loading-state .spinner {
-  width: 38px;
-  height: 38px;
-  margin-bottom: 0.9rem;
-  border: 4px solid #dcfce7;
-  border-top-color: #16a34a;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.error-icon {
-  color: #e11d48;
-}
-
-.error-state h3,
-.empty-cart h2 {
-  margin: 1rem 0 0;
-  color: #1e293b;
-  font-size: 1.25rem;
-  font-weight: 900;
+.page-state h2 {
+  font-size: 1.2rem;
 }
 
 .empty-icon {
@@ -809,35 +469,39 @@ watch(
   box-sizing: content-box;
 }
 
-.retry-btn,
-.continue-shopping-btn {
-  min-height: 44px;
-  padding: 0.65rem 1.2rem;
-  border-radius: 12px;
+.error-icon {
+  color: #e11d48;
+}
+
+.products-btn,
+.retry-btn {
+  padding: 0.7rem 1.2rem;
+  color: white;
+  background: #16a34a;
+  border: 0;
+  border-radius: 11px;
   text-decoration: none;
   cursor: pointer;
-  font-size: 0.88rem;
   font-weight: 800;
 }
 
 .retry-btn {
-  color: #ffffff;
   background: #e11d48;
-  border: none;
 }
 
-.continue-shopping-btn {
-  color: #ffffff;
-  background: #16a34a;
-  border: 1px solid #16a34a;
+.spinner {
+  width: 38px;
+  height: 38px;
+  border: 4px solid #dcfce7;
+  border-top-color: #16a34a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
-
-/* =========================
-   انیمیشن‌ها
-========================= */
 
 .spin {
-  animation: spin 0.85s linear infinite;
+  margin-inline-end: 0.4rem;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
 }
 
 @keyframes spin {
@@ -846,78 +510,36 @@ watch(
   }
 }
 
-/* =========================
-   تبلت
-========================= */
-
-@media (max-width: 1024px) {
-  .cart-content {
-    grid-template-columns:
-      minmax(0, 1fr)
-      320px;
-  }
-}
-
-/* =========================
-   موبایل و تبلت کوچک
-========================= */
-
 @media (max-width: 820px) {
-  .cart-page {
-    padding:
-      1.25rem
-      0.8rem
-      3rem;
-  }
-
-  .cart-header {
-    padding: 1rem;
-    border-radius: 16px;
-  }
-
   .cart-content {
     display: flex;
     flex-direction: column;
   }
 
-  .cart-items,
   .cart-summary {
-    width: 100%;
-  }
-
-  .cart-summary--sticky {
     position: static;
-  }
-
-  .cart-summary {
-    order: 2;
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 
 @media (max-width: 560px) {
   .cart-page {
-    padding-inline: 0.65rem;
+    padding: 1rem 0.65rem 3rem;
   }
 
-  .cart-header__title h1 {
+  .cart-header,
+  .cart-summary {
+    border-radius: 16px;
+  }
+
+  .cart-header h1 {
     font-size: 1.3rem;
   }
 
-  .cart-summary {
-    padding: 1.1rem;
-    border-radius: 16px;
-  }
-
-  .total-price {
-    font-size: 1.05rem;
-  }
-
-  .loading-state,
-  .error-state,
-  .empty-cart {
-    min-height: 360px;
-    padding: 2rem 1rem;
-    border-radius: 16px;
+  .bazbin-egg {
+    width: 54px;
+    height: 54px;
   }
 }
 </style>

@@ -780,5 +780,3 @@ watch(() => props.item.quantity, (newQuantity) => {
 
 
     
-
-</style>

@@ -5,137 +5,194 @@
     <div class="cart-header">
       <div class="cart-header__title">
         <h1>سبد خرید</h1>
-        <span v-if="!cartStore.isEmpty" class="cart-header__count">
+
+        <span
+          v-if="!isEmpty"
+          class="cart-header__count"
+        >
           {{ totalItems }} کالا
         </span>
-      </div>
-      
-      <!-- Select All -->
-      <div v-if="!cartStore.isEmpty" class="cart-header__actions">
-        <label class="select-all">
-          <input 
-            type="checkbox" 
-            :checked="cartStore.isAllSelected"
-            @change="cartStore.selectAll"
-          />
-          <span>انتخاب همه</span>
-        </label>
-        
-        <button 
-          v-if="selectedCount > 0"
-          class="remove-selected-btn"
-          @click="handleRemoveSelected"
-          :disabled="cartStore.loading"
-        >
-          <Trash2 :size="16" />
-          حذف موارد انتخاب شده ({{ selectedCount }})
-        </button>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="cartStore.loading && isEmpty" class="loading-state">
+    <div
+      v-if="cartStore.loading && isEmpty"
+      class="loading-state"
+    >
       <div class="spinner"></div>
       <p>در حال دریافت سبد خرید...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="cartStore.error" class="error-state">
-      <AlertCircle class="error-icon" :size="48" />
+    <div
+      v-else-if="cartStore.error"
+      class="error-state"
+    >
+      <AlertCircle
+        class="error-icon"
+        :size="48"
+      />
+
       <h3>خطا در دریافت اطلاعات</h3>
+
       <p>{{ cartStore.error }}</p>
-      <button @click="retryLoad" class="retry-btn">
+
+      <button
+        class="retry-btn"
+        @click="retryLoad"
+      >
         تلاش مجدد
       </button>
     </div>
 
     <!-- Empty Cart -->
-    <div v-else-if="isEmpty" class="empty-cart">
-      <ShoppingBag class="empty-icon" :size="64" />
+    <div
+      v-else-if="isEmpty"
+      class="empty-cart"
+    >
+      <ShoppingBag
+        class="empty-icon"
+        :size="64"
+      />
+
       <h2>سبد خرید شما خالی است</h2>
-      <p>برای مشاهده محصولات بیشتر به صفحه محصولات بروید</p>
-      <router-link to="/products" class="continue-shopping-btn">
+
+      <p>
+        برای مشاهده محصولات بیشتر به صفحه محصولات بروید
+      </p>
+
+      <router-link
+        to="/products"
+        class="continue-shopping-btn"
+      >
         مشاهده محصولات
       </router-link>
     </div>
 
-    <!-- Cart Items -->
-    <div v-else class="cart-content">
+    <!-- Cart Content -->
+    <div
+      v-else
+      class="cart-content"
+    >
+      <!-- Cart Items -->
       <div class="cart-items">
         <CartItemCard
           v-for="item in items"
           :key="item.id"
           :item="item"
-          :selected="selectedItems.includes(item.id)"
           :updating="updatingItems.has(item.id)"
           :removing="removingItems.has(item.id)"
           :error="itemErrors[item.id]"
-          @update:selected="(value) => handleItemSelection(item.id, value)"
           @update-quantity="handleUpdateQuantity"
           @remove="handleRemoveItem"
           @clear-error="clearItemError(item.id)"
         />
-        
+
         <!-- Continue Shopping -->
-        <router-link to="/products" class="continue-link">
+        <router-link
+          to="/products"
+          class="continue-link"
+        >
           <ArrowRight class="icon" />
           ادامه خرید
         </router-link>
       </div>
 
       <!-- Cart Summary -->
-      <div class="cart-summary" :class="{ 'cart-summary--sticky': !cartStore.loading }">
+      <div
+        class="cart-summary"
+        :class="{
+          'cart-summary--sticky': !cartStore.loading
+        }"
+      >
         <h3>خلاصه سبد خرید</h3>
-        
+
         <div class="summary-row">
           <span>تعداد کالاها</span>
-          <span>{{ selectedCount || totalItems }}</span>
+          <span>{{ totalItems }}</span>
         </div>
-        
+
         <div class="summary-row">
           <span>مبلغ کل</span>
-          <span>{{ formatPrice(selectedTotalPrice || totalPrice) }}</span>
+          <span>{{ formatPrice(totalPrice) }}</span>
         </div>
-        
+
         <div class="summary-row">
           <span>هزینه ارسال</span>
+
           <span>
-            <span v-if="shippingCost === 0" class="free-shipping">رایگان</span>
-            <span v-else>{{ formatPrice(shippingCost) }}</span>
+            <span
+              v-if="shippingCost === 0"
+              class="free-shipping"
+            >
+              رایگان
+            </span>
+
+            <span v-else>
+              {{ formatPrice(shippingCost) }}
+            </span>
           </span>
         </div>
-        
+
         <div class="summary-total">
           <span>مبلغ قابل پرداخت</span>
-          <span class="total-price">{{ formatPrice(finalPrice) }}</span>
+
+          <span class="total-price">
+            {{ formatPrice(finalPrice) }}
+          </span>
         </div>
-        
-        <!-- Free shipping progress -->
-        <div v-if="shippingCost > 0" class="shipping-progress">
-          <p>{{ formatPrice(minPurchaseForFreeShipping - (selectedTotalPrice || totalPrice)) }} دیگر خرید کنید تا ارسال رایگان شود</p>
+
+        <!-- Free Shipping Progress -->
+        <div
+          v-if="shippingCost > 0"
+          class="shipping-progress"
+        >
+          <p>
+            {{ formatPrice(remainingForFreeShipping) }}
+            دیگر خرید کنید تا ارسال رایگان شود
+          </p>
+
           <div class="progress-bar">
-            <div 
-              class="progress-fill" 
-              :style="{ width: shippingProgress + '%' }"
+            <div
+              class="progress-fill"
+              :style="{
+                width: `${shippingProgress}%`
+              }"
             ></div>
           </div>
         </div>
-        
-        <button 
+
+        <!-- Checkout -->
+        <button
           class="checkout-btn"
+          :disabled="isEmpty || cartStore.loading"
           @click="goToCheckout"
-          :disabled="selectedCount === 0 || cartStore.loading"
         >
-          <span v-if="!cartStore.loading">ادامه فرآیند خرید</span>
-          <span v-else class="btn-loading">
-            <Loader :size="18" class="spin" />
+          <span v-if="!cartStore.loading">
+            ادامه فرایند خرید
+          </span>
+
+          <span
+            v-else
+            class="btn-loading"
+          >
+            <Loader
+              :size="18"
+              class="spin"
+            />
+
             در حال پردازش...
           </span>
         </button>
-        
+
         <!-- Suggestions -->
-        <div v-if="suggestedProducts.length" class="suggestions">
+        <div
+          v-if="suggestedProducts.length"
+          class="suggestions"
+        >
           <h4>پیشنهاد ویژه</h4>
+
           <div class="suggestion-items">
             <ProductCardMini
               v-for="product in suggestedProducts"
@@ -147,156 +204,246 @@
         </div>
       </div>
     </div>
-
-    <!-- Remove Confirmation Modal -->
-    <Teleport to="body">
-      <div v-if="showRemoveModal" class="modal-overlay" @click.self="closeRemoveModal">
-        <div class="modal-content">
-          <h3>حذف آیتم‌ها</h3>
-          <p>آیا از حذف {{ removeModalCount }} آیتم انتخاب شده اطمینان دارید؟</p>
-          <div class="modal-actions">
-            <button @click="closeRemoveModal" class="modal-btn modal-btn--cancel">
-              انصراف
-            </button>
-            <button @click="confirmRemoveSelected" class="modal-btn modal-btn--confirm">
-              تایید و حذف
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import {
+  ref,
+  computed,
+  onMounted,
+  watch,
+} from 'vue'
+
 import { useRouter } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { ShoppingBag, ArrowRight, Trash2, AlertCircle, Loader } from 'lucide-vue-next'
+
+import {
+  ShoppingBag,
+  ArrowRight,
+  AlertCircle,
+  Loader,
+} from 'lucide-vue-next'
+
 import { useCartStore } from '@/core/store/cartStore'
 import { useProductStore } from '@/core/store/productStore'
+
 import CartItemCard from '@/components/CartItemCard.vue'
 import ProductCardMini from '@/components/ProductCardMini.vue'
+
 import type { Product } from '@/types/product.types'
 
 // ========== Stores ==========
+
 const router = useRouter()
 const cartStore = useCartStore()
 const productStore = useProductStore()
 
 // ========== State ==========
-const updatingItems = ref<Set<number>>(new Set())
-const removingItems = ref<Set<number>>(new Set())
-const itemErrors = ref<Record<number, string>>({})
-const showRemoveModal = ref(false)
-const removeModalCount = ref(0)
+
+const updatingItems = ref<Set<number>>(
+  new Set(),
+)
+
+const removingItems = ref<Set<number>>(
+  new Set(),
+)
+
+const itemErrors = ref<Record<number, string>>(
+  {},
+)
+
+// ========== Constants ==========
+
+const minPurchaseForFreeShipping = 500000
+const normalShippingCost = 30000
 
 // ========== Computed ==========
-const items = computed(() => cartStore.items ?? [])
-const totalItems = computed(() => (cartStore.items ?? []).length)
-const selectedItems = computed(() => cartStore.selectedItems ?? [])
-const selectedCount = computed(() => selectedItems.value.length)
-const selectedTotalPrice = computed(() => cartStore.selectedTotalPrice ?? 0)
-const totalPrice = computed(() => cartStore.totalPrice ?? 0)
-const isEmpty = computed(() => !items.value.length)
+
+const items = computed(() => {
+  return cartStore.items ?? []
+})
+
+const totalItems = computed(() => {
+  return items.value.length
+})
+
+const totalPrice = computed(() => {
+  return cartStore.totalPrice ?? 0
+})
+
+const isEmpty = computed(() => {
+  return items.value.length === 0
+})
 
 const shippingCost = computed(() => {
-  const baseTotal = selectedCount.value ? selectedTotalPrice.value : totalPrice.value
-  return baseTotal > 500000 ? 0 : 30000
+  if (
+    totalPrice.value >=
+    minPurchaseForFreeShipping
+  ) {
+    return 0
+  }
+
+  return normalShippingCost
 })
 
 const finalPrice = computed(() => {
-  const baseTotal = selectedCount.value ? selectedTotalPrice.value : totalPrice.value
-  return baseTotal + shippingCost.value
+  return (
+    totalPrice.value +
+    shippingCost.value
+  )
 })
 
 const shippingProgress = computed(() => {
-  const baseTotal = selectedCount.value ? selectedTotalPrice.value : totalPrice.value
-  return Math.min((baseTotal / 500000) * 100, 100)
+  const progress =
+    (
+      totalPrice.value /
+      minPurchaseForFreeShipping
+    ) * 100
+
+  return Math.min(
+    Math.max(progress, 0),
+    100,
+  )
 })
 
-const minPurchaseForFreeShipping = 500000
+const remainingForFreeShipping = computed(() => {
+  return Math.max(
+    minPurchaseForFreeShipping -
+      totalPrice.value,
+    0,
+  )
+})
 
-const suggestedProducts = computed(() => productStore.suggestedProducts ?? [])
+const suggestedProducts = computed(() => {
+  return (
+    productStore.suggestedProducts ?? []
+  )
+})
 
 // ========== Methods ==========
-const formatPrice = (price: number) => new Intl.NumberFormat('fa-IR').format(price)
 
-const handleItemSelection = (itemId: number, selected: boolean) => {
-  if (selected) {
-    if (!cartStore.selectedItems.includes(itemId)) cartStore.selectedItems.push(itemId)
-  } else {
-    cartStore.selectedItems = cartStore.selectedItems.filter(id => id !== itemId)
+const formatPrice = (
+  price: number,
+): string => {
+  return new Intl.NumberFormat(
+    'fa-IR',
+  ).format(price)
+}
+
+const handleUpdateQuantity = async (
+  itemId: number,
+  quantity: number,
+) => {
+  updatingItems.value.add(itemId)
+
+  delete itemErrors.value[itemId]
+
+  try {
+    await cartStore.updateQuantity(
+      itemId,
+      quantity,
+    )
+  } catch (error: unknown) {
+    itemErrors.value[itemId] =
+      error instanceof Error
+        ? error.message
+        : 'خطا در به‌روزرسانی تعداد کالا'
+  } finally {
+    updatingItems.value.delete(itemId)
   }
 }
 
-const handleUpdateQuantity = async (itemId: number, quantity: number) => {
-  updatingItems.value.add(itemId)
-  delete itemErrors.value[itemId]
-  try { await cartStore.updateQuantity(itemId, quantity) }
-  catch (err: any) { itemErrors.value[itemId] = err.message || 'خطا در بروزرسانی' }
-  finally { updatingItems.value.delete(itemId) }
-}
-
-const handleRemoveItem = async (itemId: number) => {
+const handleRemoveItem = async (
+  itemId: number,
+) => {
   removingItems.value.add(itemId)
+
   delete itemErrors.value[itemId]
-  try { await cartStore.removeItem(itemId) }
-  catch (err: any) { itemErrors.value[itemId] = err.message || 'خطا در حذف آیتم' }
-  finally { removingItems.value.delete(itemId) }
+
+  try {
+    await cartStore.removeItem(itemId)
+  } catch (error: unknown) {
+    itemErrors.value[itemId] =
+      error instanceof Error
+        ? error.message
+        : 'خطا در حذف کالا'
+  } finally {
+    removingItems.value.delete(itemId)
+  }
 }
 
-const handleRemoveSelected = () => {
-  removeModalCount.value = selectedCount.value
-  showRemoveModal.value = true
+const clearItemError = (
+  itemId: number,
+) => {
+  delete itemErrors.value[itemId]
 }
 
-const closeRemoveModal = () => {
-  showRemoveModal.value = false
-  removeModalCount.value = 0
-}
+const handleAddSuggested = async (
+  product: Product,
+) => {
+  const firstVariant =
+    product.variants?.[0]
 
-const confirmRemoveSelected = async () => {
-  showRemoveModal.value = false
-  for (const itemId of selectedItems.value) await handleRemoveItem(itemId)
-  cartStore.selectedItems = []
-}
+  if (!firstVariant) {
+    console.error(
+      'این محصول واریانت قابل خرید ندارد.',
+    )
 
-const clearItemError = (itemId: number) => { delete itemErrors.value[itemId] }
+    return
+  }
 
-const handleAddSuggested = async (product: Product) => {
   try {
     await cartStore.addItem({
-      variant_id: product.variants[0].id,
+      variant_id: firstVariant.id,
       quantity: 1,
-      session_key: cartStore.sessionKey // اضافه شد
+      session_key: cartStore.sessionKey,
     })
-  } catch (err) {
-    console.error('Error adding suggested product:', err)
+  } catch (error) {
+    console.error(
+      'Error adding suggested product:',
+      error,
+    )
   }
 }
 
 const goToCheckout = () => {
-  if (selectedCount.value === 0) cartStore.selectAll()
+  if (isEmpty.value) {
+    return
+  }
+
   router.push('/checkout')
 }
 
-const retryLoad = async () => await cartStore.fetchCart()
+const retryLoad = async () => {
+  await cartStore.fetchCart()
+}
 
 // ========== Lifecycle ==========
+
 onMounted(async () => {
   await cartStore.fetchCart()
   await productStore.fetchSuggestedProducts()
 })
 
-// پاکسازی خطاها بعد از 5 ثانیه
-watch(itemErrors, (newErrors) => {
-  Object.keys(newErrors).forEach(itemId => {
-    setTimeout(() => delete itemErrors.value[Number(itemId)], 5000)
-  })
-}, { deep: true })
+// پاک‌سازی خودکار خطاها بعد از ۵ ثانیه
+watch(
+  itemErrors,
+  newErrors => {
+    Object.keys(newErrors).forEach(
+      itemId => {
+        setTimeout(() => {
+          delete itemErrors.value[
+            Number(itemId)
+          ]
+        }, 5000)
+      },
+    )
+  },
+  {
+    deep: true,
+  },
+)
 </script>
-
 
 <style scoped>
 .cart-page {
@@ -356,72 +503,15 @@ watch(itemErrors, (newErrors) => {
   font-weight: 700;
 }
 
-.cart-header__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.select-all {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 40px;
-  padding: 0.45rem 0.75rem;
-  color: #334155;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid #e2e8f0;
-  border-radius: 11px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.select-all input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: #16a34a;
-  cursor: pointer;
-}
-
-.remove-selected-btn {
-  min-height: 40px;
-  padding: 0.5rem 0.85rem;
-  color: #be123c;
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  border-radius: 11px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.remove-selected-btn:hover:not(:disabled) {
-  background: #ffe4e6;
-  transform: translateY(-1px);
-}
-
-.remove-selected-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 /* =========================
    چیدمان اصلی
 ========================= */
 
 .cart-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns:
+    minmax(0, 1fr)
+    360px;
   align-items: start;
   gap: 1.5rem;
 }
@@ -469,8 +559,10 @@ watch(itemErrors, (newErrors) => {
   border: 1px solid #e2e8f0;
   border-radius: 20px;
   box-shadow:
-    0 4px 12px rgba(15, 23, 42, 0.04),
-    0 18px 40px rgba(15, 23, 42, 0.05);
+    0 4px 12px
+      rgba(15, 23, 42, 0.04),
+    0 18px 40px
+      rgba(15, 23, 42, 0.05);
 }
 
 .cart-summary--sticky {
@@ -574,13 +666,18 @@ watch(itemErrors, (newErrors) => {
 .progress-fill {
   height: 100%;
   min-width: 2%;
-  background: linear-gradient(90deg, #22c55e, #16a34a);
+  background:
+    linear-gradient(
+      90deg,
+      #22c55e,
+      #16a34a
+    );
   border-radius: inherit;
   transition: width 0.4s ease;
 }
 
 /* =========================
-   دکمه پرداخت
+   دکمه ادامه خرید
 ========================= */
 
 .checkout-btn {
@@ -588,10 +685,17 @@ watch(itemErrors, (newErrors) => {
   min-height: 52px;
   padding: 0.8rem 1rem;
   color: #ffffff;
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background:
+    linear-gradient(
+      135deg,
+      #16a34a,
+      #15803d
+    );
   border: none;
   border-radius: 14px;
-  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.22);
+  box-shadow:
+    0 10px 24px
+      rgba(22, 163, 74, 0.22);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -606,7 +710,9 @@ watch(itemErrors, (newErrors) => {
 
 .checkout-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(22, 163, 74, 0.28);
+  box-shadow:
+    0 14px 30px
+      rgba(22, 163, 74, 0.28);
 }
 
 .checkout-btn:disabled {
@@ -727,74 +833,6 @@ watch(itemErrors, (newErrors) => {
 }
 
 /* =========================
-   مودال حذف
-========================= */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  padding: 1rem;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  width: 100%;
-  max-width: 420px;
-  padding: 1.5rem;
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 25px 70px rgba(15, 23, 42, 0.25);
-  animation: modal-in 0.2s ease;
-}
-
-.modal-content h3 {
-  margin: 0 0 0.75rem;
-  color: #1e293b;
-  font-size: 1.15rem;
-  font-weight: 900;
-}
-
-.modal-content p {
-  margin: 0;
-  color: #64748b;
-  font-size: 0.9rem;
-  line-height: 1.9;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.7rem;
-  margin-top: 1.4rem;
-}
-
-.modal-btn {
-  min-height: 42px;
-  padding: 0.6rem 1rem;
-  border-radius: 11px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 800;
-}
-
-.modal-btn--cancel {
-  color: #475569;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-
-.modal-btn--confirm {
-  color: #ffffff;
-  background: #e11d48;
-  border: 1px solid #e11d48;
-}
-
-/* =========================
    انیمیشن‌ها
 ========================= */
 
@@ -808,25 +846,15 @@ watch(itemErrors, (newErrors) => {
   }
 }
 
-@keyframes modal-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 /* =========================
    تبلت
 ========================= */
 
 @media (max-width: 1024px) {
   .cart-content {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      320px;
   }
 }
 
@@ -836,19 +864,15 @@ watch(itemErrors, (newErrors) => {
 
 @media (max-width: 820px) {
   .cart-page {
-    padding: 1.25rem 0.8rem 3rem;
+    padding:
+      1.25rem
+      0.8rem
+      3rem;
   }
 
   .cart-header {
-    align-items: flex-start;
-    flex-direction: column;
     padding: 1rem;
     border-radius: 16px;
-  }
-
-  .cart-header__actions {
-    width: 100%;
-    justify-content: space-between;
   }
 
   .cart-content {
@@ -879,20 +903,6 @@ watch(itemErrors, (newErrors) => {
     font-size: 1.3rem;
   }
 
-  .cart-header__actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .select-all,
-  .remove-selected-btn {
-    width: 100%;
-  }
-
-  .select-all {
-    justify-content: center;
-  }
-
   .cart-summary {
     padding: 1.1rem;
     border-radius: 16px;
@@ -908,14 +918,6 @@ watch(itemErrors, (newErrors) => {
     min-height: 360px;
     padding: 2rem 1rem;
     border-radius: 16px;
-  }
-
-  .modal-actions {
-    flex-direction: column-reverse;
-  }
-
-  .modal-btn {
-    width: 100%;
   }
 }
 </style>

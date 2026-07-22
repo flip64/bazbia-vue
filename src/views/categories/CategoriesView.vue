@@ -75,8 +75,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import categoryService from '@/services/category.service.ts'
-
+import { categoryService } from '@/services/category.service'
+  
 interface Category {
   id: number
   name: string

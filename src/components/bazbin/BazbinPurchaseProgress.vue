@@ -2,12 +2,13 @@
 <template>
   <div
     class="bazbin-box"
-    :class="{ complete: isCompleted }"
+    :class="{ qualified: earnedBazbins > 0 }"
   >
     <div class="bazbin-head">
-      <div>
-        <strong v-if="isCompleted">
-          تبریک! یک تخم بازبین هدیه می‌گیرید
+      <div class="bazbin-content">
+        <strong v-if="earnedBazbins > 0">
+          تبریک! {{ formatNumber(earnedBazbins) }}
+          تخم بازبین هدیه می‌گیرید
         </strong>
 
         <strong v-else>
@@ -15,20 +16,45 @@
           تومان دیگر خرید کنید
         </strong>
 
-        <p v-if="isCompleted">
-          هدیه پس از پرداخت موفق سفارش صادر می‌شود.
+        <p v-if="earnedBazbins > 0">
+          با این خرید، {{ formatNumber(earnedBazbins) }}
+          تخم بازبین پس از پرداخت موفق صادر می‌شود.
         </p>
 
         <p v-else>
-          تا یک تخم بازبین هدیه بگیرید.
+          با هر {{ formatPrice(targetAmount) }} تومان خرید،
+          یک تخم بازبین هدیه می‌گیرید.
         </p>
       </div>
 
-      <img
-        :src="eggImage"
-        alt="تخم بازبین"
-        class="bazbin-egg"
-      />
+      <div class="bazbin-image-wrapper">
+        <span
+          v-if="earnedBazbins > 0"
+          class="bazbin-count"
+        >
+          × {{ formatNumber(earnedBazbins) }}
+        </span>
+
+        <img
+          :src="eggImage"
+          alt="تخم بازبین"
+          class="bazbin-egg"
+        />
+      </div>
+    </div>
+
+    <div class="next-reward">
+      <span>
+        پیشرفت برای
+        {{ earnedBazbins > 0 ? 'تخم بعدی' : 'اولین تخم' }}
+      </span>
+
+      <strong>
+        {{ formatPrice(currentCycleAmount) }}
+        از
+        {{ formatPrice(targetAmount) }}
+        تومان
+      </strong>
     </div>
 
     <div
@@ -37,6 +63,7 @@
       :aria-valuenow="progress"
       aria-valuemin="0"
       aria-valuemax="100"
+      :aria-label="progressLabel"
     >
       <div
         class="progress__fill"
@@ -45,10 +72,11 @@
     </div>
 
     <div class="progress-values">
-      <span>{{ formatPrice(currentAmount) }} تومان</span>
+      <span>{{ formatNumber(progress) }}٪</span>
 
       <span>
-        {{ formatPrice(targetAmount) }} تومان
+        {{ formatPrice(remainingAmount) }}
+        تومان تا تخم بعدی
       </span>
     </div>
   </div>
@@ -68,29 +96,69 @@ const props = withDefaults(defineProps<Props>(), {
   eggImage: '/images/bazbin-egg.webp',
 })
 
-const remainingAmount = computed(() =>
-  Math.max(props.targetAmount - props.currentAmount, 0),
+const normalizedAmount = computed(() =>
+  Math.max(Number(props.currentAmount) || 0, 0),
 )
 
-const progress = computed(() => {
-  if (props.targetAmount <= 0) {
-    return 100
-  }
+const normalizedTarget = computed(() =>
+  Math.max(Number(props.targetAmount) || 0, 1),
+)
 
-  return Math.min(
-    Math.max(
-      (props.currentAmount / props.targetAmount) * 100,
-      0,
-    ),
-    100,
-  )
-})
+/**
+ * تعداد تخم‌هایی که کاربر با مبلغ فعلی دریافت می‌کند.
+ *
+ * مثال:
+ * 4,500,000 / 2,000,000 = 2 تخم
+ */
+const earnedBazbins = computed(() =>
+  Math.floor(
+    normalizedAmount.value / normalizedTarget.value,
+  ),
+)
 
-const isCompleted = computed(
-  () => props.currentAmount >= props.targetAmount,
+/**
+ * مبلغی که برای تخم بعدی محاسبه می‌شود.
+ *
+ * مثال:
+ * خرید 4,500,000 تومان
+ * مبلغ چرخه فعلی = 500,000 تومان
+ */
+const currentCycleAmount = computed(() =>
+  normalizedAmount.value % normalizedTarget.value,
+)
+
+/**
+ * مبلغ باقی‌مانده تا تخم بعدی.
+ *
+ * در مبلغ دقیقاً مضرب دو میلیون،
+ * چرخه بعدی از صفر شروع می‌شود.
+ */
+const remainingAmount = computed(() =>
+  normalizedTarget.value - currentCycleAmount.value,
+)
+
+const progress = computed(() =>
+  Math.round(
+    (
+      currentCycleAmount.value /
+      normalizedTarget.value
+    ) * 100,
+  ),
+)
+
+const progressLabel = computed(
+  () =>
+    `${progress.value} درصد پیشرفت برای ${
+      earnedBazbins.value > 0
+        ? 'تخم بازبین بعدی'
+        : 'اولین تخم بازبین'
+    }`,
 )
 
 const formatPrice = (value: number) =>
+  new Intl.NumberFormat('fa-IR').format(value)
+
+const formatNumber = (value: number) =>
   new Intl.NumberFormat('fa-IR').format(value)
 </script>
 
@@ -103,7 +171,7 @@ const formatPrice = (value: number) =>
   border-radius: 15px;
 }
 
-.bazbin-box.complete {
+.bazbin-box.qualified {
   background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
   border-color: #86efac;
 }
@@ -113,12 +181,17 @@ const formatPrice = (value: number) =>
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.bazbin-content {
+  min-width: 0;
 }
 
 .bazbin-head strong {
   color: #92400e;
   font-size: 0.82rem;
+  line-height: 1.8;
 }
 
 .bazbin-head p {
@@ -128,20 +201,61 @@ const formatPrice = (value: number) =>
   line-height: 1.7;
 }
 
-.complete .bazbin-head strong {
+.qualified .bazbin-head strong {
   color: #166534;
 }
 
-.complete .bazbin-head p {
+.qualified .bazbin-head p {
   color: #15803d;
 }
 
+.bazbin-image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .bazbin-egg {
+  display: block;
   width: 62px;
   height: 62px;
   object-fit: contain;
-  flex-shrink: 0;
-  filter: drop-shadow(0 5px 7px rgb(146 64 14 / 18%));
+  filter: drop-shadow(
+    0 5px 7px rgb(146 64 14 / 18%)
+  );
+}
+
+.bazbin-count {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  z-index: 1;
+  min-width: 25px;
+  padding: 0.15rem 0.35rem;
+  color: white;
+  background: #16a34a;
+  border: 2px solid white;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.next-reward {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+  color: #92400e;
+  font-size: 0.68rem;
+}
+
+.next-reward strong {
+  font-size: 0.67rem;
+}
+
+.qualified .next-reward {
+  color: #166534;
 }
 
 .progress {
@@ -153,26 +267,38 @@ const formatPrice = (value: number) =>
 
 .progress__fill {
   height: 100%;
-  min-width: 2%;
-  background: linear-gradient(90deg, #facc15, #f59e0b);
+  background: linear-gradient(
+    90deg,
+    #facc15,
+    #f59e0b
+  );
   border-radius: inherit;
   transition: width 0.35s ease;
 }
 
-.complete .progress__fill {
-  background: linear-gradient(90deg, #22c55e, #16a34a);
+.qualified .progress {
+  background: #dcfce7;
+}
+
+.qualified .progress__fill {
+  background: linear-gradient(
+    90deg,
+    #22c55e,
+    #16a34a
+  );
 }
 
 .progress-values {
   display: flex;
   justify-content: space-between;
+  gap: 0.5rem;
   margin-top: 0.4rem;
   color: #a16207;
   font-size: 0.67rem;
   font-weight: 700;
 }
 
-.complete .progress-values {
+.qualified .progress-values {
   color: #15803d;
 }
 
@@ -180,6 +306,12 @@ const formatPrice = (value: number) =>
   .bazbin-egg {
     width: 54px;
     height: 54px;
+  }
+
+  .next-reward {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 }
 </style>

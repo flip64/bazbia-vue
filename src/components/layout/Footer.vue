@@ -146,7 +146,7 @@
         <!-- محل نمادها -->
         <div class="mt-5 flex gap-3">
           <div class="trust-box">
-            نماد اعتماد
+            <a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=305970&Code=hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=305970&Code=hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK' alt='' style='cursor:pointer' code='hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK'></a>
           </div>
 
           <div class="trust-box">

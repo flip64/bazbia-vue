@@ -4,6 +4,9 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Vazirmatn", sans-serif;
+}
+  
 }
 
 html,
@@ -11,6 +14,7 @@ body,
 #app {
   width: 100%;
   min-height: 100%;
+  font-family: "Vazirmatn", sans-serif;
 }
 
 body {

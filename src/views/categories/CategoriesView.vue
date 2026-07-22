@@ -60,7 +60,7 @@
           <h2>{{ category.name }}</h2>
 
           <span class="category-card__count">
-            {{ formatCount(category.products_count) }} محصول
+            {{ formatCount(category.product_count) }} محصول
           </span>
 
           <span class="category-card__link">
@@ -82,7 +82,7 @@ interface Category {
   name: string
   slug: string
   image: string | null
-  products_count?: number
+  product_count?: number
   count?: number
 }
 

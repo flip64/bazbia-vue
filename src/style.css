@@ -1,7 +1,8 @@
 /* src/style.css */
 
-
+/* بارگذاری Tailwind CSS */
 @import "tailwindcss";
+
 /* ===========================
    Vazirmatn Font
 =========================== */
@@ -37,8 +38,6 @@
 *,
 *::before,
 *::after {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -49,7 +48,12 @@ body,
   min-height: 100%;
 }
 
+html {
+  direction: rtl;
+}
+
 body {
+  margin: 0;
   font-family: "Vazirmatn", sans-serif;
   direction: rtl;
   background-color: #f8fafc;
@@ -67,7 +71,7 @@ button,
 input,
 textarea,
 select {
-  font: inherit;
+  font-family: inherit;
 }
 
 a {
@@ -83,11 +87,4 @@ img {
 
 button {
   cursor: pointer;
-  border: none;
-  background: transparent;
-}
-
-ul,
-ol {
-  list-style: none;
 }

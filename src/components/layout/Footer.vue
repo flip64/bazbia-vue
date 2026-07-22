@@ -1,9 +1,11 @@
 <!-- src/components/layout/AppFooter.vue -->
 <template>
   <footer class="mt-12 border-t border-gray-200 bg-white" dir="rtl">
+    <!-- محتوای اصلی فوتر -->
     <div
-      class="container mx-auto grid gap-8 px-4 py-10
-             sm:grid-cols-2 lg:grid-cols-4"
+      class="mx-auto grid w-full max-w-7xl gap-10
+             px-6 py-10 sm:grid-cols-2 sm:px-8
+             lg:grid-cols-4 lg:px-10"
     >
       <!-- برند -->
       <div class="sm:col-span-2 lg:col-span-1">
@@ -36,37 +38,25 @@
 
         <ul class="space-y-3 text-sm text-gray-600">
           <li>
-            <RouterLink
-              to="/"
-              class="footer-link"
-            >
+            <RouterLink to="/" class="footer-link">
               صفحه اصلی
             </RouterLink>
           </li>
 
           <li>
-            <RouterLink
-              to="/products"
-              class="footer-link"
-            >
+            <RouterLink to="/products" class="footer-link">
               محصولات
             </RouterLink>
           </li>
 
           <li>
-            <RouterLink
-              to="/categories"
-              class="footer-link"
-            >
+            <RouterLink to="/categories" class="footer-link">
               دسته‌بندی‌ها
             </RouterLink>
           </li>
 
           <li>
-            <RouterLink
-              to="/blog"
-              class="footer-link"
-            >
+            <RouterLink to="/blog" class="footer-link">
               وبلاگ
             </RouterLink>
           </li>
@@ -81,37 +71,25 @@
 
         <ul class="space-y-3 text-sm text-gray-600">
           <li>
-            <RouterLink
-              to="/about"
-              class="footer-link"
-            >
+            <RouterLink to="/about" class="footer-link">
               درباره ما
             </RouterLink>
           </li>
 
           <li>
-            <RouterLink
-              to="/contact"
-              class="footer-link"
-            >
+            <RouterLink to="/contact" class="footer-link">
               تماس با ما
             </RouterLink>
           </li>
 
           <li>
-            <RouterLink
-              to="/faq"
-              class="footer-link"
-            >
+            <RouterLink to="/faq" class="footer-link">
               سوالات متداول
             </RouterLink>
           </li>
 
           <li>
-            <RouterLink
-              to="/rules"
-              class="footer-link"
-            >
+            <RouterLink to="/rules" class="footer-link">
               قوانین و مقررات
             </RouterLink>
           </li>
@@ -132,7 +110,7 @@
 
           <a
             href="mailto:support@bazbia.ir"
-            class="footer-link block direction-ltr"
+            class="footer-link direction-ltr block"
           >
             support@bazbia.ir
           </a>
@@ -143,10 +121,22 @@
           </p>
         </div>
 
-        <!-- محل نمادها -->
-        <div class="mt-5 flex gap-3">
+        <!-- نمادهای اعتماد -->
+        <div class="mt-5 flex flex-wrap gap-3">
           <div class="trust-box">
-            <a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=305970&Code=hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=305970&Code=hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK' alt='' style='cursor:pointer' code='hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK'></a>
+            <a
+              referrerpolicy="origin"
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://trustseal.enamad.ir/?id=305970&Code=hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK"
+            >
+              <img
+                referrerpolicy="origin"
+                src="https://trustseal.enamad.ir/logo.aspx?id=305970&Code=hRyCLfUuQ1KSt99kDWwTAiFzwG7IfUWK"
+                alt="نماد اعتماد الکترونیکی بازبیا"
+                class="h-full w-full object-contain"
+              />
+            </a>
           </div>
 
           <div class="trust-box">
@@ -159,9 +149,10 @@
     <!-- پایین فوتر -->
     <div class="border-t border-gray-200 bg-gray-50">
       <div
-        class="container mx-auto flex flex-col items-center
-               justify-between gap-3 px-4 py-4 text-center
-               text-xs text-gray-500 sm:flex-row"
+        class="mx-auto flex w-full max-w-7xl flex-col
+               items-center justify-between gap-3
+               px-6 py-4 text-center text-xs text-gray-500
+               sm:flex-row sm:px-8 lg:px-10"
       >
         <p>
           © {{ currentYear }} فروشگاه اینترنتی بازبیا؛
@@ -184,6 +175,7 @@ const currentYear = new Date().getFullYear()
 
 <style scoped>
 .footer-link {
+  display: inline-block;
   transition:
     color 0.2s ease,
     transform 0.2s ease;
@@ -191,14 +183,17 @@ const currentYear = new Date().getFullYear()
 
 .footer-link:hover {
   color: #059669;
+  transform: translateX(-3px);
 }
 
 .trust-box {
   display: flex;
   width: 76px;
   height: 76px;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: #f9fafb;

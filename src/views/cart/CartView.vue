@@ -62,47 +62,13 @@
           <span>مبلغ قابل پرداخت</span>
           <strong>{{ formatPrice(totalPrice) }} تومان</strong>
         </div>
-
-        <div class="bazbin-box" :class="{ complete: bazbinCompleted }">
-          <div class="bazbin-head">
-            <div>
-              <strong v-if="bazbinCompleted">
-                تبریک! یک تخم بازبین هدیه می‌گیرید
-              </strong>
-
-              <strong v-else>
-                {{ formatPrice(remainingForBazbin) }} تومان دیگر خرید کنید
-              </strong>
-
-              <p v-if="bazbinCompleted">
-                هدیه پس از پرداخت موفق سفارش صادر می‌شود.
-              </p>
-
-              <p v-else>
-                تا یک تخم بازبین هدیه بگیرید.
-              </p>
-            </div>
-
-            <img
-              src="/images/bazbin-egg.webp"
-              alt="تخم بازبین"
-              class="bazbin-egg"
-            />
-          </div>
-
-          <div class="progress">
-            <div
-              class="progress__fill"
-              :style="{ width: `${bazbinProgress}%` }"
-            ></div>
-          </div>
-
-          <div class="progress-values">
-            <span>{{ formatPrice(totalPrice) }}</span>
-            <span>{{ formatPrice(BAZBIN_LIMIT) }} تومان</span>
-          </div>
-        </div>
-
+        
+        <BazbinPurchaseProgress
+          :current-amount="totalPrice"
+          :target-amount="BAZBIN_LIMIT"
+         />
+          
+        
         <button
           class="checkout-btn"
           :disabled="cartStore.loading"
@@ -143,6 +109,8 @@ import CartItemCard from '@/components/CartItemCard.vue'
 import ProductCardMini from '@/components/ProductCardMini.vue'
 import type { Product } from '@/types/product.types'
 
+import BazbinPurchaseProgress from '@/components/bazbin/BazbinPurchaseProgress.vue'
+
 const router = useRouter()
 const cartStore = useCartStore()
 const productStore = useProductStore()
@@ -161,17 +129,7 @@ const suggestedProducts = computed(
   () => productStore.suggestedProducts ?? [],
 )
 
-const remainingForBazbin = computed(() =>
-  Math.max(BAZBIN_LIMIT - totalPrice.value, 0),
-)
 
-const bazbinProgress = computed(() =>
-  Math.min((totalPrice.value / BAZBIN_LIMIT) * 100, 100),
-)
-
-const bazbinCompleted = computed(
-  () => totalPrice.value >= BAZBIN_LIMIT,
-)
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat('fa-IR').format(value)

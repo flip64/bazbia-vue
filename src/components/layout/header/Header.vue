@@ -685,7 +685,7 @@ const handleAvatarError = (event: Event) => {
 
 const toggleUserMenu = () => {
   closeMobileMenu()
-  closeMobileSearch()
+  
 
   if (!isAuthenticated.value) {
     router.push('/login')

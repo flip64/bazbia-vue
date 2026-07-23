@@ -277,15 +277,15 @@
       <div class="header__mobile">
         <div class="header__mobile-top">
           <button
-            type="button"
-            class="header__mobile-menu-btn"
-            :aria-expanded="isMobileMenuOpen"
-            aria-label="باز و بسته کردن منو"
-            @click.stop="toggleMobileMenu"
-          >
-            <Menu v-if="!isMobileMenuOpen" />
-            <X v-else />
-          </button>
+  type="button"
+  class="header__mobile-menu-btn"
+  :aria-expanded="isMobileMenuOpen"
+  aria-label="باز و بسته کردن منو"
+  @click="isMobileMenuOpen = !isMobileMenuOpen"
+>
+  <Menu v-if="!isMobileMenuOpen" />
+  <X v-else />
+</button>
 
           <router-link
             to="/"

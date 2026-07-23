@@ -758,8 +758,7 @@ const handleScroll = () => {
 }
 
 const handleDocumentClick = () => {
-  closeMobileMenu()
-  closeMobileSearch()
+  
 }
 
 const handleEscape = (event: KeyboardEvent) => {

@@ -733,7 +733,8 @@ const toggleMobileMenu = () => {
     'isMobileMenuOpen =',
     isMobileMenuOpen.value
   )
-
+  alert('دکمه منو کلیک شد')
+  
   closeMobileSearch()
 }
 

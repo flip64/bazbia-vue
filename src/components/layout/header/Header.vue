@@ -404,7 +404,10 @@ const toggleMobileMenu = () => {
 }
 
 const closeMobileMenu = () => {
+  console.log('دکمه منو کلیک شد')
+  console.log('وضعیت قبل:',
   isMobileMenuOpen.value = false
+  console.log('وضعیت بعد:',
   document.body.style.overflow = ''
 }
 

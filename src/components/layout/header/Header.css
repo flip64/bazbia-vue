@@ -787,3 +787,17 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+
+.header__mobile-menu-btn {
+  position: relative !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+.header__mobile-top {
+  position: relative !important;
+  z-index: 999998 !important;
+  pointer-events: auto !important;
+}

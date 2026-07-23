@@ -395,7 +395,9 @@ const handleMobileLogout = () => {
 }
 
 const toggleMobileMenu = () => {
-  console.log("Menu Clicked")
+  console.log('دکمه منو کلیک شد')
+  console.log('وضعیت قبل:')
+
   isMobileMenuOpen.value = !isMobileMenuOpen.value
   document.body.style.overflow = isMobileMenuOpen.value ? 'hidden' : ''
   if (isMobileMenuOpen.value) {
@@ -404,10 +406,9 @@ const toggleMobileMenu = () => {
 }
 
 const closeMobileMenu = () => {
-  console.log('دکمه منو کلیک شد')
-  console.log('وضعیت قبل:',
+  
   isMobileMenuOpen.value = false
-  console.log('وضعیت بعد:',
+  
   document.body.style.overflow = ''
 }
 

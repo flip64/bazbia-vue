@@ -729,7 +729,7 @@ const handleMobileLogout = async () => {
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 
-  closeUserMenu()
+  
   closeMobileSearch()
 }
 

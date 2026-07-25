@@ -1,345 +1,630 @@
 <template>
-  <div class="checkout-page">
+  <main class="checkout-page">
     <div class="checkout-container">
-      <h1 class="checkout-title">تسویه حساب</h1>
+      <!-- عنوان صفحه -->
+      <header class="checkout-header">
+        <div>
+          <span class="checkout-header__eyebrow">
+            تکمیل فرایند خرید
+          </span>
 
-      <div
-        v-if="submitError"
-        class="checkout-alert checkout-alert--error"
-      >
-        {{ submitError }}
+          <h1 class="checkout-title">
+            تسویه حساب
+          </h1>
+
+          <p class="checkout-description">
+            اطلاعات دریافت‌کننده و روش ارسال سفارش را بررسی و تکمیل کنید.
+          </p>
+        </div>
+
+        <router-link
+          to="/cart"
+          class="back-to-cart"
+        >
+          بازگشت به سبد خرید
+        </router-link>
+      </header>
+
+      <!-- مراحل خرید -->
+      <div class="checkout-steps">
+        <div class="checkout-step checkout-step--completed">
+          <span class="checkout-step__number">۱</span>
+
+          <div>
+            <strong>سبد خرید</strong>
+            <small>انتخاب محصولات</small>
+          </div>
+        </div>
+
+        <span class="checkout-step__line" />
+
+        <div class="checkout-step checkout-step--active">
+          <span class="checkout-step__number">۲</span>
+
+          <div>
+            <strong>اطلاعات ارسال</strong>
+            <small>آدرس و روش ارسال</small>
+          </div>
+        </div>
+
+        <span class="checkout-step__line" />
+
+        <div class="checkout-step">
+          <span class="checkout-step__number">۳</span>
+
+          <div>
+            <strong>پرداخت</strong>
+            <small>ثبت نهایی سفارش</small>
+          </div>
+        </div>
       </div>
 
-      <div class="checkout-content">
-        <!-- فرم اطلاعات -->
+      <!-- وضعیت دریافت سبد -->
+      <section
+        v-if="cartLoading"
+        class="checkout-state"
+      >
+        <div class="checkout-loader" />
+
+        <h2>در حال دریافت سبد خرید</h2>
+
+        <p>
+          لطفاً چند لحظه صبر کنید.
+        </p>
+      </section>
+
+      <!-- خطای دریافت سبد -->
+      <section
+        v-else-if="cartError"
+        class="checkout-state checkout-state--error"
+      >
+        <div class="checkout-state__icon">
+          !
+        </div>
+
+        <h2>دریافت سبد خرید انجام نشد</h2>
+
+        <p>
+          {{ cartError }}
+        </p>
+
+        <button
+          type="button"
+          class="retry-button"
+          @click="loadCart"
+        >
+          تلاش دوباره
+        </button>
+      </section>
+
+      <!-- سبد خالی -->
+      <section
+        v-else-if="isCartEmpty"
+        class="checkout-state"
+      >
+        <div class="checkout-state__icon checkout-state__icon--empty">
+          س
+        </div>
+
+        <h2>سبد خرید شما خالی است</h2>
+
+        <p>
+          برای ادامه خرید ابتدا یک محصول به سبد خرید اضافه کنید.
+        </p>
+
+        <router-link
+          to="/products"
+          class="products-button"
+        >
+          مشاهده محصولات
+        </router-link>
+      </section>
+
+      <!-- محتوای اصلی -->
+      <div
+        v-else
+        class="checkout-content"
+      >
+        <!-- فرم Checkout -->
         <form
           id="checkout-form"
           class="checkout-form"
+          novalidate
           @submit.prevent="submitOrder"
         >
-          <!-- اطلاعات ارسال -->
-          <section class="form-section">
-            <h2>اطلاعات ارسال</h2>
+          <!-- خطای عمومی فرم -->
+          <div
+            v-if="submitError"
+            class="form-alert form-alert--error"
+          >
+            {{ submitError }}
+          </div>
 
-            <div class="form-group">
-              <label for="full-name">
-                نام و نام خانوادگی
-                <span class="required">*</span>
-              </label>
+          <!-- اطلاعات گیرنده -->
+          <section class="checkout-card">
+            <header class="checkout-card__header">
+              <span class="checkout-card__number">۱</span>
 
-              <input
-                id="full-name"
-                v-model.trim="form.fullName"
-                type="text"
-                autocomplete="name"
-                placeholder="نام و نام خانوادگی"
-                :class="{ 'input-error': errors.fullName }"
-                @input="clearError('fullName')"
-              >
+              <div>
+                <h2>اطلاعات گیرنده</h2>
 
-              <small
-                v-if="errors.fullName"
-                class="error-message"
-              >
-                {{ errors.fullName }}
-              </small>
+                <p>
+                  مشخصات فردی که سفارش را تحویل می‌گیرد.
+                </p>
+              </div>
+            </header>
+
+            <div class="checkout-card__body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="full-name">
+                    نام و نام خانوادگی
+                    <span class="required">*</span>
+                  </label>
+
+                  <input
+                    id="full-name"
+                    v-model.trim="form.fullName"
+                    type="text"
+                    autocomplete="name"
+                    placeholder="مثلاً جعفر محمدی"
+                    :class="{ 'form-input--error': errors.fullName }"
+                    @input="clearError('fullName')"
+                  >
+
+                  <small
+                    v-if="errors.fullName"
+                    class="form-error"
+                  >
+                    {{ errors.fullName }}
+                  </small>
+                </div>
+
+                <div class="form-group">
+                  <label for="phone">
+                    شماره موبایل
+                    <span class="required">*</span>
+                  </label>
+
+                  <input
+                    id="phone"
+                    v-model="form.phone"
+                    type="tel"
+                    inputmode="numeric"
+                    autocomplete="tel"
+                    maxlength="11"
+                    dir="ltr"
+                    placeholder="09123456789"
+                    :class="{ 'form-input--error': errors.phone }"
+                    @input="handlePhoneInput"
+                  >
+
+                  <small
+                    v-if="errors.phone"
+                    class="form-error"
+                  >
+                    {{ errors.phone }}
+                  </small>
+                </div>
+              </div>
             </div>
+          </section>
 
-            <div class="form-group">
-              <label for="phone">
-                شماره موبایل
-                <span class="required">*</span>
-              </label>
+          <!-- آدرس ارسال -->
+          <section class="checkout-card">
+            <header class="checkout-card__header">
+              <span class="checkout-card__number">۲</span>
 
-              <input
-                id="phone"
-                v-model.trim="form.phone"
-                type="tel"
-                inputmode="numeric"
-                autocomplete="tel"
-                maxlength="11"
-                dir="ltr"
-                placeholder="09123456789"
-                :class="{ 'input-error': errors.phone }"
-                @input="handlePhoneInput"
-              >
+              <div>
+                <h2>آدرس ارسال</h2>
 
-              <small
-                v-if="errors.phone"
-                class="error-message"
-              >
-                {{ errors.phone }}
-              </small>
-            </div>
+                <p>
+                  نشانی دقیق محل تحویل سفارش را وارد کنید.
+                </p>
+              </div>
+            </header>
 
-            <div class="form-group">
-              <label for="address">
-                آدرس
-                <span class="required">*</span>
-              </label>
-
-              <textarea
-                id="address"
-                v-model.trim="form.address"
-                rows="4"
-                autocomplete="street-address"
-                placeholder="استان، شهر، خیابان، کوچه و پلاک"
-                :class="{ 'input-error': errors.address }"
-                @input="clearError('address')"
-              />
-              
-              <small
-                v-if="errors.address"
-                class="error-message"
-              >
-                {{ errors.address }}
-              </small>
-            </div>
-
-            <div class="form-row">
+            <div class="checkout-card__body">
               <div class="form-group">
-                <label for="city">
-                  شهر
+                <label for="address">
+                  آدرس کامل
                   <span class="required">*</span>
                 </label>
 
-                <input
-                  id="city"
-                  v-model.trim="form.city"
-                  type="text"
-                  autocomplete="address-level2"
-                  placeholder="شهر"
-                  :class="{ 'input-error': errors.city }"
-                  @input="clearError('city')"
-                >
+                <textarea
+                  id="address"
+                  v-model.trim="form.address"
+                  rows="4"
+                  autocomplete="street-address"
+                  placeholder="استان، شهر، خیابان، کوچه، پلاک و واحد"
+                  :class="{ 'form-input--error': errors.address }"
+                  @input="clearError('address')"
+                />
 
                 <small
-                  v-if="errors.city"
-                  class="error-message"
+                  v-if="errors.address"
+                  class="form-error"
                 >
-                  {{ errors.city }}
+                  {{ errors.address }}
                 </small>
               </div>
 
-              <div class="form-group">
-                <label for="postal-code">
-                  کد پستی
-                  <span class="required">*</span>
-                </label>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="city">
+                    شهر
+                    <span class="required">*</span>
+                  </label>
 
-                <input
-                  id="postal-code"
-                  v-model.trim="form.postalCode"
-                  type="text"
-                  inputmode="numeric"
-                  autocomplete="postal-code"
-                  maxlength="10"
-                  dir="ltr"
-                  placeholder="کد پستی ۱۰ رقمی"
-                  :class="{ 'input-error': errors.postalCode }"
-                  @input="handlePostalCodeInput"
-                >
+                  <input
+                    id="city"
+                    v-model.trim="form.city"
+                    type="text"
+                    autocomplete="address-level2"
+                    placeholder="نام شهر"
+                    :class="{ 'form-input--error': errors.city }"
+                    @input="clearError('city')"
+                  >
 
-                <small
-                  v-if="errors.postalCode"
-                  class="error-message"
-                >
-                  {{ errors.postalCode }}
-                </small>
+                  <small
+                    v-if="errors.city"
+                    class="form-error"
+                  >
+                    {{ errors.city }}
+                  </small>
+                </div>
+
+                <div class="form-group">
+                  <label for="postal-code">
+                    کد پستی
+                    <span class="required">*</span>
+                  </label>
+
+                  <input
+                    id="postal-code"
+                    v-model="form.postalCode"
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="postal-code"
+                    maxlength="10"
+                    dir="ltr"
+                    placeholder="کد پستی ۱۰ رقمی"
+                    :class="{ 'form-input--error': errors.postalCode }"
+                    @input="handlePostalCodeInput"
+                  >
+
+                  <small
+                    v-if="errors.postalCode"
+                    class="form-error"
+                  >
+                    {{ errors.postalCode }}
+                  </small>
+                </div>
               </div>
             </div>
           </section>
 
           <!-- روش ارسال -->
-          <section class="form-section">
-            <h2>روش ارسال</h2>
+          <section class="checkout-card">
+            <header class="checkout-card__header">
+              <span class="checkout-card__number">۳</span>
 
-            <label
-              class="select-option"
-              :class="{ 'select-option--active': form.shipping === 'express' }"
-            >
-              <input
-                v-model="form.shipping"
-                type="radio"
-                value="express"
-              >
+              <div>
+                <h2>روش ارسال</h2>
 
-              <span class="option-content">
-                <strong>ارسال اکسپرس</strong>
-                <small>
-                  تحویل تقریبی ۴۸ ساعته ـ
-                  {{ formatPrice(EXPRESS_SHIPPING_COST) }} تومان
-                </small>
-              </span>
-            </label>
+                <p>
+                  روش مناسب برای دریافت سفارش را انتخاب کنید.
+                </p>
+              </div>
+            </header>
 
-            <label
-              class="select-option"
-              :class="{ 'select-option--active': form.shipping === 'normal' }"
-            >
-              <input
-                v-model="form.shipping"
-                type="radio"
-                value="normal"
-              >
+            <div class="checkout-card__body">
+              <div class="options-list">
+                <label
+                  class="select-option"
+                  :class="{
+                    'select-option--active':
+                      form.shipping === 'normal'
+                  }"
+                >
+                  <input
+                    v-model="form.shipping"
+                    type="radio"
+                    value="normal"
+                  >
 
-              <span class="option-content">
-                <strong>ارسال عادی</strong>
-                <small>تحویل بین ۳ تا ۵ روز کاری ـ رایگان</small>
-              </span>
-            </label>
+                  <span class="select-option__indicator" />
+
+                  <span class="select-option__content">
+                    <span class="select-option__title">
+                      ارسال عادی
+                    </span>
+
+                    <span class="select-option__description">
+                      تحویل تقریبی بین ۳ تا ۵ روز کاری
+                    </span>
+                  </span>
+
+                  <span class="select-option__price">
+                    رایگان
+                  </span>
+                </label>
+
+                <label
+                  class="select-option"
+                  :class="{
+                    'select-option--active':
+                      form.shipping === 'express'
+                  }"
+                >
+                  <input
+                    v-model="form.shipping"
+                    type="radio"
+                    value="express"
+                  >
+
+                  <span class="select-option__indicator" />
+
+                  <span class="select-option__content">
+                    <span class="select-option__title">
+                      ارسال اکسپرس
+                    </span>
+
+                    <span class="select-option__description">
+                      تحویل تقریبی تا ۴۸ ساعت
+                    </span>
+                  </span>
+
+                  <span class="select-option__price">
+                    {{ formatPrice(EXPRESS_SHIPPING_COST) }}
+                    تومان
+                  </span>
+                </label>
+              </div>
+
+              <p class="shipping-notice">
+                هزینه و زمان نهایی ارسال پس از بررسی نشانی سفارش
+                توسط فروشگاه تأیید می‌شود.
+              </p>
+            </div>
           </section>
 
           <!-- روش پرداخت -->
-          <section class="form-section">
-            <h2>روش پرداخت</h2>
+          <section class="checkout-card">
+            <header class="checkout-card__header">
+              <span class="checkout-card__number">۴</span>
 
-            <label
-              class="select-option"
-              :class="{ 'select-option--active': form.payment === 'online' }"
-            >
-              <input
-                v-model="form.payment"
-                type="radio"
-                value="online"
-              >
+              <div>
+                <h2>روش پرداخت</h2>
 
-              <span class="option-content">
-                <strong>پرداخت آنلاین</strong>
-                <small>پرداخت با کارت‌های عضو شبکه شتاب</small>
-              </span>
-            </label>
+                <p>
+                  روش موردنظر برای پرداخت سفارش را انتخاب کنید.
+                </p>
+              </div>
+            </header>
 
-            <label
-              class="select-option"
-              :class="{ 'select-option--active': form.payment === 'cod' }"
-            >
-              <input
-                v-model="form.payment"
-                type="radio"
-                value="cod"
-              >
+            <div class="checkout-card__body">
+              <div class="options-list">
+                <label
+                  class="select-option"
+                  :class="{
+                    'select-option--active':
+                      form.payment === 'online'
+                  }"
+                >
+                  <input
+                    v-model="form.payment"
+                    type="radio"
+                    value="online"
+                  >
 
-              <span class="option-content">
-                <strong>پرداخت در محل</strong>
-                <small>پرداخت هنگام تحویل سفارش</small>
-              </span>
-            </label>
+                  <span class="select-option__indicator" />
+
+                  <span class="select-option__content">
+                    <span class="select-option__title">
+                      پرداخت آنلاین
+                    </span>
+
+                    <span class="select-option__description">
+                      پرداخت امن با کارت‌های عضو شبکه شتاب
+                    </span>
+                  </span>
+
+                  <span class="select-option__badge">
+                    پیشنهادی
+                  </span>
+                </label>
+
+                <label
+                  class="select-option"
+                  :class="{
+                    'select-option--active':
+                      form.payment === 'cod'
+                  }"
+                >
+                  <input
+                    v-model="form.payment"
+                    type="radio"
+                    value="cod"
+                  >
+
+                  <span class="select-option__indicator" />
+
+                  <span class="select-option__content">
+                    <span class="select-option__title">
+                      پرداخت در محل
+                    </span>
+
+                    <span class="select-option__description">
+                      پرداخت مبلغ سفارش هنگام تحویل
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
           </section>
         </form>
 
         <!-- خلاصه سفارش -->
         <aside class="order-summary">
-          <h2>خلاصه سفارش</h2>
+          <header class="order-summary__header">
+            <div>
+              <h2>خلاصه سفارش</h2>
 
-          <div
-            v-if="cartItems.length"
-            class="summary-items"
-          >
-            <div
+              <p>
+                {{ formatNumber(totalItems) }}
+                کالا در سبد خرید
+              </p>
+            </div>
+
+            <router-link to="/cart">
+              ویرایش
+            </router-link>
+          </header>
+
+          <div class="order-summary__items">
+            <article
               v-for="item in cartItems"
               :key="item.id"
               class="summary-item"
             >
-              <div class="summary-item__info">
-                <strong>{{ item.name }}</strong>
-                <small>تعداد: {{ formatNumber(item.quantity) }}</small>
+              <div class="summary-item__image">
+                <img
+                  v-if="getItemImage(item)"
+                  :src="getItemImage(item)"
+                  :alt="getItemName(item)"
+                  loading="lazy"
+                  @error="handleImageError"
+                >
+
+                <span v-else>
+                  بازبیا
+                </span>
+
+                <span class="summary-item__quantity-badge">
+                  {{ formatNumber(item.quantity) }}
+                </span>
               </div>
 
-              <span class="summary-item__price">
-                {{ formatPrice(item.price * item.quantity) }}
-                تومان
-              </span>
-            </div>
+              <div class="summary-item__content">
+                <h3>
+                  {{ getItemName(item) }}
+                </h3>
+
+                <p v-if="getItemVariant(item)">
+                  {{ getItemVariant(item) }}
+                </p>
+
+                <span>
+                  {{ formatPrice(getItemTotal(item)) }}
+                  تومان
+                </span>
+              </div>
+            </article>
           </div>
 
-          <div
-            v-else
-            class="empty-cart"
-          >
-            سبد خرید شما خالی است.
-          </div>
+          <div class="order-summary__divider" />
 
-          <div class="summary-divider" />
+          <div class="price-row">
+            <span>جمع کالاها</span>
 
-          <div class="summary-row">
-            <span>جمع کالاها:</span>
-
-            <span>
+            <strong>
               {{ formatPrice(subtotal) }}
               تومان
-            </span>
+            </strong>
           </div>
 
-          <div class="summary-row">
-            <span>هزینه ارسال:</span>
+          <div class="price-row">
+            <span>هزینه ارسال</span>
 
-            <span v-if="shippingCost">
+            <strong
+              v-if="shippingCost > 0"
+            >
               {{ formatPrice(shippingCost) }}
               تومان
-            </span>
+            </strong>
 
-            <span
+            <strong
               v-else
-              class="free-shipping"
+              class="price-row__free"
             >
               رایگان
-            </span>
+            </strong>
           </div>
 
-          <div class="summary-total">
-            <span>مبلغ قابل پرداخت:</span>
+          <div class="order-summary__divider" />
 
-            <span>
+          <div class="final-price">
+            <div>
+              <span>مبلغ قابل پرداخت</span>
+
+              <small>
+                شامل هزینه ارسال
+              </small>
+            </div>
+
+            <strong>
               {{ formatPrice(total) }}
-              تومان
-            </span>
+              <span>تومان</span>
+            </strong>
           </div>
 
           <button
             type="submit"
             form="checkout-form"
-            class="payment-btn"
-            :disabled="isSubmitting || cartItems.length === 0"
+            class="submit-order-button"
+            :disabled="isSubmitting || isCartEmpty"
           >
-            <span v-if="isSubmitting">
-              در حال ثبت سفارش...
+            <span
+              v-if="isSubmitting"
+              class="submit-order-button__loading"
+            >
+              <span class="button-loader" />
+              در حال ثبت سفارش
             </span>
 
             <span v-else>
-              ثبت سفارش
+              ثبت سفارش و ادامه
             </span>
           </button>
 
-          <p class="notice">
-            با ثبت سفارش، شرایط و قوانین فروشگاه بازبیا را می‌پذیرم.
+          <p class="order-summary__notice">
+            با ثبت سفارش، قوانین و شرایط استفاده از فروشگاه
+            اینترنتی بازبیا را می‌پذیرم.
           </p>
+
+          <div class="order-summary__trust">
+            <span>
+              خرید امن
+            </span>
+
+            <span>
+              تضمین اصالت
+            </span>
+
+            <span>
+              پشتیبانی بازبیا
+            </span>
+          </div>
         </aside>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import {
+  computed,
+  onMounted,
+  reactive,
+  ref
+} from 'vue'
 import { useRouter } from 'vue-router'
 
-interface CartItem {
-  id: number
-  name: string
-  price: number
-  quantity: number
-}
+import { useCartStore } from '@/core/store/cartStore'
 
-interface CheckoutForm {
-  fullName: string
-  phone: string
-  address: string
-  city: string
-  postalCode: string
-  shipping: 'normal' | 'express'
-  payment: 'online' | 'cod'
-}
+type ShippingMethod = 'normal' | 'express'
+type PaymentMethod = 'online' | 'cod'
 
 type FormField =
   | 'fullName'
@@ -348,31 +633,41 @@ type FormField =
   | 'city'
   | 'postalCode'
 
-type FormErrors = Record<FormField, string>
+interface CheckoutForm {
+  fullName: string
+  phone: string
+  address: string
+  city: string
+  postalCode: string
+  shipping: ShippingMethod
+  payment: PaymentMethod
+}
 
-const router = useRouter()
+interface CheckoutErrors {
+  fullName: string
+  phone: string
+  address: string
+  city: string
+  postalCode: string
+}
 
-/*
- * توجه:
- * قیمت‌ها در این نمونه بر اساس تومان در نظر گرفته شده‌اند.
- * در زمان اتصال به API باید واحد قیمت بک‌اند و فرانت یکسان شود.
- */
+interface CheckoutCartItem {
+  id: number
+  quantity: number
+  price?: number | string
+  total_price?: number | string
+  product_name?: string
+  variant_name?: string
+  name?: string
+  image?: string | null
+  product_image?: string | null
+  variant_image?: string | null
+}
+
 const EXPRESS_SHIPPING_COST = 50_000
 
-const cartItems = ref<CartItem[]>([
-  {
-    id: 1,
-    name: 'محصول ۱',
-    price: 250_000,
-    quantity: 2
-  },
-  {
-    id: 2,
-    name: 'محصول ۲',
-    price: 350_000,
-    quantity: 1
-  }
-])
+const router = useRouter()
+const cartStore = useCartStore()
 
 const form = reactive<CheckoutForm>({
   fullName: '',
@@ -384,7 +679,7 @@ const form = reactive<CheckoutForm>({
   payment: 'online'
 })
 
-const errors = reactive<FormErrors>({
+const errors = reactive<CheckoutErrors>({
   fullName: '',
   phone: '',
   address: '',
@@ -395,9 +690,37 @@ const errors = reactive<FormErrors>({
 const isSubmitting = ref(false)
 const submitError = ref('')
 
-const subtotal = computed<number>(() => {
+const cartItems = computed<CheckoutCartItem[]>(() => {
+  return (cartStore.items || []) as CheckoutCartItem[]
+})
+
+const cartLoading = computed<boolean>(() => {
+  return Boolean(cartStore.loading)
+})
+
+const cartError = computed<string>(() => {
+  return cartStore.error || ''
+})
+
+const isCartEmpty = computed<boolean>(() => {
+  return cartItems.value.length === 0
+})
+
+const totalItems = computed<number>(() => {
   return cartItems.value.reduce((sum, item) => {
-    return sum + Number(item.price) * Number(item.quantity)
+    return sum + Number(item.quantity || 0)
+  }, 0)
+})
+
+const subtotal = computed<number>(() => {
+  const storeTotal = Number(cartStore.totalPrice)
+
+  if (Number.isFinite(storeTotal) && storeTotal > 0) {
+    return storeTotal
+  }
+
+  return cartItems.value.reduce((sum, item) => {
+    return sum + getItemTotal(item)
   }, 0)
 })
 
@@ -411,15 +734,29 @@ const total = computed<number>(() => {
   return subtotal.value + shippingCost.value
 })
 
+const toNumber = (
+  value: number | string | null | undefined
+): number => {
+  const parsedValue = Number(value)
+
+  return Number.isFinite(parsedValue)
+    ? parsedValue
+    : 0
+}
+
 const formatPrice = (value: number): string => {
-  return new Intl.NumberFormat('fa-IR').format(value)
+  return new Intl.NumberFormat('fa-IR').format(
+    toNumber(value)
+  )
 }
 
 const formatNumber = (value: number): string => {
-  return new Intl.NumberFormat('fa-IR').format(value)
+  return new Intl.NumberFormat('fa-IR').format(
+    toNumber(value)
+  )
 }
 
-const convertPersianDigitsToEnglish = (value: string): string => {
+const convertDigitsToEnglish = (value: string): string => {
   const persianDigits = '۰۱۲۳۴۵۶۷۸۹'
   const arabicDigits = '٠١٢٣٤٥٦٧٨٩'
 
@@ -433,7 +770,67 @@ const convertPersianDigitsToEnglish = (value: string): string => {
 }
 
 const keepOnlyDigits = (value: string): string => {
-  return convertPersianDigitsToEnglish(value).replace(/\D/g, '')
+  return convertDigitsToEnglish(value).replace(/\D/g, '')
+}
+
+const getItemName = (item: CheckoutCartItem): string => {
+  return (
+    item.product_name ||
+    item.name ||
+    item.variant_name ||
+    'محصول بازبیا'
+  )
+}
+
+const getItemVariant = (item: CheckoutCartItem): string => {
+  if (
+    item.variant_name &&
+    item.variant_name !== item.product_name
+  ) {
+    return item.variant_name
+  }
+
+  return ''
+}
+
+const getItemImage = (
+  item: CheckoutCartItem
+): string | null => {
+  return (
+    item.image ||
+    item.variant_image ||
+    item.product_image ||
+    null
+  )
+}
+
+const getItemTotal = (item: CheckoutCartItem): number => {
+  const totalPrice = toNumber(item.total_price)
+
+  if (totalPrice > 0) {
+    return totalPrice
+  }
+
+  return toNumber(item.price) * toNumber(item.quantity)
+}
+
+const handleImageError = (event: Event): void => {
+  const image = event.target as HTMLImageElement
+  image.style.display = 'none'
+}
+
+const clearError = (field: FormField): void => {
+  errors[field] = ''
+  submitError.value = ''
+}
+
+const clearErrors = (): void => {
+  errors.fullName = ''
+  errors.phone = ''
+  errors.address = ''
+  errors.city = ''
+  errors.postalCode = ''
+  submitError.value = ''
 }
 
 const handlePhoneInput = (): void => {
@@ -442,42 +839,38 @@ const handlePhoneInput = (): void => {
 }
 
 const handlePostalCodeInput = (): void => {
-  form.postalCode = keepOnlyDigits(form.postalCode).slice(0, 10)
+  form.postalCode = keepOnlyDigits(
+    form.postalCode
+  ).slice(0, 10)
+
   clearError('postalCode')
 }
 
-const clearError = (field: FormField): void => {
-  errors[field] = ''
-  submitError.value = ''
-}
-
-const resetErrors = (): void => {
-  Object.keys(errors).forEach(key => {
-    errors[key as FormField] = ''
-  })
-
-  submitError.value = ''
-}
-
 const validateForm = (): boolean => {
-  resetErrors()
+  clearErrors()
 
   let isValid = true
 
   if (form.fullName.trim().length < 3) {
-    errors.fullName = 'نام و نام خانوادگی را کامل وارد کنید.'
+    errors.fullName =
+      'نام و نام خانوادگی را کامل وارد کنید.'
+
     isValid = false
   }
 
-  const normalizedPhone = keepOnlyDigits(form.phone)
+  const phone = keepOnlyDigits(form.phone)
 
-  if (!/^09\d{9}$/.test(normalizedPhone)) {
-    errors.phone = 'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد.'
+  if (!/^09\d{9}$/.test(phone)) {
+    errors.phone =
+      'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد.'
+
     isValid = false
   }
 
   if (form.address.trim().length < 10) {
-    errors.address = 'آدرس کامل محل تحویل را وارد کنید.'
+    errors.address =
+      'آدرس کامل محل تحویل سفارش را وارد کنید.'
+
     isValid = false
   }
 
@@ -486,14 +879,55 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
-  const normalizedPostalCode = keepOnlyDigits(form.postalCode)
+  const postalCode = keepOnlyDigits(form.postalCode)
 
-  if (!/^\d{10}$/.test(normalizedPostalCode)) {
-    errors.postalCode = 'کد پستی باید ۱۰ رقم باشد.'
+  if (!/^\d{10}$/.test(postalCode)) {
+    errors.postalCode =
+      'کد پستی باید دقیقاً ۱۰ رقم باشد.'
+
     isValid = false
   }
 
   return isValid
+}
+
+const focusFirstError = (): void => {
+  const firstErrorField = Object.keys(errors).find(key => {
+    return Boolean(errors[key as FormField])
+  })
+
+  if (!firstErrorField) {
+    return
+  }
+
+  const elementIds: Record<FormField, string> = {
+    fullName: 'full-name',
+    phone: 'phone',
+    address: 'address',
+    city: 'city',
+    postalCode: 'postal-code'
+  }
+
+  const element = document.getElementById(
+    elementIds[firstErrorField as FormField]
+  )
+
+  element?.focus()
+  element?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  })
+}
+
+const loadCart = async (): Promise<void> => {
+  try {
+    await cartStore.fetchCart()
+  } catch (error) {
+    console.error(
+      'Checkout cart loading error:',
+      error
+    )
+  }
 }
 
 const submitOrder = async (): Promise<void> => {
@@ -501,13 +935,16 @@ const submitOrder = async (): Promise<void> => {
     return
   }
 
-  if (cartItems.value.length === 0) {
+  if (isCartEmpty.value) {
     submitError.value = 'سبد خرید شما خالی است.'
     return
   }
 
   if (!validateForm()) {
-    submitError.value = 'لطفاً اطلاعات مشخص‌شده را اصلاح کنید.'
+    submitError.value =
+      'لطفاً اطلاعات مشخص‌شده را اصلاح کنید.'
+
+    focusFirstError()
     return
   }
 
@@ -528,20 +965,28 @@ const submitOrder = async (): Promise<void> => {
     console.log('Checkout payload:', payload)
 
     /*
-     * در مرحله بعد:
+     * مرحله بعد:
      *
      * const order = await orderService.createOrder(payload)
      *
-     * اگر پرداخت آنلاین بود:
-     * await paymentService.createPayment(order.id)
+     * if (form.payment === 'online') {
+     *   window.location.href = order.payment_url
+     *   return
+     * }
      *
-     * اگر پرداخت در محل بود:
-     * router.push(`/orders/${order.id}`)
+     * await cartStore.fetchCart()
+     *
+     * await router.push({
+     *   name: 'order-detail',
+     *   params: {
+     *     id: order.id
+     *   }
+     * })
      */
 
-    alert('سفارش به‌صورت آزمایشی ثبت شد.')
-
-    await router.push('/')
+    window.alert(
+      'اطلاعات Checkout با موفقیت بررسی شد. اتصال ثبت سفارش به API در مرحله بعد انجام می‌شود.'
+    )
   } catch (error) {
     console.error('Submit order error:', error)
 
@@ -551,13 +996,35 @@ const submitOrder = async (): Promise<void> => {
     isSubmitting.value = false
   }
 }
+
+onMounted(async () => {
+  await loadCart()
+})
 </script>
 
 <style scoped>
 .checkout-page {
-  min-height: 70vh;
-  padding: 2rem;
-  background: #f5f7f6;
+  --checkout-primary: #16a34a;
+  --checkout-primary-dark: #15803d;
+  --checkout-primary-soft: #f0fdf4;
+  --checkout-primary-border: #bbf7d0;
+  --checkout-text: #1f2937;
+  --checkout-text-soft: #6b7280;
+  --checkout-border: #e5e7eb;
+  --checkout-background: #f6f8f7;
+  --checkout-card: #ffffff;
+  --checkout-danger: #dc2626;
+
+  min-height: 75vh;
+  padding: 2rem 1rem 4rem;
+  color: var(--checkout-text);
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(22, 163, 74, 0.07),
+      transparent 28rem
+    ),
+    var(--checkout-background);
   direction: rtl;
 }
 
@@ -567,67 +1034,213 @@ const submitOrder = async (): Promise<void> => {
   margin: 0 auto;
 }
 
-.checkout-title {
-  margin: 0 0 2rem;
-  color: #1f2937;
-  font-size: 2rem;
+/* Header */
+
+.checkout-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.checkout-header__eyebrow {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--checkout-primary-dark);
+  font-size: 0.82rem;
   font-weight: 800;
 }
 
-.checkout-alert {
-  margin-bottom: 1.25rem;
-  padding: 1rem;
-  border-radius: 10px;
-  font-size: 0.95rem;
+.checkout-title {
+  margin: 0;
+  color: #111827;
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
+  font-weight: 900;
+  line-height: 1.3;
 }
 
-.checkout-alert--error {
-  color: #991b1b;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+.checkout-description {
+  margin: 0.5rem 0 0;
+  color: var(--checkout-text-soft);
+  font-size: 0.93rem;
+  line-height: 1.8;
 }
+
+.back-to-cart {
+  flex-shrink: 0;
+  padding: 0.72rem 1rem;
+  color: var(--checkout-primary-dark);
+  border: 1px solid var(--checkout-primary-border);
+  border-radius: 10px;
+  background: var(--checkout-primary-soft);
+  font-size: 0.88rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.back-to-cart:hover {
+  border-color: #86efac;
+  background: #dcfce7;
+}
+
+/* Steps */
+
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid #edf0ee;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.04);
+}
+
+.checkout-step {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  color: #9ca3af;
+}
+
+.checkout-step__number {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  background: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.checkout-step strong,
+.checkout-step small {
+  display: block;
+}
+
+.checkout-step strong {
+  color: inherit;
+  font-size: 0.86rem;
+}
+
+.checkout-step small {
+  margin-top: 0.15rem;
+  color: #9ca3af;
+  font-size: 0.7rem;
+}
+
+.checkout-step--completed,
+.checkout-step--active {
+  color: var(--checkout-primary-dark);
+}
+
+.checkout-step--completed .checkout-step__number,
+.checkout-step--active .checkout-step__number {
+  color: #ffffff;
+  border-color: var(--checkout-primary);
+  background: var(--checkout-primary);
+}
+
+.checkout-step--active strong {
+  color: #111827;
+}
+
+.checkout-step__line {
+  height: 1px;
+  min-width: 2rem;
+  flex: 1;
+  margin: 0 1rem;
+  background: #e5e7eb;
+}
+
+/* Main content */
 
 .checkout-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: minmax(0, 1fr) 390px;
   align-items: start;
-  gap: 2rem;
-}
-
-.checkout-form,
-.order-summary {
-  border: 1px solid #eef0ef;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  gap: 1.75rem;
 }
 
 .checkout-form {
-  padding: 2rem;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-.form-section {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #edf0ee;
+.checkout-card,
+.order-summary {
+  border: 1px solid #e9ecea;
+  border-radius: 16px;
+  background: var(--checkout-card);
+  box-shadow: 0 5px 22px rgba(15, 23, 42, 0.045);
 }
 
-.form-section:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
+.checkout-card {
+  overflow: hidden;
 }
 
-.form-section h2,
-.order-summary h2 {
-  margin: 0 0 1.5rem;
-  color: #1f2937;
-  font-size: 1.25rem;
-  font-weight: 750;
+.checkout-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.25rem 1.35rem;
+  border-bottom: 1px solid #eff1f0;
+  background: #fcfdfc;
+}
+
+.checkout-card__number {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  place-items: center;
+  color: var(--checkout-primary-dark);
+  border: 1px solid var(--checkout-primary-border);
+  border-radius: 10px;
+  background: var(--checkout-primary-soft);
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.checkout-card__header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.05rem;
+  font-weight: 850;
+}
+
+.checkout-card__header p {
+  margin: 0.25rem 0 0;
+  color: var(--checkout-text-soft);
+  font-size: 0.79rem;
+  line-height: 1.7;
+}
+
+.checkout-card__body {
+  padding: 1.35rem;
+}
+
+/* Forms */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .form-group {
-  margin-bottom: 1.25rem;
+  min-width: 0;
+  margin-bottom: 1.15rem;
 }
 
 .form-group:last-child {
@@ -638,72 +1251,99 @@ const submitOrder = async (): Promise<void> => {
   display: block;
   margin-bottom: 0.5rem;
   color: #374151;
-  font-size: 0.92rem;
-  font-weight: 600;
+  font-size: 0.84rem;
+  font-weight: 750;
 }
 
 .required {
-  color: #dc2626;
+  color: var(--checkout-danger);
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 0.8rem 0.9rem;
-  color: #1f2937;
-  border: 1px solid #d1d5db;
-  border-radius: 9px;
+  padding: 0.82rem 0.9rem;
+  color: #111827;
+  border: 1px solid #d8ddda;
+  border-radius: 10px;
+  outline: none;
   background: #ffffff;
   font-family: inherit;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.91rem;
+  line-height: 1.65;
   transition:
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .form-group textarea {
+  min-height: 110px;
   resize: vertical;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #a3aaa6;
+}
+
+.form-group input:hover,
+.form-group textarea:hover {
+  border-color: #b8c0bb;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
-  outline: none;
-  border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+  border-color: var(--checkout-primary);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.11);
 }
 
-.form-group input.input-error,
-.form-group textarea.input-error {
-  border-color: #dc2626;
+.form-group .form-input--error {
+  border-color: var(--checkout-danger);
 }
 
-.form-group input.input-error:focus,
-.form-group textarea.input-error:focus {
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+.form-group .form-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.09);
 }
 
-.error-message {
+.form-error {
   display: block;
   margin-top: 0.4rem;
-  color: #dc2626;
-  font-size: 0.78rem;
+  color: var(--checkout-danger);
+  font-size: 0.74rem;
+  line-height: 1.6;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+.form-alert {
+  padding: 0.9rem 1rem;
+  border-radius: 11px;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+.form-alert--error {
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+}
+
+/* Options */
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .select-option {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.8rem;
-  margin-bottom: 0.75rem;
-  padding: 1rem;
+  min-height: 74px;
+  padding: 0.9rem 1rem;
   border: 1px solid #dfe3e1;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition:
     border-color 0.2s ease,
@@ -711,211 +1351,534 @@ const submitOrder = async (): Promise<void> => {
     box-shadow 0.2s ease;
 }
 
-.select-option:last-child {
-  margin-bottom: 0;
-}
-
 .select-option:hover {
   border-color: #86d49f;
-  background: #f6fdf8;
+  background: #fbfefc;
 }
 
 .select-option--active {
-  border-color: #16a34a;
-  background: #f0fdf4;
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.08);
+  border-color: var(--checkout-primary);
+  background: var(--checkout-primary-soft);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.07);
 }
 
 .select-option input {
-  width: 18px;
-  height: 18px;
-  margin-top: 0.15rem;
-  accent-color: #16a34a;
-  flex-shrink: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.option-content {
+.select-option__indicator {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: 2px solid #c7ceca;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.select-option--active .select-option__indicator {
+  border-color: var(--checkout-primary);
+}
+
+.select-option--active .select-option__indicator::after {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--checkout-primary);
+  content: "";
+}
+
+.select-option__content {
   display: flex;
+  min-width: 0;
+  flex: 1;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.option-content strong {
+.select-option__title {
   color: #1f2937;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
-.option-content small {
-  color: #6b7280;
-  font-size: 0.84rem;
+.select-option__description {
+  color: var(--checkout-text-soft);
+  font-size: 0.76rem;
+  line-height: 1.6;
 }
+
+.select-option__price {
+  flex-shrink: 0;
+  color: var(--checkout-primary-dark);
+  font-size: 0.81rem;
+  font-weight: 850;
+}
+
+.select-option__badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  color: var(--checkout-primary-dark);
+  border-radius: 999px;
+  background: #dcfce7;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.shipping-notice {
+  margin: 0.9rem 0 0;
+  padding: 0.75rem 0.85rem;
+  color: #647067;
+  border-radius: 9px;
+  background: #f8faf9;
+  font-size: 0.74rem;
+  line-height: 1.8;
+}
+
+/* Order summary */
 
 .order-summary {
   position: sticky;
   top: 1rem;
-  height: fit-content;
-  padding: 1.5rem;
+  overflow: hidden;
+  padding: 1.25rem;
 }
 
-.summary-items {
+.order-summary__header {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.order-summary__header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.order-summary__header p {
+  margin: 0.25rem 0 0;
+  color: var(--checkout-text-soft);
+  font-size: 0.76rem;
+}
+
+.order-summary__header a {
+  color: var(--checkout-primary-dark);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.order-summary__items {
+  display: flex;
+  max-height: 320px;
   flex-direction: column;
   gap: 1rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .summary-item {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
-.summary-item__info {
-  display: flex;
+.summary-item__image {
+  position: relative;
+  display: grid;
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+  place-items: center;
+  overflow: visible;
+  color: var(--checkout-primary-dark);
+  border: 1px solid #e5e9e6;
+  border-radius: 11px;
+  background: #f7faf8;
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.summary-item__image img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.summary-item__quantity-badge {
+  position: absolute;
+  top: -7px;
+  left: -7px;
+  display: grid;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  place-items: center;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #4b5563;
+  font-size: 0.67rem;
+  font-weight: 850;
+}
+
+.summary-item__content {
   min-width: 0;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex: 1;
 }
 
-.summary-item__info strong {
+.summary-item__content h3 {
+  display: -webkit-box;
   overflow: hidden;
+  margin: 0;
   color: #374151;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.7;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.summary-item__content p {
+  margin: 0.12rem 0 0;
+  overflow: hidden;
+  color: #8a938e;
+  font-size: 0.7rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.summary-item__info small {
-  color: #6b7280;
-  font-size: 0.8rem;
-}
-
-.summary-item__price {
-  flex-shrink: 0;
+.summary-item__content > span {
+  display: block;
+  margin-top: 0.3rem;
   color: #374151;
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.77rem;
+  font-weight: 800;
 }
 
-.empty-cart {
-  padding: 1rem 0;
-  color: #6b7280;
-  text-align: center;
-}
-
-.summary-divider {
+.order-summary__divider {
   height: 1px;
-  margin: 1.25rem 0;
-  background: #edf0ee;
+  margin: 1.2rem 0;
+  background: #ecefed;
 }
 
-.summary-row,
-.summary-total {
+.price-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-}
-
-.summary-row {
   margin-bottom: 0.75rem;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: var(--checkout-text-soft);
+  font-size: 0.82rem;
 }
 
-.free-shipping {
-  color: #16a34a;
-  font-weight: 700;
+.price-row:last-of-type {
+  margin-bottom: 0;
 }
 
-.summary-total {
-  margin: 1.5rem 0;
-  padding-top: 1.25rem;
+.price-row strong {
+  color: #374151;
+  font-size: 0.82rem;
+}
+
+.price-row .price-row__free {
+  color: var(--checkout-primary-dark);
+}
+
+.final-price {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.final-price > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.final-price > div span {
   color: #1f2937;
-  border-top: 2px solid #edf0ee;
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-size: 0.91rem;
+  font-weight: 850;
 }
 
-.summary-total span:last-child {
-  color: #15803d;
+.final-price small {
+  color: #9ca3af;
+  font-size: 0.66rem;
 }
 
-.payment-btn {
+.final-price > strong {
+  color: var(--checkout-primary-dark);
+  font-size: 1.22rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.final-price > strong span {
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.submit-order-button {
   width: 100%;
-  min-height: 50px;
-  margin-bottom: 1rem;
-  padding: 0.9rem 1rem;
+  min-height: 51px;
+  padding: 0.85rem 1rem;
   color: #ffffff;
   border: none;
-  border-radius: 10px;
-  background: #16a34a;
+  border-radius: 11px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--checkout-primary),
+      #059669
+    );
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.2);
   font-family: inherit;
-  font-size: 1rem;
-  font-weight: 750;
+  font-size: 0.92rem;
+  font-weight: 850;
   cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
 }
 
-.payment-btn:hover:not(:disabled) {
-  background: #15803d;
+.submit-order-button:hover:not(:disabled) {
   transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.26);
 }
 
-.payment-btn:disabled {
+.submit-order-button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
-.notice {
-  margin: 0;
-  color: #9ca3af;
-  font-size: 0.8rem;
-  line-height: 1.7;
+.submit-order-button__loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.button-loader {
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: checkout-spin 0.8s linear infinite;
+}
+
+.order-summary__notice {
+  margin: 0.85rem 0 0;
+  color: #8a938e;
+  font-size: 0.7rem;
+  line-height: 1.8;
   text-align: center;
 }
 
-@media (max-width: 900px) {
+.order-summary__trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  color: #718078;
+  border-top: 1px dashed #dfe4e1;
+  font-size: 0.67rem;
+}
+
+.order-summary__trust span::before {
+  margin-left: 0.3rem;
+  color: var(--checkout-primary);
+  content: "✓";
+  font-weight: 900;
+}
+
+/* States */
+
+.checkout-state {
+  display: flex;
+  min-height: 320px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 2rem;
+  border: 1px solid #e6ebe8;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 5px 22px rgba(15, 23, 42, 0.04);
+}
+
+.checkout-state h2 {
+  margin: 1rem 0 0.35rem;
+  color: #1f2937;
+  font-size: 1.15rem;
+}
+
+.checkout-state p {
+  max-width: 420px;
+  margin: 0;
+  color: var(--checkout-text-soft);
+  font-size: 0.84rem;
+  line-height: 1.8;
+}
+
+.checkout-state__icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  color: #b91c1c;
+  border-radius: 16px;
+  background: #fee2e2;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.checkout-state__icon--empty {
+  color: var(--checkout-primary-dark);
+  background: var(--checkout-primary-soft);
+}
+
+.checkout-loader {
+  width: 42px;
+  height: 42px;
+  border: 4px solid #dcfce7;
+  border-top-color: var(--checkout-primary);
+  border-radius: 50%;
+  animation: checkout-spin 0.8s linear infinite;
+}
+
+.retry-button,
+.products-button {
+  margin-top: 1.2rem;
+  padding: 0.72rem 1.1rem;
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  background: var(--checkout-primary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.checkout-state--error .retry-button {
+  background: #dc2626;
+}
+
+@keyframes checkout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tablet */
+
+@media (max-width: 960px) {
   .checkout-content {
     grid-template-columns: 1fr;
   }
 
   .order-summary {
     position: static;
+    order: 2;
   }
 }
 
+/* Mobile */
+
 @media (max-width: 640px) {
   .checkout-page {
-    padding: 1rem;
+    padding: 1.25rem 0.75rem 3rem;
   }
 
-  .checkout-title {
+  .checkout-header {
+    align-items: flex-start;
+    flex-direction: column;
     margin-bottom: 1.25rem;
-    font-size: 1.6rem;
   }
 
-  .checkout-form,
+  .back-to-cart {
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+
+  .checkout-description {
+    font-size: 0.82rem;
+  }
+
+  .checkout-steps {
+    overflow-x: auto;
+    padding: 0.9rem;
+  }
+
+  .checkout-step {
+    min-width: max-content;
+  }
+
+  .checkout-step small {
+    display: none;
+  }
+
+  .checkout-step__line {
+    min-width: 1.5rem;
+    margin: 0 0.65rem;
+  }
+
+  .checkout-content,
+  .checkout-form {
+    gap: 1rem;
+  }
+
+  .checkout-card,
   .order-summary {
+    border-radius: 13px;
+  }
+
+  .checkout-card__header,
+  .checkout-card__body {
     padding: 1rem;
-    border-radius: 12px;
   }
 
-  .form-section {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.5rem;
-  }
-
-  .form-row {
+  .form-grid {
     grid-template-columns: 1fr;
     gap: 0;
   }
 
-  .summary-item {
-    gap: 0.5rem;
+  .select-option {
+    align-items: flex-start;
+    min-height: auto;
+    padding: 0.85rem;
+  }
+
+  .select-option__price,
+  .select-option__badge {
+    margin-right: auto;
+  }
+
+  .order-summary {
+    padding: 1rem;
+  }
+
+  .final-price > strong {
+    font-size: 1.05rem;
   }
 }
 </style>

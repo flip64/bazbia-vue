@@ -611,7 +611,7 @@
     </div>
   </main>
 </template>
-
+                  
 <script setup lang="ts">
 import {
   computed,
@@ -619,9 +619,8 @@ import {
   reactive,
   ref
 } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/core/store/authStore'                 
 
+import { useAuthStore } from '@/core/store/authStore'
 import { useCartStore } from '@/core/store/cartStore'
 
 type ShippingMethod = 'normal' | 'express'
@@ -642,8 +641,6 @@ interface CheckoutForm {
   postalCode: string
   shipping: ShippingMethod
   payment: PaymentMethod
-
-                  
 }
 
 interface CheckoutErrors {
@@ -668,23 +665,29 @@ interface CheckoutCartItem {
 }
 
 interface CheckoutUser {
+  id?: number
+  username?: string
   first_name?: string
   last_name?: string
   full_name?: string
+  name?: string
   phone?: string
+
+  user?: {
+    username?: string
+    first_name?: string
+    last_name?: string
+  }
+
   customer?: {
     phone?: string
   }
 }
 
-                  
 const EXPRESS_SHIPPING_COST = 50_000
 
-const router = useRouter()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
-
-      
 
 const form = reactive<CheckoutForm>({
   fullName: '',
@@ -715,7 +718,6 @@ const cartLoading = computed<boolean>(() => {
   return Boolean(cartStore.loading)
 })
 
-                  
 const cartError = computed<string>(() => {
   return cartStore.error || ''
 })
@@ -726,33 +728,14 @@ const isCartEmpty = computed<boolean>(() => {
 
 const totalItems = computed<number>(() => {
   return cartItems.value.reduce((sum, item) => {
-    return sum + Number(item.quantity || 0)
+    return sum + toNumber(item.quantity)
   }, 0)
 })
-                  
-const loadCustomerInformation = async (): Promise<void> => {
-  try {
-    /*
-     * checkAuth در authStore پروژه بازبیا اطلاعات کاربر
-     * واردشده را بررسی و دریافت می‌کند.
-     */
-    if (!authStore.user) {
-      await authStore.checkAuth()
-    }
-
-    fillCustomerInformation()
-  } catch (error) {
-    console.error(
-      'Checkout customer loading error:',
-      error
-    )
-  }
-}
 
 const subtotal = computed<number>(() => {
-  const storeTotal = Number(cartStore.totalPrice)
+  const storeTotal = toNumber(cartStore.totalPrice)
 
-  if (Number.isFinite(storeTotal) && storeTotal > 0) {
+  if (storeTotal > 0) {
     return storeTotal
   }
 
@@ -781,68 +764,56 @@ const toNumber = (
     : 0
 }
 
-const formatPrice = (value: number): string => {
+const formatPrice = (
+  value: number | string | null | undefined
+): string => {
   return new Intl.NumberFormat('fa-IR').format(
     toNumber(value)
   )
 }
 
-const formatNumber = (value: number): string => {
+const formatNumber = (
+  value: number | string | null | undefined
+): string => {
   return new Intl.NumberFormat('fa-IR').format(
     toNumber(value)
   )
 }
 
-const convertDigitsToEnglish = (value: string): string => {
+const convertDigitsToEnglish = (
+  value: string
+): string => {
   const persianDigits = '۰۱۲۳۴۵۶۷۸۹'
   const arabicDigits = '٠١٢٣٤٥٦٧٨٩'
 
   return value
     .replace(/[۰-۹]/g, digit => {
-      return String(persianDigits.indexOf(digit))
+      return String(
+        persianDigits.indexOf(digit)
+      )
     })
     .replace(/[٠-٩]/g, digit => {
-      return String(arabicDigits.indexOf(digit))
+      return String(
+        arabicDigits.indexOf(digit)
+      )
     })
 }
 
-const keepOnlyDigits = (value: string): string => {
-  return convertDigitsToEnglish(value).replace(/\D/g, '')
+const keepOnlyDigits = (
+  value: string | null | undefined
+): string => {
+  if (!value) {
+    return ''
+  }
+
+  return convertDigitsToEnglish(
+    String(value)
+  ).replace(/\D/g, '')
 }
 
-
-const fillCustomerInformation = (): void => {
-  const user = authStore.user as CheckoutUser | null
-
-  if (!user) {
-    return
-  }
-
-  const fullName =
-    user.full_name?.trim() ||
-    [
-      user.first_name,
-      user.last_name
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .trim()
-
-  const phone =
-    user.phone ||
-    user.customer?.phone ||
-    ''
-
-  if (!form.fullName && fullName) {
-    form.fullName = fullName
-  }
-
-  if (!form.phone && phone) {
-    form.phone = keepOnlyDigits(phone).slice(0, 11)
-  }
-}                 
-
-const getItemName = (item: CheckoutCartItem): string => {
+const getItemName = (
+  item: CheckoutCartItem
+): string => {
   return (
     item.product_name ||
     item.name ||
@@ -851,7 +822,9 @@ const getItemName = (item: CheckoutCartItem): string => {
   )
 }
 
-const getItemVariant = (item: CheckoutCartItem): string => {
+const getItemVariant = (
+  item: CheckoutCartItem
+): string => {
   if (
     item.variant_name &&
     item.variant_name !== item.product_name
@@ -873,22 +846,34 @@ const getItemImage = (
   )
 }
 
-const getItemTotal = (item: CheckoutCartItem): number => {
-  const totalPrice = toNumber(item.total_price)
+const getItemTotal = (
+  item: CheckoutCartItem
+): number => {
+  const totalPrice = toNumber(
+    item.total_price
+  )
 
   if (totalPrice > 0) {
     return totalPrice
   }
 
-  return toNumber(item.price) * toNumber(item.quantity)
+  return (
+    toNumber(item.price) *
+    toNumber(item.quantity)
+  )
 }
 
-const handleImageError = (event: Event): void => {
+const handleImageError = (
+  event: Event
+): void => {
   const image = event.target as HTMLImageElement
+
   image.style.display = 'none'
 }
 
-const clearError = (field: FormField): void => {
+const clearError = (
+  field: FormField
+): void => {
   errors[field] = ''
   submitError.value = ''
 }
@@ -899,11 +884,15 @@ const clearErrors = (): void => {
   errors.address = ''
   errors.city = ''
   errors.postalCode = ''
+
   submitError.value = ''
 }
 
 const handlePhoneInput = (): void => {
-  form.phone = keepOnlyDigits(form.phone).slice(0, 11)
+  form.phone = keepOnlyDigits(
+    form.phone
+  ).slice(0, 11)
+
   clearError('phone')
 }
 
@@ -915,78 +904,89 @@ const handlePostalCodeInput = (): void => {
   clearError('postalCode')
 }
 
-const validateForm = (): boolean => {
-  clearErrors()
+const fillCustomerInformation = (): void => {
+  const authUser =
+    authStore.user as CheckoutUser | null
 
-  let isValid = true
+  if (!authUser) {
+    console.warn(
+      'Checkout: اطلاعات کاربر در authStore موجود نیست.'
+    )
 
-  if (form.fullName.trim().length < 3) {
-    errors.fullName =
-      'نام و نام خانوادگی را کامل وارد کنید.'
-
-    isValid = false
-  }
-
-  const phone = keepOnlyDigits(form.phone)
-
-  if (!/^09\d{9}$/.test(phone)) {
-    errors.phone =
-      'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد.'
-
-    isValid = false
-  }
-
-  if (form.address.trim().length < 10) {
-    errors.address =
-      'آدرس کامل محل تحویل سفارش را وارد کنید.'
-
-    isValid = false
-  }
-
-  if (form.city.trim().length < 2) {
-    errors.city = 'نام شهر را وارد کنید.'
-    isValid = false
-  }
-
-  const postalCode = keepOnlyDigits(form.postalCode)
-
-  if (!/^\d{10}$/.test(postalCode)) {
-    errors.postalCode =
-      'کد پستی باید دقیقاً ۱۰ رقم باشد.'
-
-    isValid = false
-  }
-
-  return isValid
-}
-
-const focusFirstError = (): void => {
-  const firstErrorField = Object.keys(errors).find(key => {
-    return Boolean(errors[key as FormField])
-  })
-
-  if (!firstErrorField) {
     return
   }
 
-  const elementIds: Record<FormField, string> = {
-    fullName: 'full-name',
-    phone: 'phone',
-    address: 'address',
-    city: 'city',
-    postalCode: 'postal-code'
+  const firstName =
+    authUser.first_name ||
+    authUser.user?.first_name ||
+    ''
+
+  const lastName =
+    authUser.last_name ||
+    authUser.user?.last_name ||
+    ''
+
+  const combinedName = [
+    firstName,
+    lastName
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+
+  const fullName =
+    authUser.full_name?.trim() ||
+    authUser.name?.trim() ||
+    combinedName
+
+  const phone =
+    authUser.phone ||
+    authUser.customer?.phone ||
+    authUser.user?.username ||
+    authUser.username ||
+    ''
+
+  if (
+    !form.fullName &&
+    fullName
+  ) {
+    form.fullName = fullName
   }
 
-  const element = document.getElementById(
-    elementIds[firstErrorField as FormField]
-  )
+  if (
+    !form.phone &&
+    phone
+  ) {
+    form.phone = keepOnlyDigits(
+      phone
+    ).slice(0, 11)
+  }
 
-  element?.focus()
-  element?.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center'
-  })
+  console.log(
+    'Checkout customer information:',
+    {
+      authUser,
+      fullName: form.fullName,
+      phone: form.phone
+    }
+  )
 }
+
+const loadCustomerInformation =
+  async (): Promise<void> => {
+    try {
+      if (!authStore.user) {
+        await authStore.checkAuth()
+      }
+
+      fillCustomerInformation()
+    } catch (error) {
+      console.error(
+        'Checkout customer loading error:',
+        error
+      )
+    }
+  }
 
 const loadCart = async (): Promise<void> => {
   try {
@@ -999,72 +999,176 @@ const loadCart = async (): Promise<void> => {
   }
 }
 
-const submitOrder = async (): Promise<void> => {
-  if (isSubmitting.value) {
+const validateForm = (): boolean => {
+  clearErrors()
+
+  let isValid = true
+
+  if (
+    form.fullName.trim().length < 3
+  ) {
+    errors.fullName =
+      'نام و نام خانوادگی را کامل وارد کنید.'
+
+    isValid = false
+  }
+
+  const phone = keepOnlyDigits(
+    form.phone
+  )
+
+  if (!/^09\d{9}$/.test(phone)) {
+    errors.phone =
+      'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد.'
+
+    isValid = false
+  }
+
+  if (
+    form.address.trim().length < 10
+  ) {
+    errors.address =
+      'آدرس کامل محل تحویل سفارش را وارد کنید.'
+
+    isValid = false
+  }
+
+  if (
+    form.city.trim().length < 2
+  ) {
+    errors.city =
+      'نام شهر را وارد کنید.'
+
+    isValid = false
+  }
+
+  const postalCode = keepOnlyDigits(
+    form.postalCode
+  )
+
+  if (
+    !/^\d{10}$/.test(postalCode)
+  ) {
+    errors.postalCode =
+      'کد پستی باید دقیقاً ۱۰ رقم باشد.'
+
+    isValid = false
+  }
+
+  return isValid
+}
+
+const focusFirstError = (): void => {
+  const firstErrorField =
+    Object.keys(errors).find(key => {
+      return Boolean(
+        errors[key as FormField]
+      )
+    }) as FormField | undefined
+
+  if (!firstErrorField) {
     return
   }
 
-  if (isCartEmpty.value) {
-    submitError.value = 'سبد خرید شما خالی است.'
-    return
-  }
-
-  if (!validateForm()) {
-    submitError.value =
-      'لطفاً اطلاعات مشخص‌شده را اصلاح کنید.'
-
-    focusFirstError()
-    return
-  }
-
-  isSubmitting.value = true
-  submitError.value = ''
-
-  try {
-    const payload = {
-      full_name: form.fullName.trim(),
-      phone: keepOnlyDigits(form.phone),
-      address: form.address.trim(),
-      city: form.city.trim(),
-      postal_code: keepOnlyDigits(form.postalCode),
-      shipping_method: form.shipping,
-      payment_method: form.payment
+  const elementIds:
+    Record<FormField, string> = {
+      fullName: 'full-name',
+      phone: 'phone',
+      address: 'address',
+      city: 'city',
+      postalCode: 'postal-code'
     }
 
-    console.log('Checkout payload:', payload)
+  const element = document.getElementById(
+    elementIds[firstErrorField]
+  )
 
-    /*
-     * مرحله بعد:
-     *
-     * const order = await orderService.createOrder(payload)
-     *
-     * if (form.payment === 'online') {
-     *   window.location.href = order.payment_url
-     *   return
-     * }
-     *
-     * await cartStore.fetchCart()
-     *
-     * await router.push({
-     *   name: 'order-detail',
-     *   params: {
-     *     id: order.id
-     *   }
-     * })
-     */
+  element?.focus()
 
-    window.alert(
-      'اطلاعات Checkout با موفقیت بررسی شد. اتصال ثبت سفارش به API در مرحله بعد انجام می‌شود.'
-    )
-  } catch (error) {
-    console.error('Submit order error:', error)
-
-    submitError.value =
-      'ثبت سفارش انجام نشد. لطفاً دوباره تلاش کنید.'
-  } finally {
-    isSubmitting.value = false
-  }
+  element?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  })
 }
+
+const submitOrder =
+  async (): Promise<void> => {
+    if (isSubmitting.value) {
+      return
+    }
+
+    if (isCartEmpty.value) {
+      submitError.value =
+        'سبد خرید شما خالی است.'
+
+      return
+    }
+
+    if (!validateForm()) {
+      submitError.value =
+        'لطفاً اطلاعات مشخص‌شده را اصلاح کنید.'
+
+      focusFirstError()
+
+      return
+    }
+
+    isSubmitting.value = true
+    submitError.value = ''
+
+    try {
+      const payload = {
+        full_name:
+          form.fullName.trim(),
+
+        phone:
+          keepOnlyDigits(form.phone),
+
+        address:
+          form.address.trim(),
+
+        city:
+          form.city.trim(),
+
+        postal_code:
+          keepOnlyDigits(
+            form.postalCode
+          ),
+
+        shipping_method:
+          form.shipping,
+
+        payment_method:
+          form.payment
+      }
+
+      console.log(
+        'Checkout payload:',
+        payload
+      )
+
+      /*
+       * مرحله اتصال به API:
+       *
+       * const order =
+       *   await orderService.createOrder(payload)
+       */
+
+      window.alert(
+        'اطلاعات Checkout با موفقیت بررسی شد. اتصال ثبت سفارش به API در مرحله بعد انجام می‌شود.'
+      )
+    } catch (error) {
+      console.error(
+        'Submit order error:',
+        error
+      )
+
+      submitError.value =
+        'ثبت سفارش انجام نشد. لطفاً دوباره تلاش کنید.'
+    } finally {
+      isSubmitting.value = false
+    }
+  }
 
 onMounted(async () => {
   await Promise.all([
@@ -1072,8 +1176,6 @@ onMounted(async () => {
     loadCustomerInformation()
   ])
 })
-
-                  
 </script>
 
 <style scoped>

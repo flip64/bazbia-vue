@@ -620,6 +620,7 @@ import {
   ref
 } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/core/store/authStore'                 
 
 import { useCartStore } from '@/core/store/cartStore'
 
@@ -641,6 +642,8 @@ interface CheckoutForm {
   postalCode: string
   shipping: ShippingMethod
   payment: PaymentMethod
+
+                  
 }
 
 interface CheckoutErrors {
@@ -664,10 +667,24 @@ interface CheckoutCartItem {
   variant_image?: string | null
 }
 
+interface CheckoutUser {
+  first_name?: string
+  last_name?: string
+  full_name?: string
+  phone?: string
+  customer?: {
+    phone?: string
+  }
+}
+
+                  
 const EXPRESS_SHIPPING_COST = 50_000
 
 const router = useRouter()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
+
+      
 
 const form = reactive<CheckoutForm>({
   fullName: '',
@@ -698,6 +715,7 @@ const cartLoading = computed<boolean>(() => {
   return Boolean(cartStore.loading)
 })
 
+                  
 const cartError = computed<string>(() => {
   return cartStore.error || ''
 })
@@ -711,6 +729,25 @@ const totalItems = computed<number>(() => {
     return sum + Number(item.quantity || 0)
   }, 0)
 })
+                  
+const loadCustomerInformation = async (): Promise<void> => {
+  try {
+    /*
+     * checkAuth در authStore پروژه بازبیا اطلاعات کاربر
+     * واردشده را بررسی و دریافت می‌کند.
+     */
+    if (!authStore.user) {
+      await authStore.checkAuth()
+    }
+
+    fillCustomerInformation()
+  } catch (error) {
+    console.error(
+      'Checkout customer loading error:',
+      error
+    )
+  }
+}
 
 const subtotal = computed<number>(() => {
   const storeTotal = Number(cartStore.totalPrice)
@@ -772,6 +809,38 @@ const convertDigitsToEnglish = (value: string): string => {
 const keepOnlyDigits = (value: string): string => {
   return convertDigitsToEnglish(value).replace(/\D/g, '')
 }
+
+
+const fillCustomerInformation = (): void => {
+  const user = authStore.user as CheckoutUser | null
+
+  if (!user) {
+    return
+  }
+
+  const fullName =
+    user.full_name?.trim() ||
+    [
+      user.first_name,
+      user.last_name
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim()
+
+  const phone =
+    user.phone ||
+    user.customer?.phone ||
+    ''
+
+  if (!form.fullName && fullName) {
+    form.fullName = fullName
+  }
+
+  if (!form.phone && phone) {
+    form.phone = keepOnlyDigits(phone).slice(0, 11)
+  }
+}                 
 
 const getItemName = (item: CheckoutCartItem): string => {
   return (
@@ -998,8 +1067,13 @@ const submitOrder = async (): Promise<void> => {
 }
 
 onMounted(async () => {
-  await loadCart()
+  await Promise.all([
+    loadCart(),
+    loadCustomerInformation()
+  ])
 })
+
+                  
 </script>
 
 <style scoped>

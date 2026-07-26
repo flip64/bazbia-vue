@@ -92,7 +92,7 @@ async getLatestProducts(limit = 12) {
     const response = await axios.get(`${API_BASE_URL}/products/`, {
       params: {
         page_size: limit,
-        ordering: '-id' // یا '-created_at'
+        ordering: '-created_at' // یا '-created_at'
       }
     })
 
@@ -106,12 +106,12 @@ async getLatestProducts(limit = 12) {
   }
 },
 // متدی برای ارزانترین محصولات
-async getChesetProducts(limit = 12) {
+async getCheapestProducts(limit = 12) {
   try {
     const response = await axios.get(`${API_BASE_URL}/products/`, {
       params: {
         page_size: limit,
-        ordering: '-id' // یا '-created_at'
+        ordering: 'price' // یا 'price'
       }
     })
 

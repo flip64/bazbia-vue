@@ -120,7 +120,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import { cheapestProductStore } from "@/core/store/cheapstProductStore"
+import { cheapestProductStore } from "@/core/store/cheapestProductStore"
 
 const router = useRouter()
 const slider = ref<HTMLElement | null>(null)
@@ -128,7 +128,7 @@ const slider = ref<HTMLElement | null>(null)
 const store = cheapestProductStore()
 
 onMounted(() => {
-  store.fetchChepsetProducts()
+  store.fetchCheapestProducts()
 })
 
 function scrollLeft() {

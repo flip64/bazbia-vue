@@ -9,6 +9,14 @@ import type {
 
 const STORAGE_KEY = 'bazbia_checkout'
 
+const createEmptyShipping =
+  (): CheckoutShipping => ({
+    quoteId: null,
+    methodCode: '',
+    methodTitle: '',
+    cost: 0
+  })
+
 export const useCheckoutStore = defineStore(
   'checkout',
   {
@@ -26,12 +34,8 @@ export const useCheckoutStore = defineStore(
         postalCode: ''
       } as CheckoutAddress,
 
-      shipping: {
-        quoteId: null,
-        methodCode: '',
-        methodTitle: '',
-        cost: 0
-      } as CheckoutShipping,
+      shipping:
+        createEmptyShipping(),
 
       paymentMethod:
         'online' as CheckoutPaymentMethod,
@@ -41,15 +45,13 @@ export const useCheckoutStore = defineStore(
 
     getters: {
       hasCustomerInformation: state => {
-        const fullName =
-          String(
-            state.customer?.fullName ?? ''
-          ).trim()
+        const fullName = String(
+          state.customer?.fullName ?? ''
+        ).trim()
 
-        const phone =
-          String(
-            state.customer?.phone ?? ''
-          ).trim()
+        const phone = String(
+          state.customer?.phone ?? ''
+        ).trim()
 
         return Boolean(
           fullName.length >= 3 &&
@@ -58,27 +60,27 @@ export const useCheckoutStore = defineStore(
       },
 
       hasAddressInformation: state => {
-        const province =
-          String(
-            state.address?.province ?? ''
-          ).trim()
+        const addressId =
+          state.address?.addressId ?? null
 
-        const city =
-          String(
-            state.address?.city ?? ''
-          ).trim()
+        const province = String(
+          state.address?.province ?? ''
+        ).trim()
 
-        const fullAddress =
-          String(
-            state.address?.fullAddress ?? ''
-          ).trim()
+        const city = String(
+          state.address?.city ?? ''
+        ).trim()
 
-        const postalCode =
-          String(
-            state.address?.postalCode ?? ''
-          ).trim()
+        const fullAddress = String(
+          state.address?.fullAddress ?? ''
+        ).trim()
+
+        const postalCode = String(
+          state.address?.postalCode ?? ''
+        ).trim()
 
         return Boolean(
+          addressId &&
           province &&
           city &&
           fullAddress &&
@@ -87,12 +89,18 @@ export const useCheckoutStore = defineStore(
       },
 
       hasShippingMethod: state => {
-        const methodCode =
-          String(
-            state.shipping?.methodCode ?? ''
-          ).trim()
+        const quoteId = String(
+          state.shipping?.quoteId ?? ''
+        ).trim()
 
-        return Boolean(methodCode)
+        const methodCode = String(
+          state.shipping?.methodCode ?? ''
+        ).trim()
+
+        return Boolean(
+          quoteId &&
+          methodCode
+        )
       }
     },
 
@@ -116,9 +124,15 @@ export const useCheckoutStore = defineStore(
       setAddress(
         address: CheckoutAddress
       ): void {
+        const newAddressId =
+          address?.addressId ?? null
+
+        const addressChanged =
+          this.address.addressId !==
+          newAddressId
+
         this.address = {
-          addressId:
-            address?.addressId ?? null,
+          addressId: newAddressId,
 
           province: String(
             address?.province ?? ''
@@ -136,6 +150,30 @@ export const useCheckoutStore = defineStore(
             address?.postalCode ?? ''
           ).trim()
         }
+
+        /*
+         * هزینه و روش ارسال وابسته به آدرس است.
+         * با تغییر آدرس، quote قبلی دیگر معتبر نیست.
+         */
+        if (addressChanged) {
+          this.shipping =
+            createEmptyShipping()
+        }
+
+        this.persist()
+      },
+
+      clearAddress(): void {
+        this.address = {
+          addressId: null,
+          province: '',
+          city: '',
+          fullAddress: '',
+          postalCode: ''
+        }
+
+        this.shipping =
+          createEmptyShipping()
 
         this.persist()
       },
@@ -162,10 +200,18 @@ export const useCheckoutStore = defineStore(
         this.persist()
       },
 
+      clearShipping(): void {
+        this.shipping =
+          createEmptyShipping()
+
+        this.persist()
+      },
+
       setPaymentMethod(
         method: CheckoutPaymentMethod
       ): void {
         this.paymentMethod = method
+
         this.persist()
       },
 
@@ -186,68 +232,92 @@ export const useCheckoutStore = defineStore(
 
             this.customer = {
               fullName: String(
-                parsedState.customer?.fullName ??
-                ''
+                parsedState.customer
+                  ?.fullName ?? ''
               ),
 
               phone: String(
-                parsedState.customer?.phone ??
-                ''
+                parsedState.customer
+                  ?.phone ?? ''
               )
             }
 
             this.address = {
               addressId:
-                parsedState.address?.addressId ??
-                null,
+                parsedState.address
+                  ?.addressId ?? null,
 
               province: String(
-                parsedState.address?.province ??
-                ''
+                parsedState.address
+                  ?.province ?? ''
               ),
 
               city: String(
-                parsedState.address?.city ??
-                ''
+                parsedState.address
+                  ?.city ?? ''
               ),
 
               fullAddress: String(
-                parsedState.address?.fullAddress ??
-                parsedState.address?.address ??
+                parsedState.address
+                  ?.fullAddress ??
+                parsedState.address
+                  ?.address ??
                 ''
               ),
 
               postalCode: String(
-                parsedState.address?.postalCode ??
-                ''
+                parsedState.address
+                  ?.postalCode ?? ''
               )
             }
 
             this.shipping = {
               quoteId:
-                parsedState.shipping?.quoteId ??
-                null,
+                parsedState.shipping
+                  ?.quoteId ?? null,
 
               methodCode: String(
-                parsedState.shipping?.methodCode ??
-                ''
+                parsedState.shipping
+                  ?.methodCode ?? ''
               ),
 
               methodTitle: String(
-                parsedState.shipping?.methodTitle ??
-                ''
+                parsedState.shipping
+                  ?.methodTitle ?? ''
               ),
 
               cost:
                 Number(
-                  parsedState.shipping?.cost
+                  parsedState.shipping
+                    ?.cost
                 ) || 0
             }
 
             this.paymentMethod =
-              parsedState.paymentMethod === 'cod'
+              parsedState.paymentMethod ===
+              'cod'
                 ? 'cod'
                 : 'online'
+
+            /*
+             * اگر آدرس معتبری وجود ندارد،
+             * روش ارسال قبلی نباید بازیابی شود.
+             */
+            if (!this.address.addressId) {
+              this.shipping =
+                createEmptyShipping()
+            }
+
+            /*
+             * quote ناقص هم معتبر نیست.
+             */
+            if (
+              !this.shipping.quoteId ||
+              !this.shipping.methodCode
+            ) {
+              this.shipping =
+                createEmptyShipping()
+            }
           } catch (error) {
             console.error(
               'Checkout storage error:',
@@ -290,12 +360,8 @@ export const useCheckoutStore = defineStore(
           postalCode: ''
         }
 
-        this.shipping = {
-          quoteId: null,
-          methodCode: '',
-          methodTitle: '',
-          cost: 0
-        }
+        this.shipping =
+          createEmptyShipping()
 
         this.paymentMethod = 'online'
         this.initialized = true

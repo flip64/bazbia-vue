@@ -1,3 +1,4 @@
+
 <template>
   <aside class="order-summary">
     <h2>خلاصه سفارش</h2>
@@ -22,15 +23,12 @@
     <div class="order-summary__row">
       <span>هزینه ارسال</span>
 
-      <span v-if="hasShippingMethod">
+      <span v-if="shippingCost > 0">
         {{ formatPrice(shippingCost) }}
         تومان
       </span>
 
-      <span
-        v-else
-        class="order-summary__pending"
-      >
+      <span v-else>
         هنوز انتخاب نشده
       </span>
     </div>
@@ -56,13 +54,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import {
-  useCartStore
-} from '@/core/store/cartStore'
-
-import {
-  useCheckoutStore
-} from '@/core/store/checkoutStore'
+import { useCartStore } from '@/core/store/cartStore'
+import { useCheckoutStore } from '@/core/store/checkoutStore'
 
 const cartStore = useCartStore()
 const checkoutStore = useCheckoutStore()
@@ -70,10 +63,7 @@ const checkoutStore = useCheckoutStore()
 const totalItems = computed(() => {
   return cartStore.items.reduce(
     (sum, item) => {
-      return (
-        sum +
-        Number(item.quantity || 0)
-      )
+      return sum + Number(item.quantity || 0)
     },
     0
   )
@@ -87,13 +77,7 @@ const itemsTotal = computed(() => {
 
 const shippingCost = computed(() => {
   return Number(
-    checkoutStore.shipping?.cost || 0
-  )
-})
-
-const hasShippingMethod = computed(() => {
-  return Boolean(
-    checkoutStore.shipping?.methodCode
+    checkoutStore.shipping.cost || 0
   )
 })
 
@@ -105,16 +89,13 @@ const finalTotal = computed(() => {
 })
 
 const formatPrice = (
-  priceInRial: number
+  price: number
 ): string => {
-  const priceInToman =
-    Math.round(
-      Number(priceInRial || 0) / 10
-    )
-
   return new Intl.NumberFormat(
     'fa-IR'
-  ).format(priceInToman)
+  ).format(
+    Math.round(Number(price || 0))
+  )
 }
 </script>
 
@@ -146,11 +127,6 @@ const formatPrice = (
 .order-summary__row span:last-child {
   text-align: left;
   color: #111827;
-}
-
-.order-summary__pending {
-  font-size: 0.85rem;
-  color: #9ca3af !important;
 }
 
 .order-summary__divider {

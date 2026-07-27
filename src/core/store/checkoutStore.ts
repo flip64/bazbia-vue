@@ -22,7 +22,7 @@ export const useCheckoutStore = defineStore(
         addressId: null,
         province: '',
         city: '',
-        address: '',
+        fullAddress: '',
         postalCode: ''
       } as CheckoutAddress,
 
@@ -42,10 +42,14 @@ export const useCheckoutStore = defineStore(
     getters: {
       hasCustomerInformation: state => {
         const fullName =
-          state.customer.fullName.trim()
+          String(
+            state.customer?.fullName ?? ''
+          ).trim()
 
         const phone =
-          state.customer.phone.trim()
+          String(
+            state.customer?.phone ?? ''
+          ).trim()
 
         return Boolean(
           fullName.length >= 3 &&
@@ -54,21 +58,41 @@ export const useCheckoutStore = defineStore(
       },
 
       hasAddressInformation: state => {
+        const province =
+          String(
+            state.address?.province ?? ''
+          ).trim()
+
+        const city =
+          String(
+            state.address?.city ?? ''
+          ).trim()
+
+        const fullAddress =
+          String(
+            state.address?.fullAddress ?? ''
+          ).trim()
+
         const postalCode =
-          state.address.postalCode.trim()
+          String(
+            state.address?.postalCode ?? ''
+          ).trim()
 
         return Boolean(
-          state.address.province.trim() &&
-          state.address.city.trim() &&
-          state.address.address.trim() &&
+          province &&
+          city &&
+          fullAddress &&
           /^\d{10}$/.test(postalCode)
         )
       },
 
       hasShippingMethod: state => {
-        return Boolean(
-          state.shipping.methodCode
-        )
+        const methodCode =
+          String(
+            state.shipping?.methodCode ?? ''
+          ).trim()
+
+        return Boolean(methodCode)
       }
     },
 
@@ -77,7 +101,13 @@ export const useCheckoutStore = defineStore(
         customer: CheckoutCustomer
       ): void {
         this.customer = {
-          ...customer
+          fullName: String(
+            customer?.fullName ?? ''
+          ).trim(),
+
+          phone: String(
+            customer?.phone ?? ''
+          ).trim()
         }
 
         this.persist()
@@ -87,7 +117,24 @@ export const useCheckoutStore = defineStore(
         address: CheckoutAddress
       ): void {
         this.address = {
-          ...address
+          addressId:
+            address?.addressId ?? null,
+
+          province: String(
+            address?.province ?? ''
+          ).trim(),
+
+          city: String(
+            address?.city ?? ''
+          ).trim(),
+
+          fullAddress: String(
+            address?.fullAddress ?? ''
+          ).trim(),
+
+          postalCode: String(
+            address?.postalCode ?? ''
+          ).trim()
         }
 
         this.persist()
@@ -97,7 +144,19 @@ export const useCheckoutStore = defineStore(
         shipping: CheckoutShipping
       ): void {
         this.shipping = {
-          ...shipping
+          quoteId:
+            shipping?.quoteId ?? null,
+
+          methodCode: String(
+            shipping?.methodCode ?? ''
+          ).trim(),
+
+          methodTitle: String(
+            shipping?.methodTitle ?? ''
+          ).trim(),
+
+          cost:
+            Number(shipping?.cost) || 0
         }
 
         this.persist()
@@ -107,7 +166,6 @@ export const useCheckoutStore = defineStore(
         method: CheckoutPaymentMethod
       ): void {
         this.paymentMethod = method
-
         this.persist()
       },
 
@@ -126,31 +184,70 @@ export const useCheckoutStore = defineStore(
             const parsedState =
               JSON.parse(savedState)
 
-            if (parsedState.customer) {
-              this.customer = {
-                ...this.customer,
-                ...parsedState.customer
-              }
+            this.customer = {
+              fullName: String(
+                parsedState.customer?.fullName ??
+                ''
+              ),
+
+              phone: String(
+                parsedState.customer?.phone ??
+                ''
+              )
             }
 
-            if (parsedState.address) {
-              this.address = {
-                ...this.address,
-                ...parsedState.address
-              }
+            this.address = {
+              addressId:
+                parsedState.address?.addressId ??
+                null,
+
+              province: String(
+                parsedState.address?.province ??
+                ''
+              ),
+
+              city: String(
+                parsedState.address?.city ??
+                ''
+              ),
+
+              fullAddress: String(
+                parsedState.address?.fullAddress ??
+                parsedState.address?.address ??
+                ''
+              ),
+
+              postalCode: String(
+                parsedState.address?.postalCode ??
+                ''
+              )
             }
 
-            if (parsedState.shipping) {
-              this.shipping = {
-                ...this.shipping,
-                ...parsedState.shipping
-              }
+            this.shipping = {
+              quoteId:
+                parsedState.shipping?.quoteId ??
+                null,
+
+              methodCode: String(
+                parsedState.shipping?.methodCode ??
+                ''
+              ),
+
+              methodTitle: String(
+                parsedState.shipping?.methodTitle ??
+                ''
+              ),
+
+              cost:
+                Number(
+                  parsedState.shipping?.cost
+                ) || 0
             }
 
-            if (parsedState.paymentMethod) {
-              this.paymentMethod =
-                parsedState.paymentMethod
-            }
+            this.paymentMethod =
+              parsedState.paymentMethod === 'cod'
+                ? 'cod'
+                : 'online'
           } catch (error) {
             console.error(
               'Checkout storage error:',
@@ -189,7 +286,7 @@ export const useCheckoutStore = defineStore(
           addressId: null,
           province: '',
           city: '',
-          address: '',
+          fullAddress: '',
           postalCode: ''
         }
 

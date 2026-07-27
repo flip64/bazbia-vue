@@ -7,7 +7,7 @@ export interface CheckoutAddress {
   addressId: number | null
   province: string
   city: string
-  address: string
+  fullAddress: string
   postalCode: string
 }
 

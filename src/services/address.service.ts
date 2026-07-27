@@ -1,4 +1,5 @@
-import api from '@/core/api'
+import api from '@/core/api/client'
+import { API_ENDPOINTS } from '@/core/api/endpoints'
 
 import type {
   CustomerAddress,
@@ -6,12 +7,10 @@ import type {
   UpdateCustomerAddressPayload
 } from '@/types/address.types'
 
-const BASE_URL = '/customers/addresses/'
-
 export const addressService = {
   async getAddresses(): Promise<CustomerAddress[]> {
     const response = await api.get<CustomerAddress[]>(
-      BASE_URL
+      API_ENDPOINTS.USER.ADDRESSES
     )
 
     return response.data
@@ -21,7 +20,7 @@ export const addressService = {
     id: number
   ): Promise<CustomerAddress> {
     const response = await api.get<CustomerAddress>(
-      `${BASE_URL}${id}/`
+      API_ENDPOINTS.USER.ADDRESS(id)
     )
 
     return response.data
@@ -31,7 +30,7 @@ export const addressService = {
     payload: CreateCustomerAddressPayload
   ): Promise<CustomerAddress> {
     const response = await api.post<CustomerAddress>(
-      BASE_URL,
+      API_ENDPOINTS.USER.ADDRESSES,
       payload
     )
 
@@ -43,7 +42,7 @@ export const addressService = {
     payload: UpdateCustomerAddressPayload
   ): Promise<CustomerAddress> {
     const response = await api.patch<CustomerAddress>(
-      `${BASE_URL}${id}/`,
+      API_ENDPOINTS.USER.ADDRESS(id),
       payload
     )
 
@@ -54,7 +53,7 @@ export const addressService = {
     id: number
   ): Promise<void> {
     await api.delete(
-      `${BASE_URL}${id}/`
+      API_ENDPOINTS.USER.ADDRESS(id)
     )
   }
 }

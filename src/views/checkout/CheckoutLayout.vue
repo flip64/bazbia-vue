@@ -36,15 +36,14 @@
     </div>
   </main>
 </template>
-
 <script setup lang="ts">
 import { onMounted } from 'vue'
 
 import CheckoutSteps from '@/components/checkout/CheckoutSteps.vue'
 import OrderSummary from '@/components/checkout/OrderSummary.vue'
 
-import { useCheckoutStore } from '@/core/store/checkoutStore'
 import { useCartStore } from '@/core/store/cartStore'
+import { useCheckoutStore } from '@/core/store/checkoutStore'
 
 const checkoutStore = useCheckoutStore()
 const cartStore = useCartStore()

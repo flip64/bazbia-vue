@@ -209,16 +209,15 @@ const isSubmitting = ref(false)
 const errorMessage = ref('')
 
 const formatPrice = (
-  priceInRial: number
+  priceInToman: number
 ): string => {
-  const priceInToman =
-    Math.round(
-      Number(priceInRial || 0) / 10
-    )
-
   return new Intl.NumberFormat(
     'fa-IR'
-  ).format(priceInToman)
+  ).format(
+    Math.round(
+      Number(priceInToman || 0)
+    )
+  )
 }
 
 const validateCheckout = (): boolean => {

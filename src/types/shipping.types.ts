@@ -12,7 +12,7 @@ export interface ShippingMethod {
   title: string
   description: string
   cost: number
-  currency: 'IRR'
+  currency: 'TOMAN'
   estimated_days: ShippingEstimatedDays
 }
 

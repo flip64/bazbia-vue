@@ -168,11 +168,12 @@ const selectedMethod = computed(() => {
   }) ?? null
 })
 
-
 const formatPrice = (
   toman: number
 ): string => {
-  return `${Number(toman || 0).toLocaleString('fa-IR')} تومان`
+  return `${Math.round(
+    Number(toman || 0)
+  ).toLocaleString('fa-IR')} تومان`
 }
 
 const loadShippingQuote =

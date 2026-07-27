@@ -1,7 +1,3 @@
-export type CheckoutPaymentMethod =
-  | 'online'
-  | 'cod'
-
 export interface CheckoutCustomer {
   fullName: string
   phone: string
@@ -22,9 +18,6 @@ export interface CheckoutShipping {
   cost: number
 }
 
-export interface CheckoutState {
-  customer: CheckoutCustomer
-  address: CheckoutAddress
-  shipping: CheckoutShipping
-  paymentMethod: CheckoutPaymentMethod
-}
+export type CheckoutPaymentMethod =
+  | 'online'
+  | 'cod'

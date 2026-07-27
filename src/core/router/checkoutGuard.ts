@@ -1,17 +1,15 @@
 import type {
-  NavigationGuardNext,
-  RouteLocationNormalized
+  NavigationGuard,
+  RouteLocationRaw
 } from 'vue-router'
 
 import {
   useCheckoutStore
 } from '@/core/store/checkoutStore'
 
-export const checkoutGuard = (
-  to: RouteLocationNormalized,
-  _from: RouteLocationNormalized,
-  next: NavigationGuardNext
-): void => {
+export const checkoutGuard: NavigationGuard = (
+  to
+): true | RouteLocationRaw => {
   const checkoutStore = useCheckoutStore()
 
   checkoutStore.initialize()
@@ -22,67 +20,58 @@ export const checkoutGuard = (
     routeName === 'checkout-address' &&
     !checkoutStore.hasCustomerInformation
   ) {
-    next({
+    return {
       name: 'checkout-customer'
-    })
-
-    return
+    }
   }
 
   if (
-    routeName === 'checkout-shipping' &&
-    !checkoutStore.hasCustomerInformation
+    routeName === 'checkout-shipping'
   ) {
-    next({
-      name: 'checkout-customer'
-    })
+    if (
+      !checkoutStore.hasCustomerInformation
+    ) {
+      return {
+        name: 'checkout-customer'
+      }
+    }
 
-    return
+    if (
+      !checkoutStore.hasAddressInformation
+    ) {
+      return {
+        name: 'checkout-address'
+      }
+    }
   }
 
   if (
-    routeName === 'checkout-shipping' &&
-    !checkoutStore.hasAddressInformation
+    routeName === 'checkout-review'
   ) {
-    next({
-      name: 'checkout-address'
-    })
+    if (
+      !checkoutStore.hasCustomerInformation
+    ) {
+      return {
+        name: 'checkout-customer'
+      }
+    }
 
-    return
+    if (
+      !checkoutStore.hasAddressInformation
+    ) {
+      return {
+        name: 'checkout-address'
+      }
+    }
+
+    if (
+      !checkoutStore.hasShippingMethod
+    ) {
+      return {
+        name: 'checkout-shipping'
+      }
+    }
   }
 
-  if (
-    routeName === 'checkout-review' &&
-    !checkoutStore.hasCustomerInformation
-  ) {
-    next({
-      name: 'checkout-customer'
-    })
-
-    return
-  }
-
-  if (
-    routeName === 'checkout-review' &&
-    !checkoutStore.hasAddressInformation
-  ) {
-    next({
-      name: 'checkout-address'
-    })
-
-    return
-  }
-
-  if (
-    routeName === 'checkout-review' &&
-    !checkoutStore.hasShippingMethod
-  ) {
-    next({
-      name: 'checkout-shipping'
-    })
-
-    return
-  }
-
-  next()
+  return true
 }

@@ -6,7 +6,9 @@ import type {
 } from '@/types/shipping.types'
 
 const CART_QUOTE_URL =
-  '/packing/checkout/cart-quote/'
+  '/bazbia_packing/checkout/cart-quote/'
+
+
 
 export const shippingService = {
   async getCartQuote(

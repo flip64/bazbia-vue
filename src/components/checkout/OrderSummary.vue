@@ -89,12 +89,14 @@ const finalTotal = computed(() => {
 })
 
 const formatPrice = (
-  price: number
+  priceInToman: number
 ): string => {
   return new Intl.NumberFormat(
     'fa-IR'
   ).format(
-    Math.round(Number(price || 0))
+    Math.round(
+      Number(priceInToman || 0)
+    )
   )
 }
 </script>

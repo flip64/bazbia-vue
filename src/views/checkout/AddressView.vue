@@ -103,6 +103,29 @@
                   {{ addressItem.postal_code }}
                 </span>
               </div>
+
+              <div class="address-card__actions">
+                <button
+                  type="button"
+                  class="address-action-button"
+                  @click.prevent.stop="openEditForm(addressItem)"
+                >
+                  ویرایش
+                </button>
+
+                <button
+                  type="button"
+                  class="address-action-button address-action-button--danger"
+                  :disabled="deletingAddressId === addressItem.id"
+                  @click.prevent.stop="deleteAddress(addressItem)"
+                >
+                  {{
+                    deletingAddressId === addressItem.id
+                      ? 'در حال حذف...'
+                      : 'حذف'
+                  }}
+                </button>
+              </div>
             </div>
           </label>
         </div>
@@ -130,15 +153,21 @@
           v-if="showAddressForm"
           class="address-form"
           novalidate
-          @submit.prevent="createAddress"
+          @submit.prevent="saveAddress"
         >
           <div class="address-form__header">
-            <h3>آدرس جدید</h3>
+            <h3>
+              {{
+                editingAddressId
+                  ? 'ویرایش آدرس'
+                  : 'آدرس جدید'
+              }}
+            </h3>
 
             <button
               type="button"
               class="close-button"
-              @click="closeCreateForm"
+              @click="closeAddressForm"
             >
               بستن
             </button>
@@ -171,6 +200,7 @@
                   'form-input--error':
                     errors.recipient_name
                 }"
+                @input="clearError('recipient_name')"
               >
 
               <small
@@ -220,6 +250,7 @@
                 :class="{
                   'form-input--error': errors.province
                 }"
+                @input="clearError('province')"
               >
 
               <small
@@ -240,6 +271,7 @@
                 :class="{
                   'form-input--error': errors.city
                 }"
+                @input="clearError('city')"
               >
 
               <small
@@ -263,6 +295,7 @@
               :class="{
                 'form-input--error': errors.address
               }"
+              @input="clearError('address')"
             />
 
             <small
@@ -321,11 +354,17 @@
             class="checkout-button checkout-button--primary"
             :disabled="isSubmitting"
           >
-            {{
-              isSubmitting
-                ? 'در حال ثبت...'
-                : 'ثبت آدرس'
-            }}
+            <template v-if="isSubmitting">
+              در حال ذخیره...
+            </template>
+
+            <template v-else>
+              {{
+                editingAddressId
+                  ? 'ذخیره تغییرات'
+                  : 'ثبت آدرس'
+              }}
+            </template>
           </button>
         </form>
 
@@ -368,11 +407,22 @@ import type {
   CustomerAddress
 } from '@/types/address.types'
 
+type AddressErrorField =
+  | 'recipient_name'
+  | 'recipient_phone'
+  | 'province'
+  | 'city'
+  | 'address'
+  | 'postal_code'
+
 const router = useRouter()
 const checkoutStore = useCheckoutStore()
 
 const addresses = ref<CustomerAddress[]>([])
 const selectedAddressId = ref<number | null>(null)
+
+const editingAddressId = ref<number | null>(null)
+const deletingAddressId = ref<number | null>(null)
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
@@ -392,7 +442,7 @@ const form = reactive<CreateCustomerAddressPayload>({
   is_default: false
 })
 
-const errors = reactive({
+const errors = reactive<Record<AddressErrorField, string>>({
   recipient_name: '',
   recipient_phone: '',
   province: '',
@@ -408,25 +458,40 @@ const normalizeDigits = (
   const arabic = '٠١٢٣٤٥٦٧٨٩'
 
   return value
-    .replace(/[۰-۹]/g, digit =>
-      String(persian.indexOf(digit))
-    )
-    .replace(/[٠-٩]/g, digit =>
-      String(arabic.indexOf(digit))
-    )
+    .replace(/[۰-۹]/g, digit => {
+      return String(
+        persian.indexOf(digit)
+      )
+    })
+    .replace(/[٠-٩]/g, digit => {
+      return String(
+        arabic.indexOf(digit)
+      )
+    })
     .replace(/\D/g, '')
+}
+
+const clearError = (
+  field: AddressErrorField
+): void => {
+  errors[field] = ''
+  submitError.value = ''
 }
 
 const normalizePhone = (): void => {
   form.recipient_phone = normalizeDigits(
     form.recipient_phone
   ).slice(0, 11)
+
+  clearError('recipient_phone')
 }
 
 const normalizePostalCode = (): void => {
   form.postal_code = normalizeDigits(
     form.postal_code
   ).slice(0, 10)
+
+  clearError('postal_code')
 }
 
 const resetErrors = (): void => {
@@ -436,6 +501,7 @@ const resetErrors = (): void => {
   errors.city = ''
   errors.address = ''
   errors.postal_code = ''
+
   submitError.value = ''
 }
 
@@ -461,34 +527,42 @@ const validateForm = (): boolean => {
   if (form.recipient_name.trim().length < 3) {
     errors.recipient_name =
       'نام تحویل‌گیرنده را کامل وارد کنید.'
+
     valid = false
   }
 
   if (!/^09\d{9}$/.test(form.recipient_phone)) {
     errors.recipient_phone =
       'شماره موبایل معتبر نیست.'
+
     valid = false
   }
 
   if (form.province.trim().length < 2) {
-    errors.province = 'نام استان را وارد کنید.'
+    errors.province =
+      'نام استان را وارد کنید.'
+
     valid = false
   }
 
   if (form.city.trim().length < 2) {
-    errors.city = 'نام شهر را وارد کنید.'
+    errors.city =
+      'نام شهر را وارد کنید.'
+
     valid = false
   }
 
   if (form.address.trim().length < 10) {
     errors.address =
       'نشانی کامل را وارد کنید.'
+
     valid = false
   }
 
   if (!/^\d{10}$/.test(form.postal_code)) {
     errors.postal_code =
       'کد پستی باید ۱۰ رقم باشد.'
+
     valid = false
   }
 
@@ -506,13 +580,15 @@ const loadAddresses = async (): Promise<void> => {
     const savedAddressId =
       checkoutStore.address.addressId
 
-    const savedAddress = addresses.value.find(
-      item => item.id === savedAddressId
-    )
+    const savedAddress =
+      addresses.value.find(item => {
+        return item.id === savedAddressId
+      })
 
-    const defaultAddress = addresses.value.find(
-      item => item.is_default
-    )
+    const defaultAddress =
+      addresses.value.find(item => {
+        return item.is_default
+      })
 
     selectedAddressId.value =
       savedAddress?.id ??
@@ -537,17 +613,67 @@ const loadAddresses = async (): Promise<void> => {
 }
 
 const openCreateForm = (): void => {
+  editingAddressId.value = null
+
   resetErrors()
   resetForm()
+
   showAddressForm.value = true
 }
 
-const closeCreateForm = (): void => {
-  showAddressForm.value = false
+const openEditForm = (
+  addressItem: CustomerAddress
+): void => {
   resetErrors()
+
+  editingAddressId.value =
+    addressItem.id
+
+  form.title =
+    addressItem.title
+  form.recipient_name =
+    addressItem.recipient_name
+  form.recipient_phone =
+    addressItem.recipient_phone
+  form.province =
+    addressItem.province
+  form.city =
+    addressItem.city
+  form.address =
+    addressItem.address
+  form.postal_code =
+    addressItem.postal_code
+  form.is_default =
+    addressItem.is_default
+
+  showAddressForm.value = true
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
 }
 
-const createAddress = async (): Promise<void> => {
+const closeAddressForm = (): void => {
+  editingAddressId.value = null
+  showAddressForm.value = false
+
+  resetErrors()
+  resetForm()
+}
+
+const normalizeDefaultAddresses = (
+  selectedDefaultId: number
+): void => {
+  addresses.value =
+    addresses.value.map(item => ({
+      ...item,
+      is_default:
+        item.id === selectedDefaultId
+    }))
+}
+
+const saveAddress = async (): Promise<void> => {
   if (!validateForm()) {
     return
   }
@@ -555,55 +681,189 @@ const createAddress = async (): Promise<void> => {
   isSubmitting.value = true
   submitError.value = ''
 
+  const payload: CreateCustomerAddressPayload = {
+    title: form.title?.trim() || '',
+    recipient_name:
+      form.recipient_name.trim(),
+    recipient_phone:
+      form.recipient_phone.trim(),
+    province:
+      form.province.trim(),
+    city:
+      form.city.trim(),
+    address:
+      form.address.trim(),
+    postal_code:
+      form.postal_code.trim(),
+    is_default:
+      Boolean(form.is_default)
+  }
+
   try {
-    const createdAddress =
-      await addressService.createAddress({
-        ...form,
-        title: form.title?.trim(),
-        recipient_name:
-          form.recipient_name.trim(),
-        province: form.province.trim(),
-        city: form.city.trim(),
-        address: form.address.trim()
-      })
+    if (editingAddressId.value !== null) {
+      const updatedAddress =
+        await addressService.updateAddress(
+          editingAddressId.value,
+          payload
+        )
 
-    addresses.value.unshift(createdAddress)
-    selectedAddressId.value =
-      createdAddress.id
+      addresses.value =
+        addresses.value.map(item => {
+          if (
+            item.id === updatedAddress.id
+          ) {
+            return updatedAddress
+          }
 
+          return item
+        })
+
+      if (updatedAddress.is_default) {
+        normalizeDefaultAddresses(
+          updatedAddress.id
+        )
+      }
+
+      selectedAddressId.value =
+        updatedAddress.id
+    } else {
+      const createdAddress =
+        await addressService.createAddress(
+          payload
+        )
+
+      addresses.value.unshift(
+        createdAddress
+      )
+
+      if (createdAddress.is_default) {
+        normalizeDefaultAddresses(
+          createdAddress.id
+        )
+      }
+
+      selectedAddressId.value =
+        createdAddress.id
+    }
+
+    editingAddressId.value = null
     showAddressForm.value = false
+
     resetForm()
   } catch (error) {
     console.error(
-      'Creating address failed:',
+      'Saving address failed:',
       error
     )
 
     submitError.value =
-      'ثبت آدرس انجام نشد. اطلاعات را بررسی کنید.'
+      'ذخیره آدرس انجام نشد. اطلاعات را بررسی کنید.'
   } finally {
     isSubmitting.value = false
+  }
+}
+
+const deleteAddress = async (
+  addressItem: CustomerAddress
+): Promise<void> => {
+  const confirmed = window.confirm(
+    `آدرس «${addressItem.title || 'بدون عنوان'}» حذف شود؟`
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  deletingAddressId.value =
+    addressItem.id
+
+  try {
+    await addressService.deleteAddress(
+      addressItem.id
+    )
+
+    addresses.value =
+      addresses.value.filter(item => {
+        return item.id !== addressItem.id
+      })
+
+    if (
+      editingAddressId.value ===
+      addressItem.id
+    ) {
+      closeAddressForm()
+    }
+
+    if (
+      selectedAddressId.value ===
+      addressItem.id
+    ) {
+      const defaultAddress =
+        addresses.value.find(item => {
+          return item.is_default
+        })
+
+      selectedAddressId.value =
+        defaultAddress?.id ??
+        addresses.value[0]?.id ??
+        null
+    }
+
+    if (
+      checkoutStore.address.addressId ===
+      addressItem.id
+    ) {
+      checkoutStore.setAddress({
+        addressId: null,
+        province: '',
+        city: '',
+        fullAddress: '',
+        postalCode: ''
+      })
+    }
+
+    if (!addresses.value.length) {
+      openCreateForm()
+    }
+  } catch (error) {
+    console.error(
+      'Deleting address failed:',
+      error
+    )
+
+    window.alert(
+      'حذف آدرس انجام نشد.'
+    )
+  } finally {
+    deletingAddressId.value = null
   }
 }
 
 const continueToShipping =
   async (): Promise<void> => {
     const selectedAddress =
-      addresses.value.find(
-        item =>
-          item.id === selectedAddressId.value
-      )
+      addresses.value.find(item => {
+        return (
+          item.id ===
+          selectedAddressId.value
+        )
+      })
 
     if (!selectedAddress) {
       return
     }
 
     checkoutStore.setAddress({
-      addressId: selectedAddress.id,
-      province: selectedAddress.province,
-      city: selectedAddress.city,
-      fullAddress: selectedAddress.address,
-      postalCode: selectedAddress.postal_code
+      addressId:
+        selectedAddress.id,
+      province:
+        selectedAddress.province,
+      city:
+        selectedAddress.city,
+      fullAddress:
+        selectedAddress.address,
+      postalCode:
+        selectedAddress.postal_code
     })
 
     await router.push({
@@ -620,7 +880,9 @@ const goPrevious = async (): Promise<void> => {
 onMounted(async () => {
   checkoutStore.initialize()
 
-  if (!checkoutStore.hasCustomerInformation) {
+  if (
+    !checkoutStore.hasCustomerInformation
+  ) {
     await router.replace({
       name: 'checkout-customer'
     })
@@ -668,6 +930,7 @@ onMounted(async () => {
   margin: 0.4rem 0 0;
   color: #6b7280;
   font-size: 0.82rem;
+  line-height: 1.8;
 }
 
 .checkout-card__body {
@@ -696,6 +959,13 @@ onMounted(async () => {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.address-card:hover {
+  border-color: #86efac;
 }
 
 .address-card--selected {
@@ -705,6 +975,7 @@ onMounted(async () => {
 
 .address-card__content {
   flex: 1;
+  min-width: 0;
 }
 
 .address-card__header {
@@ -727,6 +998,32 @@ onMounted(async () => {
   font-size: 0.76rem;
 }
 
+.address-card__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+}
+
+.address-action-button {
+  padding: 0;
+  color: #15803d;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.address-action-button--danger {
+  color: #dc2626;
+}
+
+.address-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .default-badge {
   padding: 0.2rem 0.45rem;
   color: #166534;
@@ -746,6 +1043,7 @@ onMounted(async () => {
 
 .address-form__header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -771,9 +1069,23 @@ onMounted(async () => {
 .form-group textarea {
   width: 100%;
   padding: 0.8rem;
+  color: #111827;
   border: 1px solid #d1d5db;
   border-radius: 9px;
+  outline: none;
+  background: #ffffff;
   font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #16a34a;
+  box-shadow:
+    0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
 }
 
 .form-input--error {

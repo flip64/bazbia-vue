@@ -57,15 +57,66 @@ const routes: RouteRecordRaw[] = [
       title: 'سبد خرید'
     }
   },
+
   {
-    path: "/checkout",
-    name: "checkout",
-    component: () => import("@/views/checkout/CheckoutView.vue"),
-    meta: { 
-      requiresAuth: true,
-      title: 'تسویه حساب'
-    }
+  path: '/checkout',
+  component: () =>
+    import(
+      '@/views/checkout/CheckoutLayout.vue'
+    ),
+
+  meta: {
+    requiresAuth: true,
+    title: 'تسویه حساب'
   },
+
+  children: [
+    {
+      path: '',
+      redirect: {
+        name: 'checkout-customer'
+      }
+    },
+
+    {
+      path: 'customer',
+      name: 'checkout-customer',
+      component: () =>
+        import(
+          '@/views/checkout/CustomerInfoView.vue'
+        )
+    },
+
+    {
+      path: 'address',
+      name: 'checkout-address',
+      component: () =>
+        import(
+          '@/views/checkout/AddressView.vue'
+        )
+    },
+
+    {
+      path: 'shipping',
+      name: 'checkout-shipping',
+      component: () =>
+        import(
+          '@/views/checkout/ShippingView.vue'
+        )
+    },
+
+    {
+      path: 'review',
+      name: 'checkout-review',
+      component: () =>
+        import(
+          '@/views/checkout/ReviewOrderView.vue'
+        )
+    }
+  ]
+  },
+
+  
   {
     path: "/login",
     name: "login",

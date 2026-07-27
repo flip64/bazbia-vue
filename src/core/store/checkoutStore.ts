@@ -41,18 +41,27 @@ export const useCheckoutStore = defineStore(
 
     getters: {
       hasCustomerInformation: state => {
-        return Boolean(
-          state.customer.fullName.trim() &&
+        const fullName =
+          state.customer.fullName.trim()
+
+        const phone =
           state.customer.phone.trim()
+
+        return Boolean(
+          fullName.length >= 3 &&
+          /^09\d{9}$/.test(phone)
         )
       },
 
       hasAddressInformation: state => {
+        const postalCode =
+          state.address.postalCode.trim()
+
         return Boolean(
           state.address.province.trim() &&
           state.address.city.trim() &&
           state.address.address.trim() &&
-          state.address.postalCode.trim()
+          /^\d{10}$/.test(postalCode)
         )
       },
 
@@ -192,6 +201,7 @@ export const useCheckoutStore = defineStore(
         }
 
         this.paymentMethod = 'online'
+        this.initialized = true
 
         sessionStorage.removeItem(
           STORAGE_KEY

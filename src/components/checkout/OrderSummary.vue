@@ -1,4 +1,3 @@
-
 <template>
   <aside class="order-summary">
     <h2>خلاصه سفارش</h2>
@@ -23,12 +22,15 @@
     <div class="order-summary__row">
       <span>هزینه ارسال</span>
 
-      <span v-if="shippingCost > 0">
+      <span v-if="hasShippingMethod">
         {{ formatPrice(shippingCost) }}
         تومان
       </span>
 
-      <span v-else>
+      <span
+        v-else
+        class="order-summary__pending"
+      >
         هنوز انتخاب نشده
       </span>
     </div>
@@ -54,8 +56,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { useCartStore } from '@/core/store/cartStore'
-import { useCheckoutStore } from '@/core/store/checkoutStore'
+import {
+  useCartStore
+} from '@/core/store/cartStore'
+
+import {
+  useCheckoutStore
+} from '@/core/store/checkoutStore'
 
 const cartStore = useCartStore()
 const checkoutStore = useCheckoutStore()
@@ -63,7 +70,10 @@ const checkoutStore = useCheckoutStore()
 const totalItems = computed(() => {
   return cartStore.items.reduce(
     (sum, item) => {
-      return sum + Number(item.quantity || 0)
+      return (
+        sum +
+        Number(item.quantity || 0)
+      )
     },
     0
   )
@@ -75,9 +85,20 @@ const itemsTotal = computed(() => {
   )
 })
 
+const hasShippingMethod = computed(() => {
+  return Boolean(
+    checkoutStore.shipping?.quoteId &&
+    checkoutStore.shipping?.methodCode
+  )
+})
+
 const shippingCost = computed(() => {
+  if (!hasShippingMethod.value) {
+    return 0
+  }
+
   return Number(
-    checkoutStore.shipping.cost || 0
+    checkoutStore.shipping?.cost || 0
   )
 })
 
@@ -129,6 +150,11 @@ const formatPrice = (
 .order-summary__row span:last-child {
   text-align: left;
   color: #111827;
+}
+
+.order-summary__pending {
+  color: #9ca3af !important;
+  font-size: 0.85rem;
 }
 
 .order-summary__divider {

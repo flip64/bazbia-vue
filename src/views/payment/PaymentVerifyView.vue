@@ -5,7 +5,10 @@
       v-if="isLoading"
       class="payment-result-card"
     >
-      <div class="payment-result-card__spinner" />
+      <div
+        class="payment-result-card__spinner"
+        aria-hidden="true"
+      />
 
       <h1>در حال بررسی پرداخت</h1>
 
@@ -106,7 +109,7 @@
         </router-link>
 
         <router-link
-          to="/products"
+          :to="{ name: 'products' }"
           class="
             payment-button
             payment-button--secondary
@@ -138,6 +141,7 @@
 
       <div class="payment-result-card__actions">
         <button
+          v-if="payment"
           type="button"
           class="
             payment-button
@@ -170,6 +174,17 @@
           "
         >
           مشاهده سفارش
+        </router-link>
+
+        <router-link
+          v-else
+          :to="{ name: 'orders' }"
+          class="
+            payment-button
+            payment-button--secondary
+          "
+        >
+          سفارش‌های من
         </router-link>
       </div>
     </section>
@@ -234,7 +249,7 @@
 
         <router-link
           v-else
-          to="/user/orders"
+          :to="{ name: 'orders' }"
           class="
             payment-button
             payment-button--secondary
@@ -256,7 +271,6 @@ import {
 
 import {
   useRoute,
-  useRouter,
 } from 'vue-router'
 
 import {
@@ -271,7 +285,6 @@ import type {
 
 
 const route = useRoute()
-const router = useRouter()
 
 
 const payment = ref<Payment | null>(
@@ -332,10 +345,8 @@ const mockStatus =
 const isSuccessful =
   computed<boolean>(() => {
     return (
-      payment.value?.is_successful ===
-        true ||
-      payment.value?.status ===
-        'successful'
+      payment.value?.is_successful === true ||
+      payment.value?.status === 'successful'
     )
   })
 
@@ -421,11 +432,11 @@ const verifyPayment =
         errorMessage.value =
           error.message
 
-        /*
-         * بک‌اند در پرداخت ناموفق ممکن است همراه پاسخ
-         * 400 اطلاعات Payment را نیز ارسال کند، اما
-         * سرویس فعلی فقط ساختار خطا را نگه می‌دارد.
-         */
+        if (error.data?.payment) {
+          payment.value =
+            error.data.payment
+        }
+
         return
       }
 
@@ -499,7 +510,7 @@ const retryPayment =
 
 
 onMounted(() => {
-  verifyPayment()
+  void verifyPayment()
 })
 </script>
 
@@ -620,4 +631,72 @@ onMounted(() => {
 
 .payment-button {
   display: inline-flex;
-  min-height: 46px
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.payment-button--primary {
+  border: none;
+  background: #059669;
+  color: #ffffff;
+}
+
+.payment-button--primary:hover {
+  background: #047857;
+}
+
+.payment-button--secondary {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+}
+
+.payment-button--secondary:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.payment-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 520px) {
+  .payment-result-card {
+    padding: 24px 18px;
+  }
+
+  .payment-information__row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+  }
+
+  .payment-result-card__actions {
+    flex-direction: column;
+  }
+
+  .payment-button {
+    width: 100%;
+  }
+}
+</style>

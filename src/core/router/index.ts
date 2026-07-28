@@ -3,28 +3,37 @@
 import {
   createRouter,
   createWebHistory,
-  type RouteRecordRaw
+  type RouteRecordRaw,
 } from 'vue-router'
 
-import { setupAuthGuard } from './guard'
 import { checkoutGuard } from './checkoutGuard'
+import { setupAuthGuard } from './guard'
+
 
 const routes: RouteRecordRaw[] = [
+  // =================================================
+  // صفحه اصلی
+  // =================================================
   {
     path: '/',
     name: 'home',
+
     component: () =>
       import('@/views/HomeView.vue'),
 
     meta: {
       requiresAuth: false,
-      title: 'خانه'
-    }
+      title: 'خانه',
+    },
   },
 
+  // =================================================
+  // محصولات
+  // =================================================
   {
     path: '/products',
     name: 'products',
+
     component: () =>
       import(
         '@/views/products/ProductsView.vue'
@@ -32,13 +41,14 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'محصولات'
-    }
+      title: 'محصولات',
+    },
   },
 
   {
     path: '/product/:slug',
     name: 'product-detail',
+
     component: () =>
       import(
         '@/views/products/ProductDetail.vue'
@@ -46,13 +56,17 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'جزئیات محصول'
-    }
+      title: 'جزئیات محصول',
+    },
   },
 
+  // =================================================
+  // دسته‌بندی‌ها
+  // =================================================
   {
     path: '/categories',
     name: 'categories',
+
     component: () =>
       import(
         '@/views/categories/CategoriesView.vue'
@@ -60,13 +74,14 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'دسته‌بندی‌ها'
-    }
+      title: 'دسته‌بندی‌ها',
+    },
   },
 
   {
     path: '/category/:id',
     name: 'category-products',
+
     component: () =>
       import(
         '@/views/products/ProductsView.vue'
@@ -74,24 +89,34 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'محصولات دسته‌بندی'
-    }
+      title: 'محصولات دسته‌بندی',
+    },
   },
 
+  // =================================================
+  // سبد خرید
+  // =================================================
   {
     path: '/cart',
     name: 'cart',
+
     component: () =>
-      import('@/views/cart/CartView.vue'),
+      import(
+        '@/views/cart/CartView.vue'
+      ),
 
     meta: {
       requiresAuth: false,
-      title: 'سبد خرید'
-    }
+      title: 'سبد خرید',
+    },
   },
 
+  // =================================================
+  // مراحل تسویه‌حساب
+  // =================================================
   {
     path: '/checkout',
+
     component: () =>
       import(
         '@/views/checkout/CheckoutLayout.vue'
@@ -99,15 +124,16 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: true,
-      title: 'تسویه حساب'
+      title: 'تسویه حساب',
     },
 
     children: [
       {
         path: '',
+
         redirect: {
-          name: 'checkout-customer'
-        }
+          name: 'checkout-customer',
+        },
       },
 
       {
@@ -123,8 +149,8 @@ const routes: RouteRecordRaw[] = [
 
         meta: {
           requiresAuth: true,
-          title: 'اطلاعات مشتری'
-        }
+          title: 'اطلاعات مشتری',
+        },
       },
 
       {
@@ -140,8 +166,8 @@ const routes: RouteRecordRaw[] = [
 
         meta: {
           requiresAuth: true,
-          title: 'انتخاب آدرس'
-        }
+          title: 'انتخاب آدرس',
+        },
       },
 
       {
@@ -157,8 +183,8 @@ const routes: RouteRecordRaw[] = [
 
         meta: {
           requiresAuth: true,
-          title: 'روش ارسال'
-        }
+          title: 'روش ارسال',
+        },
       },
 
       {
@@ -174,56 +200,96 @@ const routes: RouteRecordRaw[] = [
 
         meta: {
           requiresAuth: true,
-          title: 'بررسی سفارش'
-        }
+          title: 'بررسی سفارش',
+        },
       },
 
-
+      /*
+       * این مسیر checkoutGuard ندارد.
+       *
+       * پس از ثبت سفارش، اطلاعات checkout و cart
+       * پاک می‌شوند؛ بنابراین صفحه موفقیت نباید به
+       * اطلاعات مراحل قبلی وابسته باشد.
+       */
       {
-       path: 'success/:orderId',
-       name: 'checkout-success',
-       component: () =>
-       import(
-          '@/views/checkout/CheckoutSuccessView.vue'
-       ),
-      meta: {
-    requiresAuth: true,
-    title: 'ثبت موفق سفارش',
+        path: 'success/:orderId',
+        name: 'checkout-success',
+
+        component: () =>
+          import(
+            '@/views/checkout/CheckoutSuccessView.vue'
+          ),
+
+        meta: {
+          requiresAuth: true,
+          title: 'ثبت موفق سفارش',
+        },
+
+        props: true,
+      },
+    ],
   },
-}
 
+  // =================================================
+  // نتیجه پرداخت
+  // =================================================
+  /*
+   * این مسیر عمداً بیرون از children مربوط به checkout
+   * قرار دارد و checkoutGuard نیز روی آن اجرا نمی‌شود.
+   */
+  {
+    path: '/payment/verify',
+    name: 'payment-verify',
 
-      
-    ]
+    component: () =>
+      import(
+        '@/views/payment/PaymentVerifyView.vue'
+      ),
+
+    meta: {
+      requiresAuth: true,
+      title: 'نتیجه پرداخت',
+    },
   },
 
+  // =================================================
+  // ورود و ثبت‌نام
+  // =================================================
   {
     path: '/login',
     name: 'login',
+
     component: () =>
       import('@/views/Login.vue'),
 
     meta: {
       guestOnly: true,
-      title: 'ورود'
-    }
+      requiresAuth: false,
+      title: 'ورود',
+    },
   },
 
   {
     path: '/register',
     name: 'register',
+
     component: () =>
       import('@/views/Register.vue'),
 
     meta: {
       guestOnly: true,
-      title: 'ثبت‌نام'
-    }
+      requiresAuth: false,
+      title: 'ثبت‌نام',
+    },
   },
 
+  // =================================================
+  // حساب کاربری
+  // =================================================
   {
     path: '/profile',
     name: 'profile',
+
     component: () =>
       import(
         '@/views/user/ProfileView.vue'
@@ -231,13 +297,14 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: true,
-      title: 'پروفایل'
-    }
+      title: 'پروفایل',
+    },
   },
 
   {
     path: '/orders',
     name: 'orders',
+
     component: () =>
       import(
         '@/views/user/OrdersView.vue'
@@ -245,13 +312,14 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: true,
-      title: 'سفارش‌ها'
-    }
+      title: 'سفارش‌ها',
+    },
   },
 
   {
     path: '/wishlist',
     name: 'wishlist',
+
     component: () =>
       import(
         '@/views/user/WishlistView.vue'
@@ -259,13 +327,17 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: true,
-      title: 'علاقه‌مندی‌ها'
-    }
+      title: 'علاقه‌مندی‌ها',
+    },
   },
 
+  // =================================================
+  // جستجو و تخفیف‌ها
+  // =================================================
   {
     path: '/search',
     name: 'search',
+
     component: () =>
       import(
         '@/views/products/ProductsView.vue'
@@ -273,13 +345,14 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'جستجو'
-    }
+      title: 'جستجو',
+    },
   },
 
   {
     path: '/offers',
     name: 'offers',
+
     component: () =>
       import(
         '@/views/products/ProductsView.vue'
@@ -287,13 +360,17 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'تخفیف‌ها'
-    }
+      title: 'تخفیف‌ها',
+    },
   },
 
+  // =================================================
+  // وبلاگ
+  // =================================================
   {
     path: '/blog',
     name: 'blog',
+
     component: () =>
       import(
         '@/views/blog/BlogView.vue'
@@ -301,13 +378,14 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'وبلاگ'
-    }
+      title: 'وبلاگ',
+    },
   },
 
   {
     path: '/blog/:id',
     name: 'blog-post',
+
     component: () =>
       import(
         '@/views/blog/BlogPost.vue'
@@ -315,66 +393,82 @@ const routes: RouteRecordRaw[] = [
 
     meta: {
       requiresAuth: false,
-      title: 'پست وبلاگ'
-    }
+      title: 'پست وبلاگ',
+    },
   },
 
+  // =================================================
+  // صفحات عمومی
+  // =================================================
   {
     path: '/contact',
     name: 'contact',
+
     component: () =>
       import('@/views/Contact.vue'),
 
     meta: {
       requiresAuth: false,
-      title: 'تماس با ما'
-    }
+      title: 'تماس با ما',
+    },
   },
 
   {
     path: '/about',
     name: 'about',
+
     component: () =>
       import('@/views/AboutView.vue'),
 
     meta: {
       requiresAuth: false,
-      title: 'درباره ما'
-    }
+      title: 'درباره ما',
+    },
   },
 
   {
     path: '/faq',
     name: 'faq',
+
     component: () =>
       import('@/views/FAQ.vue'),
 
     meta: {
       requiresAuth: false,
-      title: 'سوالات متداول'
-    }
+      title: 'سوالات متداول',
+    },
   },
 
+  // =================================================
+  // صفحه پیدا نشد
+  // =================================================
+  /*
+   * این Route باید همیشه آخرین Route باشد.
+   */
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
+
     component: () =>
       import('@/views/NotFound.vue'),
 
     meta: {
-      title: 'صفحه یافت نشد'
-    }
-  }
+      requiresAuth: false,
+      title: 'صفحه یافت نشد',
+    },
+  },
 ]
+
 
 const router = createRouter({
   history: createWebHistory(),
+
   routes,
 
   scrollBehavior(
     to,
     _from,
-    savedPosition
+    savedPosition,
   ) {
     if (savedPosition) {
       return savedPosition
@@ -383,17 +477,21 @@ const router = createRouter({
     if (to.hash) {
       return {
         el: to.hash,
-        behavior: 'smooth'
+        behavior: 'smooth',
       }
     }
 
     return {
       top: 0,
-      behavior: 'smooth'
+      behavior: 'smooth',
     }
-  }
+  },
 })
 
+
+/*
+ * تنظیم عنوان صفحه.
+ */
 router.beforeEach(to => {
   const defaultTitle =
     'فروشگاه بازبیا'
@@ -410,6 +508,11 @@ router.beforeEach(to => {
   return true
 })
 
+
+/*
+ * بررسی ورود، مسیرهای requiresAuth و guestOnly.
+ */
 setupAuthGuard(router)
+
 
 export default router

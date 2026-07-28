@@ -1,214 +1,405 @@
 // src/core/api/endpoints.ts
 
 /**
- * آدرس‌های API - مطابق با بک‌اند Django
- * baseURL: https://backend.bazbia.ir/api
+ * آدرس‌های API مطابق با بک‌اند Django.
+ *
+ * baseURL پیش‌فرض:
+ * https://backend.bazbia.ir/api
+ *
+ * نکته:
+ * تمام مسیرهای این فایل با / شروع می‌شوند و در انتها
+ * نیز / دارند تا با تنظیمات پیش‌فرض Django سازگار باشند.
  */
+
 export const API_ENDPOINTS = {
-  // ========== احراز هویت ==========
+  // =====================================================
+  // احراز هویت
+  // =====================================================
   AUTH: {
     /** ورود کاربر - POST */
     LOGIN: '/customers/login/',
-    
-    /** ثبت نام کاربر - POST */
+
+    /** ثبت‌نام کاربر - POST */
     REGISTER: '/customers/register/',
-    
-    /** خروج از سیستم - POST */
+
+    /** خروج از حساب کاربری - POST */
     LOGOUT: '/customers/logout/',
-    
-    /** رفرش توکن - POST */
+
+    /** تازه‌سازی access token - POST */
     REFRESH: '/customers/token/refresh/',
-    
-    /** دریافت پروفایل - GET */
+
+    /** دریافت پروفایل کاربر - GET */
     PROFILE: '/customers/profile/',
-    
-    /** ویرایش پروفایل - PUT/PATCH */
+
+    /** ویرایش پروفایل کاربر - PUT/PATCH */
     UPDATE_PROFILE: '/customers/profile/update/',
-    
+
     /** تغییر رمز عبور - POST */
     CHANGE_PASSWORD: '/customers/change-password/',
-    
-    /** تایید ایمیل/موبایل - POST */
+
+    /** تأیید ایمیل یا شماره موبایل - POST */
     VERIFY: '/customers/verify/',
-    
-    /** ارسال مجدد کد تایید - POST */
-    RESEND_CODE: '/customers/resend-code/'
+
+    /** ارسال مجدد کد تأیید - POST */
+    RESEND_CODE: '/customers/resend-code/',
   },
 
-  // ========== سبد خرید ==========
+  // =====================================================
+  // سبد خرید
+  // =====================================================
   CART: {
-    /** دریافت سبد خرید - GET */
+    /** دریافت سبد خرید فعلی - GET */
     GET: '/orders/cart/',
-    
-    /** افزودن به سبد خرید - POST */
+
+    /** افزودن واریانت به سبد خرید - POST */
     ADD: '/orders/cart/add/',
-    
-    /** بروزرسانی آیتم - PUT */
-    UPDATE: (id: number) => `/orders/cart/item/${id}/update/`,
-    
-    /** حذف آیتم - DELETE */
-    DELETE: (id: number) => `/orders/cart/item/${id}/delete/`,
-    
-    /** خالی کردن سبد خرید - DELETE */
+
+    /** بروزرسانی تعداد آیتم - PUT/PATCH */
+    UPDATE: (id: number): string =>
+      `/orders/cart/items/${id}/`,
+
+    /** حذف یک آیتم از سبد خرید - DELETE */
+    DELETE: (id: number): string =>
+      `/orders/cart/items/${id}/delete/`,
+
+    /** خالی‌کردن کامل سبد خرید - DELETE */
     CLEAR: '/orders/cart/clear/',
-    
-    /** ادغام سبد خرید مهمان - POST */
+
+    /** ذخیره سبد خرید کاربر - POST */
+    SAVE: '/orders/cart/save/',
+
+    /** بازیابی سبد خرید ذخیره‌شده - GET */
+    LOAD: '/orders/cart/load/',
+
+    /** ادغام سبد مهمان با سبد کاربر - POST */
     MERGE: '/orders/cart/merge/',
-    
-    /** اعمال کد تخفیف - POST */
-    APPLY_COUPON: '/orders/cart/apply-coupon/',
-    
-    /** حذف کد تخفیف - DELETE */
-    REMOVE_COUPON: '/orders/cart/remove-coupon/',
-    
-    /** محاسبه هزینه ارسال - POST */
-    CALCULATE_SHIPPING: '/orders/cart/calculate-shipping/'
   },
 
-  // ========== محصولات ==========
+  // =====================================================
+  // محصولات
+  // =====================================================
   PRODUCT: {
-    /** لیست محصولات - GET */
+    /** فهرست کامل محصولات - GET */
     LIST: '/products/full-products/',
-    
+
     /** جزئیات محصول - GET */
-    DETAIL: (id: number) => `/products/${id}/`,
-    
-    /** لیست واریانت‌ها - GET */
-    VARIANTS: (productId: number) => `/products/${productId}/variants/`,
-    
-    /** جزئیات واریانت - GET */
-    VARIANT_DETAIL: (variantId: number) => `/products/variants/${variantId}/`,
-    
-    /** بررسی موجودی - GET */
-    STOCK_CHECK: (variantId: number) => `/products/variants/${variantId}/stock/`,
-    
+    DETAIL: (id: number): string =>
+      `/products/${id}/`,
+
+    /** فهرست واریانت‌های محصول - GET */
+    VARIANTS: (productId: number): string =>
+      `/products/${productId}/variants/`,
+
+    /** جزئیات یک واریانت - GET */
+    VARIANT_DETAIL: (variantId: number): string =>
+      `/products/variants/${variantId}/`,
+
+    /** بررسی موجودی واریانت - GET */
+    STOCK_CHECK: (variantId: number): string =>
+      `/products/variants/${variantId}/stock/`,
+
     /** جستجوی محصولات - GET */
     SEARCH: '/products/search/',
-    
-    /** لیست دسته‌بندی‌ها - GET */
+
+    /** فهرست دسته‌بندی‌ها - GET */
     CATEGORIES: '/products/categories/',
-    
-    /** لیست برندها - GET */
+
+    /** فهرست برندها - GET */
     BRANDS: '/products/brands/',
-    
-    /** محصولات پیشنهادی - GET */
-    SUGGESTIONS: (id: number) => `/products/${id}/suggestions/`,
-    
-    /** محصولات پر بازدید - GET */
+
+    /** محصولات پیشنهادی مرتبط - GET */
+    SUGGESTIONS: (id: number): string =>
+      `/products/${id}/suggestions/`,
+
+    /** محصولات پربازدید - GET */
     POPULAR: '/products/popular/',
-    
-    /** محصولات تخفیف دار - GET */
-    DISCOUNTED: '/products/discounted/'
+
+    /** محصولات دارای تخفیف - GET */
+    DISCOUNTED: '/products/discounted/',
   },
 
-  // ========== سفارشات ==========
+  // =====================================================
+  // سفارش‌ها
+  // =====================================================
   ORDER: {
-    /** ایجاد سفارش - POST */
+    /** ثبت سفارش از سبد خرید - POST */
     CREATE: '/orders/create/',
-    
-    /** لیست سفارشات - GET */
+
+    /** فهرست سفارش‌های کاربر - GET */
     LIST: '/orders/',
-    
-    /** جزئیات سفارش - GET */
-    DETAIL: (id: number) => `/orders/${id}/`,
-    
-    /** لغو سفارش - POST */
-    CANCEL: (id: number) => `/orders/${id}/cancel/`,
-    
-    /** پیگیری سفارش - GET */
-    TRACK: (id: number) => `/orders/${id}/track/`,
-    
-    /** بازگشت سفارش - POST */
-    RETURN: (id: number) => `/orders/${id}/return/`,
-    
-    /** دریافت فاکتور - GET */
-    INVOICE: (id: number) => `/orders/${id}/invoice/`
+
+    /** جزئیات یک سفارش - GET */
+    DETAIL: (id: number): string =>
+      `/orders/${id}/`,
+
+    /** لغو سفارش در وضعیت pending - POST */
+    CANCEL: (id: number): string =>
+      `/orders/${id}/cancel/`,
+
+    /** پیگیری سفارش با کد رهگیری - GET */
+    TRACK: (trackingCode: string): string =>
+      `/orders/track/${encodeURIComponent(trackingCode)}/`,
+
+    /** ثبت درخواست مرجوعی - POST */
+    RETURN: '/orders/returns/',
   },
 
-  // ========== پرداخت ==========
+  // =====================================================
+  // پرداخت
+  // =====================================================
   PAYMENT: {
-    /** ایجاد پرداخت - POST */
+    /** ایجاد درخواست پرداخت - POST */
     CREATE: '/payments/create/',
-    
-    /** تایید پرداخت - GET */
+
+    /** تأیید نتیجه پرداخت - GET */
     VERIFY: '/payments/verify/',
-    
+
     /** دریافت روش‌های پرداخت - GET */
     METHODS: '/payments/methods/',
-    
-    /** وضعیت پرداخت - GET */
-    STATUS: (id: number) => `/payments/${id}/status/`
+
+    /** دریافت وضعیت پرداخت - GET */
+    STATUS: (id: number): string =>
+      `/payments/${id}/status/`,
   },
 
-  // ========== کاربران ==========
+  // =====================================================
+  // کاربر و آدرس‌ها
+  // =====================================================
   USER: {
-    /** آدرس‌ها - GET/POST */
+    /** فهرست آدرس‌ها یا افزودن آدرس - GET/POST */
     ADDRESSES: '/customers/addresses/',
-    
-    /** آدرس خاص - GET/PUT/DELETE */
-    ADDRESS: (id: number) => `/customers/addresses/${id}/`,
-    
-    /** آدرس پیش‌فرض - PUT */
-    DEFAULT_ADDRESS: (id: number) => `/customers/addresses/${id}/default/`,
-    
-    /** لیست علاقه‌مندی‌ها - GET */
+
+    /** دریافت، ویرایش یا حذف آدرس - GET/PUT/PATCH/DELETE */
+    ADDRESS: (id: number): string =>
+      `/customers/addresses/${id}/`,
+
+    /** انتخاب آدرس پیش‌فرض - PUT/PATCH */
+    DEFAULT_ADDRESS: (id: number): string =>
+      `/customers/addresses/${id}/default/`,
+
+    /** فهرست علاقه‌مندی‌ها - GET */
     WISHLIST: '/customers/wishlist/',
-    
-    /** افزودن به علاقه‌مندی‌ها - POST */
+
+    /** افزودن محصول به علاقه‌مندی‌ها - POST */
     ADD_TO_WISHLIST: '/customers/wishlist/add/',
-    
-    /** حذف از علاقه‌مندی‌ها - DELETE */
-    REMOVE_FROM_WISHLIST: (productId: number) => `/customers/wishlist/${productId}/`,
-    
-    /** دیدگاه‌های کاربر - GET */
+
+    /** حذف محصول از علاقه‌مندی‌ها - DELETE */
+    REMOVE_FROM_WISHLIST: (
+      productId: number,
+    ): string =>
+      `/customers/wishlist/${productId}/`,
+
+    /** فهرست دیدگاه‌های کاربر - GET */
     REVIEWS: '/customers/reviews/',
-    
-    /** دیدگاه خاص - GET/PUT/DELETE */
-    REVIEW: (id: number) => `/customers/reviews/${id}/`
-  }
+
+    /** دریافت، ویرایش یا حذف یک دیدگاه - GET/PUT/DELETE */
+    REVIEW: (id: number): string =>
+      `/customers/reviews/${id}/`,
+  },
+
+  // =====================================================
+  // بسته‌بندی و هزینه ارسال
+  // =====================================================
+  PACKING: {
+    /**
+     * محاسبه هزینه ارسال سبد خرید براساس آدرس.
+     *
+     * Body:
+     * {
+     *   address_id: number
+     * }
+     */
+    CART_SHIPPING_QUOTE:
+      '/bazbia-packing/cart/shipping-quote/',
+
+    /**
+     * موتور عمومی بسته‌بندی برای مشتریان خارجی API.
+     */
+    EXTERNAL_PACKING:
+      '/bazbia-packing/external/packing/',
+  },
 } as const
 
-// ========== Type Exports ==========
-export type ApiEndpoints = typeof API_ENDPOINTS
 
-// ========== Utility Functions ==========
+// =========================================================
+// Type exports
+// =========================================================
+
+export type ApiEndpoints =
+  typeof API_ENDPOINTS
+
+
+// =========================================================
+// Utility types
+// =========================================================
+
+export type QueryParameterValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+
+export type QueryParameters =
+  Record<string, QueryParameterValue>
+
+
+// =========================================================
+// توابع کمکی URL
+// =========================================================
 
 /**
- * دریافت آدرس کامل یک endpoint
- * @param path - مسیر نسبی
- * @returns آدرس کامل
+ * دریافت base URL تنظیم‌شده برای API.
+ *
+ * اسلش‌های انتهایی حذف می‌شوند تا هنگام اتصال مسیر،
+ * آدرس دارای دو اسلش نشود.
  */
-export function getFullUrl(path: string): string {
-  const baseURL = import.meta.env.VITE_API_URL || 'https://backend.bazbia.ir/api'
-  return `${baseURL}${path}`
+export function getApiBaseUrl(): string {
+  const configuredBaseUrl =
+    import.meta.env.VITE_API_URL
+
+  const fallbackBaseUrl =
+    'https://backend.bazbia.ir/api'
+
+  return (
+    configuredBaseUrl ||
+    fallbackBaseUrl
+  ).replace(/\/+$/, '')
 }
 
-/**
- * ساخت query string
- * @param params - پارامترها
- * @returns query string
- */
-export function buildQueryString(params: Record<string, any>): string {
-  const searchParams = new URLSearchParams()
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, String(value))
-    }
-  })
-  
-  const queryString = searchParams.toString()
-  return queryString ? `?${queryString}` : ''
-}
 
 /**
- * ترکیب مسیر با query string
- * @param path - مسیر
- * @param params - پارامترها
- * @returns مسیر کامل با query string
+ * استانداردسازی مسیر نسبی API.
+ *
+ * خروجی همیشه با یک / شروع می‌شود.
  */
-export function buildUrl(path: string, params?: Record<string, any>): string {
-  if (!params) return path
-  const queryString = buildQueryString(params)
-  return `${path}${queryString}`
+export function normalizeApiPath(
+  path: string,
+): string {
+  const trimmedPath = path.trim()
+
+  if (!trimmedPath) {
+    return '/'
+  }
+
+  return trimmedPath.startsWith('/')
+    ? trimmedPath
+    : `/${trimmedPath}`
+}
+
+
+/**
+ * دریافت آدرس کامل یک endpoint.
+ *
+ * نمونه:
+ *
+ * getFullUrl('/orders/create/')
+ *
+ * خروجی:
+ *
+ * https://backend.bazbia.ir/api/orders/create/
+ */
+export function getFullUrl(
+  path: string,
+): string {
+  const baseUrl = getApiBaseUrl()
+  const normalizedPath =
+    normalizeApiPath(path)
+
+  return `${baseUrl}${normalizedPath}`
+}
+
+
+/**
+ * ساخت query string از یک object.
+ *
+ * مقادیر undefined و null در خروجی قرار نمی‌گیرند.
+ *
+ * نمونه:
+ *
+ * buildQueryString({
+ *   page: 2,
+ *   search: 'جارو',
+ *   in_stock: true,
+ * })
+ *
+ * خروجی:
+ *
+ * ?page=2&search=جارو&in_stock=true
+ */
+export function buildQueryString(
+  params: QueryParameters,
+): string {
+  const searchParams =
+    new URLSearchParams()
+
+  Object.entries(params).forEach(
+    ([key, value]) => {
+      if (
+        value === undefined ||
+        value === null
+      ) {
+        return
+      }
+
+      searchParams.append(
+        key,
+        String(value),
+      )
+    },
+  )
+
+  const queryString =
+    searchParams.toString()
+
+  return queryString
+    ? `?${queryString}`
+    : ''
+}
+
+
+/**
+ * اتصال مسیر API به query string.
+ *
+ * نمونه:
+ *
+ * buildUrl(
+ *   API_ENDPOINTS.PRODUCT.LIST,
+ *   {
+ *     page: 2,
+ *     search: 'جارو',
+ *   },
+ * )
+ */
+export function buildUrl(
+  path: string,
+  params?: QueryParameters,
+): string {
+  const normalizedPath =
+    normalizeApiPath(path)
+
+  if (!params) {
+    return normalizedPath
+  }
+
+  return (
+    normalizedPath +
+    buildQueryString(params)
+  )
+}
+
+
+/**
+ * ساخت آدرس کامل همراه با query string.
+ *
+ * این تابع برای موقعیت‌هایی مناسب است که آدرس مطلق
+ * لازم باشد؛ مثلاً لینک دانلود یا ارسال URL به سرویس دیگر.
+ */
+export function buildFullUrl(
+  path: string,
+  params?: QueryParameters,
+): string {
+  return getFullUrl(
+    buildUrl(path, params),
+  )
 }

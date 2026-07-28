@@ -176,7 +176,24 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           title: 'بررسی سفارش'
         }
-      }
+      },
+
+
+      {
+       path: 'success/:orderId',
+       name: 'checkout-success',
+       component: () =>
+       import(
+          '@/views/checkout/CheckoutSuccessView.vue'
+       ),
+      meta: {
+    requiresAuth: true,
+    title: 'ثبت موفق سفارش',
+  },
+}
+
+
+      
     ]
   },
 

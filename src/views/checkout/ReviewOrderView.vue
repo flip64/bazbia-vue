@@ -36,7 +36,7 @@
         </div>
       </section>
 
-      <!-- آدرس -->
+      <!-- آدرس تحویل -->
       <section class="review-card">
         <div class="review-card__header">
           <h2>آدرس تحویل</h2>
@@ -114,11 +114,7 @@
             <span>هزینه ارسال</span>
 
             <strong>
-              {{
-                formatPrice(
-                  checkoutStore.shipping.cost,
-                )
-              }}
+              {{ formatPrice(checkoutStore.shipping.cost) }}
               تومان
             </strong>
           </div>
@@ -192,6 +188,7 @@
         </div>
       </section>
 
+      <!-- خطا -->
       <div
         v-if="errorMessage"
         class="review-page__error"
@@ -200,6 +197,7 @@
         {{ errorMessage }}
       </div>
 
+      <!-- عملیات -->
       <div class="review-page__actions">
         <button
           type="button"
@@ -221,7 +219,7 @@
         >
           {{
             isSubmitting
-              ? 'در حال ثبت سفارش...'
+              ? submitButtonText
               : 'ثبت سفارش و پرداخت'
           }}
         </button>
@@ -253,6 +251,11 @@ import {
   orderService,
 } from '@/services/order.service'
 
+import {
+  PaymentServiceError,
+  paymentService,
+} from '@/services/payment.service'
+
 import type {
   CheckoutPaymentMethod,
 } from '@/types/checkout.types'
@@ -278,10 +281,12 @@ const paymentMethod =
 
 const isSubmitting = ref(false)
 
+const isCreatingPayment = ref(false)
+
 const errorMessage = ref('')
 
 
-const finalPrice = computed(() => {
+const finalPrice = computed<number>(() => {
   return (
     Number(cartStore.totalPrice || 0) +
     Number(
@@ -291,15 +296,26 @@ const finalPrice = computed(() => {
 })
 
 
+const submitButtonText = computed<string>(() => {
+  if (isCreatingPayment.value) {
+    return 'در حال انتقال به درگاه...'
+  }
+
+  return 'در حال ثبت سفارش...'
+})
+
+
 const formatPrice = (
-  priceInToman: number,
+  priceInToman: string | number | null | undefined,
 ): string => {
+  const value = Number(
+    priceInToman || 0,
+  )
+
   return new Intl.NumberFormat(
     'fa-IR',
   ).format(
-    Math.round(
-      Number(priceInToman || 0),
-    ),
+    Math.round(value),
   )
 }
 
@@ -368,21 +384,24 @@ const buildCreateOrderPayload =
     const shippingMethodCode =
       checkoutStore.shipping.methodCode
 
-    if (!addressId) {
+    if (
+      !Number.isInteger(addressId) ||
+      Number(addressId) <= 0
+    ) {
       errorMessage.value =
         'آدرس تحویل معتبر نیست.'
 
       return null
     }
 
-    if (!shippingQuoteId) {
+    if (!shippingQuoteId?.trim()) {
       errorMessage.value =
         'اطلاعات محاسبه ارسال موجود نیست.'
 
       return null
     }
 
-    if (!shippingMethodCode) {
+    if (!shippingMethodCode?.trim()) {
       errorMessage.value =
         'روش ارسال انتخاب نشده است.'
 
@@ -390,18 +409,48 @@ const buildCreateOrderPayload =
     }
 
     return {
-      address_id: addressId,
+      address_id: Number(addressId),
 
       shipping_quote_id:
-        shippingQuoteId,
+        shippingQuoteId.trim(),
 
       shipping_method_code:
-        shippingMethodCode,
+        shippingMethodCode.trim(),
 
       payment_method:
         paymentMethod.value,
     }
   }
+
+
+const resetCheckoutState = (): void => {
+  /*
+   * بعد از ساخت موفق سفارش، بک‌اند سبد را خالی می‌کند.
+   * این بخش فقط وضعیت محلی Pinia را پاک می‌کند.
+   */
+  cartStore.$reset()
+  checkoutStore.reset()
+}
+
+
+const goToOrderSuccess = async (
+  orderId: number,
+  paymentStatus?: string,
+): Promise<void> => {
+  await router.replace({
+    name: 'checkout-success',
+
+    params: {
+      orderId: String(orderId),
+    },
+
+    query: paymentStatus
+      ? {
+          payment: paymentStatus,
+        }
+      : undefined,
+  })
+}
 
 
 const submitOrder =
@@ -438,31 +487,69 @@ const submitOrder =
 
     isSubmitting.value = true
 
+    /*
+     * اگر سفارش ساخته شود ولی ایجاد پرداخت شکست بخورد،
+     * شناسه سفارش را نگه می‌داریم تا سفارش دوباره ساخته
+     * نشود.
+     */
+    let createdOrderId: number | null =
+      null
+
     try {
-      const response =
+      // ---------------------------------------------
+      // ۱. ثبت سفارش
+      // ---------------------------------------------
+      const orderResponse =
         await orderService.createOrder(
           payload,
         )
 
-      const orderId =
-        response.order.id
+      createdOrderId =
+        orderResponse.order.id
+
+      // ---------------------------------------------
+      // ۲. ایجاد درخواست پرداخت
+      // ---------------------------------------------
+      isCreatingPayment.value = true
+
+      const paymentResponse =
+        await paymentService.createPayment({
+          order_id: createdOrderId,
+        })
 
       /*
-       * بک‌اند پس از ساخت سفارش، سبد را خالی می‌کند.
-       * این reset فقط وضعیت محلی Pinia را پاک می‌کند
-       * و درخواست حذف دوباره به سرور نمی‌فرستد.
+       * سفارش ساخته شده و سبد بک‌اند خالی شده است.
        */
-      cartStore.$reset()
+      resetCheckoutState()
 
-      checkoutStore.reset()
+      // ---------------------------------------------
+      // ۳. بررسی آدرس درگاه
+      // ---------------------------------------------
+      const paymentUrl =
+        paymentResponse.payment_url?.trim()
 
-      await router.replace({
-        name: 'checkout-success',
-        params: {
-          orderId: String(orderId),
-        },
-      })
+      if (!paymentUrl) {
+        await goToOrderSuccess(
+          createdOrderId,
+          'not-created',
+        )
+
+        return
+      }
+
+      /*
+       * انتقال کامل مرورگر به آدرس درگاه.
+       *
+       * در حالت mock این URL به صفحه verify فرانت می‌رود
+       * و در حالت واقعی به سایت درگاه بانکی منتقل می‌شود.
+       */
+      window.location.assign(
+        paymentUrl,
+      )
     } catch (error: unknown) {
+      // ---------------------------------------------
+      // خطای ثبت سفارش
+      // ---------------------------------------------
       if (
         error instanceof
         OrderServiceError
@@ -470,11 +557,6 @@ const submitOrder =
         errorMessage.value =
           error.message
 
-        /*
-         * ممکن است هنگام ثبت سفارش، موجودی یکی از
-         * کالاها تغییر کرده باشد؛ پس سبد را دوباره
-         * از سرور می‌گیریم.
-         */
         if (
           error.status === 400 ||
           error.status === 409
@@ -485,14 +567,58 @@ const submitOrder =
         return
       }
 
-      errorMessage.value =
-        'خطای پیش‌بینی‌نشده‌ای در ثبت سفارش رخ داد.'
+      // ---------------------------------------------
+      // خطای ساخت پرداخت بعد از ثبت سفارش
+      // ---------------------------------------------
+      if (
+        error instanceof
+        PaymentServiceError
+      ) {
+        /*
+         * سفارش قبلاً ثبت شده است؛ بنابراین نباید کاربر
+         * با زدن مجدد دکمه، سفارش دیگری ایجاد کند.
+         */
+        if (createdOrderId) {
+          resetCheckoutState()
+
+          await goToOrderSuccess(
+            createdOrderId,
+            'create-failed',
+          )
+
+          return
+        }
+
+        errorMessage.value =
+          error.message
+
+        return
+      }
 
       console.error(
-        'Create order error:',
+        'Checkout submit error:',
         error,
       )
+
+      /*
+       * اگر سفارش ساخته شده باشد، حتی در خطای ناشناخته
+       * نیز کاربر را به صفحه همان سفارش می‌بریم.
+       */
+      if (createdOrderId) {
+        resetCheckoutState()
+
+        await goToOrderSuccess(
+          createdOrderId,
+          'unknown-error',
+        )
+
+        return
+      }
+
+      errorMessage.value =
+        'خطای پیش‌بینی‌نشده‌ای در ثبت سفارش رخ داد.'
     } finally {
+      isCreatingPayment.value = false
       isSubmitting.value = false
     }
   }
@@ -561,6 +687,7 @@ onMounted(async () => {
 }
 
 .review-card__header h2 {
+  margin: 0;
   font-size: 17px;
   color: #111827;
 }
@@ -571,6 +698,10 @@ onMounted(async () => {
   text-decoration: none;
 }
 
+.review-card__edit:hover {
+  color: #047857;
+}
+
 .review-card__content {
   display: flex;
   flex-direction: column;
@@ -578,6 +709,10 @@ onMounted(async () => {
   padding: 18px;
   color: #4b5563;
   line-height: 1.8;
+}
+
+.review-card__content p {
+  margin: 0;
 }
 
 .review-card__content strong {
@@ -629,6 +764,9 @@ onMounted(async () => {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .payment-method--selected {
@@ -711,6 +849,12 @@ onMounted(async () => {
   .review-page__back,
   .review-page__submit {
     width: 100%;
+  }
+
+  .order-summary__row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
   }
 }
 </style>

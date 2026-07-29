@@ -18,6 +18,8 @@ export type PaymentMethod =
 export interface Payment {
   id: number
   order: number
+  order_status: string
+  can_retry: boolean
 
   /**
    * مبلغ پرداخت بر حسب تومان.

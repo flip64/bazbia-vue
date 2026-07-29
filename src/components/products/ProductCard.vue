@@ -19,18 +19,25 @@ const isAdding = ref(false)
 const addSuccess = ref(false)
 const imageError = ref(false)
 
+
+
+
 const mainVariant = computed(() => {
+  const variants = props.product.variants ?? []
+
   return (
-    props.product.variants?.[0] ??
+    variants.find((variant) => Number(variant.stock) > 0) ??
+    variants[0] ??
     null
   )
 })
+  
 
 const isInStock = computed(() => {
   return (
     props.product.in_stock > 0 &&
     mainVariant.value !== null &&
-    mainVariant.value.stock > 0
+    Number(mainVariant.value.stock) > 0
   )
 })
 

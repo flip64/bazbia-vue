@@ -78,11 +78,18 @@
                    border border-gray-100 bg-white shadow-sm
                    transition duration-300
                    hover:-translate-y-1 hover:shadow-xl"
+            :class="{
+              'opacity-90': !isProductInStock(product),
+            }"
           >
             <!-- Image -->
             <div class="relative aspect-square overflow-hidden bg-gray-50">
+              <!-- Special Badge -->
               <span
-                v-if="product.discount_price"
+                v-if="
+                  isProductInStock(product) &&
+                  hasDiscount(product)
+                "
                 class="absolute right-3 top-3 z-10 rounded-full
                        bg-red-500 px-2.5 py-1 text-[11px]
                        font-bold text-white shadow"
@@ -90,8 +97,9 @@
                 پیشنهاد ویژه
               </span>
 
+              <!-- Unavailable Overlay -->
               <span
-                v-if="!product.in_stock"
+                v-if="!isProductInStock(product)"
                 class="absolute inset-0 z-10 flex items-center justify-center
                        bg-white/70 text-sm font-bold text-gray-600
                        backdrop-blur-[2px]"
@@ -100,13 +108,26 @@
               </span>
 
               <img
+                v-if="product.thumb"
                 :src="product.thumb"
                 :alt="product.name"
                 loading="lazy"
                 class="h-full w-full object-contain p-3
                        transition duration-500
                        group-hover:scale-105"
+                :class="{
+                  'grayscale-[20%] opacity-70':
+                    !isProductInStock(product),
+                }"
               />
+
+              <div
+                v-else
+                class="flex h-full w-full items-center justify-center
+                       text-xs text-gray-400"
+              >
+                تصویر موجود نیست
+              </div>
             </div>
 
             <!-- Content -->
@@ -118,29 +139,43 @@
                 {{ product.name }}
               </h3>
 
-              <div class="mt-4">
-                <div
-                  v-if="product.discount_price"
-                  class="mb-1 text-xs text-gray-400 line-through"
-                >
-                  {{ formatPrice(product.discount_price) }}
-                </div>
-
-                <div class="flex items-end justify-between gap-2">
-                  <span class="text-base font-bold text-emerald-600">
-                    {{ formatPrice(product.price) }}
-                  </span>
-
-                  <span
-                    v-if="product.discount_price"
-                    class="rounded-lg bg-red-50 px-2 py-1
-                           text-[10px] font-bold text-red-500"
+              <!-- Price -->
+              <div
+                class="mt-4 flex min-h-[58px] flex-col justify-end"
+              >
+                <template v-if="isProductInStock(product)">
+                  <div
+                    v-if="hasDiscount(product)"
+                    class="mb-1 text-xs text-gray-400 line-through"
                   >
-                    تخفیف
-                  </span>
+                    {{ formatPrice(product.price) }}
+                  </div>
+
+                  <div class="flex items-end justify-between gap-2">
+                    <span class="text-base font-bold text-emerald-600">
+                      {{ formatPrice(getFinalPrice(product)) }}
+                    </span>
+
+                    <span
+                      v-if="hasDiscount(product)"
+                      class="rounded-lg bg-red-50 px-2 py-1
+                             text-[10px] font-bold text-red-500"
+                    >
+                      {{ getDiscountPercent(product) }}٪ تخفیف
+                    </span>
+                  </div>
+                </template>
+
+                <div
+                  v-else
+                  class="flex min-h-[42px] items-center justify-center
+                         text-sm font-bold text-gray-500"
+                >
+                  ناموجود
                 </div>
               </div>
 
+              <!-- Button -->
               <button
                 type="button"
                 class="mt-4 flex w-full items-center justify-center
@@ -149,11 +184,16 @@
                        transition active:scale-95
                        hover:bg-emerald-600
                        disabled:cursor-not-allowed
-                       disabled:bg-gray-200 disabled:text-gray-400"
-                :disabled="!product.in_stock"
+                       disabled:bg-gray-200 disabled:text-gray-400
+                       disabled:active:scale-100"
+                :disabled="!isProductInStock(product)"
                 @click="addToCart(product)"
               >
-                {{ product.in_stock ? "افزودن به سبد خرید" : "ناموجود" }}
+                {{
+                  isProductInStock(product)
+                    ? "افزودن به سبد خرید"
+                    : "ناموجود"
+                }}
               </button>
             </div>
           </article>
@@ -178,7 +218,58 @@ defineProps<{
   products: Product[]
 }>()
 
-function formatPrice(price: number | string | null | undefined) {
+function isProductInStock(product: Product): boolean {
+  const variants = product.variants ?? []
+
+  if (variants.length > 0) {
+    return variants.some(
+      (variant) => Number(variant.stock) > 0,
+    )
+  }
+
+  if (typeof product.in_stock === "boolean") {
+    return product.in_stock
+  }
+
+  return Number(product.in_stock ?? 0) > 0
+}
+
+function hasDiscount(product: Product): boolean {
+  const price = Number(product.price ?? 0)
+  const discountPrice = Number(product.discount_price ?? 0)
+
+  return (
+    isProductInStock(product) &&
+    price > 0 &&
+    discountPrice > 0 &&
+    discountPrice < price
+  )
+}
+
+function getFinalPrice(product: Product): number {
+  if (hasDiscount(product)) {
+    return Number(product.discount_price)
+  }
+
+  return Number(product.price ?? 0)
+}
+
+function getDiscountPercent(product: Product): number {
+  if (!hasDiscount(product)) {
+    return 0
+  }
+
+  const price = Number(product.price)
+  const discountPrice = Number(product.discount_price)
+
+  return Math.round(
+    ((price - discountPrice) / price) * 100,
+  )
+}
+
+function formatPrice(
+  price: number | string | null | undefined,
+): string {
   const numericPrice = Number(price ?? 0)
 
   return (
@@ -188,6 +279,10 @@ function formatPrice(price: number | string | null | undefined) {
 }
 
 function addToCart(product: Product) {
+  if (!isProductInStock(product)) {
+    return
+  }
+
   console.log("🛒 add to cart:", product)
 }
 </script>

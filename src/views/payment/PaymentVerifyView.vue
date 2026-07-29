@@ -402,7 +402,6 @@ const verifyPayment =
 
     if (!validateQueryParameters()) {
       isLoading.value = false
-
       return
     }
 
@@ -410,6 +409,29 @@ const verifyPayment =
       mockStatus.value
 
     try {
+      /*
+       * ابتدا وضعیت فعلی پرداخت را می‌خوانیم.
+       * اگر قبلاً موفق شده باشد، دوباره verify نمی‌کنیم.
+       */
+      const currentPayment =
+        await paymentService.getPayment(
+          paymentId.value,
+        )
+
+      payment.value =
+        currentPayment
+
+      if (currentPayment.is_successful) {
+        return
+      }
+
+      if (
+        currentPayment.status ===
+          'successful'
+      ) {
+        return
+      }
+
       const response =
         await paymentService.verifyPayment({
           payment_id:
@@ -451,7 +473,6 @@ const verifyPayment =
       isLoading.value = false
     }
   }
-
 
 const retryPayment =
   async (): Promise<void> => {

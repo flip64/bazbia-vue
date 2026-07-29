@@ -7,8 +7,8 @@
  * https://backend.bazbia.ir/api
  *
  * نکته:
- * تمام مسیرهای این فایل با / شروع می‌شوند و در انتها
- * نیز / دارند تا با تنظیمات پیش‌فرض Django سازگار باشند.
+ * تمام مسیرها با / شروع می‌شوند و در انتها نیز /
+ * دارند تا با تنظیم APPEND_SLASH جنگو هماهنگ باشند.
  */
 
 export const API_ENDPOINTS = {
@@ -32,16 +32,19 @@ export const API_ENDPOINTS = {
     PROFILE: '/customers/profile/',
 
     /** ویرایش پروفایل کاربر - PUT/PATCH */
-    UPDATE_PROFILE: '/customers/profile/update/',
+    UPDATE_PROFILE:
+      '/customers/profile/update/',
 
     /** تغییر رمز عبور - POST */
-    CHANGE_PASSWORD: '/customers/change-password/',
+    CHANGE_PASSWORD:
+      '/customers/change-password/',
 
     /** تأیید ایمیل یا شماره موبایل - POST */
     VERIFY: '/customers/verify/',
 
     /** ارسال مجدد کد تأیید - POST */
-    RESEND_CODE: '/customers/resend-code/',
+    RESEND_CODE:
+      '/customers/resend-code/',
   },
 
   // =====================================================
@@ -54,7 +57,7 @@ export const API_ENDPOINTS = {
     /** افزودن واریانت به سبد خرید - POST */
     ADD: '/orders/cart/add/',
 
-    /** بروزرسانی تعداد آیتم - PUT/PATCH */
+    /** به‌روزرسانی تعداد آیتم - PUT/PATCH */
     UPDATE: (id: number): string =>
       `/orders/cart/items/${id}/`,
 
@@ -87,22 +90,29 @@ export const API_ENDPOINTS = {
       `/products/${id}/`,
 
     /** فهرست واریانت‌های محصول - GET */
-    VARIANTS: (productId: number): string =>
+    VARIANTS: (
+      productId: number,
+    ): string =>
       `/products/${productId}/variants/`,
 
     /** جزئیات یک واریانت - GET */
-    VARIANT_DETAIL: (variantId: number): string =>
+    VARIANT_DETAIL: (
+      variantId: number,
+    ): string =>
       `/products/variants/${variantId}/`,
 
     /** بررسی موجودی واریانت - GET */
-    STOCK_CHECK: (variantId: number): string =>
+    STOCK_CHECK: (
+      variantId: number,
+    ): string =>
       `/products/variants/${variantId}/stock/`,
 
     /** جستجوی محصولات - GET */
     SEARCH: '/products/search/',
 
     /** فهرست دسته‌بندی‌ها - GET */
-    CATEGORIES: '/products/categories/',
+    CATEGORIES:
+      '/products/categories/',
 
     /** فهرست برندها - GET */
     BRANDS: '/products/brands/',
@@ -115,7 +125,8 @@ export const API_ENDPOINTS = {
     POPULAR: '/products/popular/',
 
     /** محصولات دارای تخفیف - GET */
-    DISCOUNTED: '/products/discounted/',
+    DISCOUNTED:
+      '/products/discounted/',
   },
 
   // =====================================================
@@ -137,8 +148,12 @@ export const API_ENDPOINTS = {
       `/orders/${id}/cancel/`,
 
     /** پیگیری سفارش با کد رهگیری - GET */
-    TRACK: (trackingCode: string): string =>
-      `/orders/track/${encodeURIComponent(trackingCode)}/`,
+    TRACK: (
+      trackingCode: string,
+    ): string =>
+      `/orders/track/${encodeURIComponent(
+        trackingCode,
+      )}/`,
 
     /** ثبت درخواست مرجوعی - POST */
     RETURN: '/orders/returns/',
@@ -148,18 +163,41 @@ export const API_ENDPOINTS = {
   // پرداخت
   // =====================================================
   PAYMENT: {
-    /** ایجاد درخواست پرداخت - POST */
+    /**
+     * ساخت درخواست پرداخت برای سفارش.
+     *
+     * Method: POST
+     *
+     * Body:
+     * {
+     *   order_id: number
+     * }
+     */
     CREATE: '/payments/create/',
 
-    /** تأیید نتیجه پرداخت - GET */
+    /**
+     * تأیید نتیجه پرداخت.
+     *
+     * Method: POST
+     *
+     * Body:
+     * {
+     *   payment_id: number
+     *   authority: string
+     *   mock_status: 'success' | 'failed' | 'cancelled'
+     * }
+     */
     VERIFY: '/payments/verify/',
 
-    /** دریافت روش‌های پرداخت - GET */
-    METHODS: '/payments/methods/',
-
-    /** دریافت وضعیت پرداخت - GET */
-    STATUS: (id: number): string =>
-      `/payments/${id}/status/`,
+    /**
+     * دریافت جزئیات و وضعیت فعلی پرداخت.
+     *
+     * Method: GET
+     */
+    DETAIL: (
+      paymentId: number,
+    ): string =>
+      `/payments/${paymentId}/`,
   },
 
   // =====================================================
@@ -167,21 +205,26 @@ export const API_ENDPOINTS = {
   // =====================================================
   USER: {
     /** فهرست آدرس‌ها یا افزودن آدرس - GET/POST */
-    ADDRESSES: '/customers/addresses/',
+    ADDRESSES:
+      '/customers/addresses/',
 
-    /** دریافت، ویرایش یا حذف آدرس - GET/PUT/PATCH/DELETE */
+    /** دریافت، ویرایش یا حذف آدرس */
     ADDRESS: (id: number): string =>
       `/customers/addresses/${id}/`,
 
-    /** انتخاب آدرس پیش‌فرض - PUT/PATCH */
-    DEFAULT_ADDRESS: (id: number): string =>
+    /** انتخاب آدرس پیش‌فرض */
+    DEFAULT_ADDRESS: (
+      id: number,
+    ): string =>
       `/customers/addresses/${id}/default/`,
 
     /** فهرست علاقه‌مندی‌ها - GET */
-    WISHLIST: '/customers/wishlist/',
+    WISHLIST:
+      '/customers/wishlist/',
 
     /** افزودن محصول به علاقه‌مندی‌ها - POST */
-    ADD_TO_WISHLIST: '/customers/wishlist/add/',
+    ADD_TO_WISHLIST:
+      '/customers/wishlist/add/',
 
     /** حذف محصول از علاقه‌مندی‌ها - DELETE */
     REMOVE_FROM_WISHLIST: (
@@ -190,9 +233,10 @@ export const API_ENDPOINTS = {
       `/customers/wishlist/${productId}/`,
 
     /** فهرست دیدگاه‌های کاربر - GET */
-    REVIEWS: '/customers/reviews/',
+    REVIEWS:
+      '/customers/reviews/',
 
-    /** دریافت، ویرایش یا حذف یک دیدگاه - GET/PUT/DELETE */
+    /** دریافت، ویرایش یا حذف دیدگاه */
     REVIEW: (id: number): string =>
       `/customers/reviews/${id}/`,
   },
@@ -204,6 +248,8 @@ export const API_ENDPOINTS = {
     /**
      * محاسبه هزینه ارسال سبد خرید براساس آدرس.
      *
+     * Method: POST
+     *
      * Body:
      * {
      *   address_id: number
@@ -213,7 +259,7 @@ export const API_ENDPOINTS = {
       '/bazbia-packing/cart/shipping-quote/',
 
     /**
-     * موتور عمومی بسته‌بندی برای مشتریان خارجی API.
+     * موتور عمومی بسته‌بندی برای مصرف‌کنندگان خارجی API.
      */
     EXTERNAL_PACKING:
       '/bazbia-packing/external/packing/',
@@ -241,7 +287,10 @@ export type QueryParameterValue =
   | undefined
 
 export type QueryParameters =
-  Record<string, QueryParameterValue>
+  Record<
+    string,
+    QueryParameterValue
+  >
 
 
 // =========================================================
@@ -303,6 +352,7 @@ export function getFullUrl(
   path: string,
 ): string {
   const baseUrl = getApiBaseUrl()
+
   const normalizedPath =
     normalizeApiPath(path)
 
@@ -314,18 +364,6 @@ export function getFullUrl(
  * ساخت query string از یک object.
  *
  * مقادیر undefined و null در خروجی قرار نمی‌گیرند.
- *
- * نمونه:
- *
- * buildQueryString({
- *   page: 2,
- *   search: 'جارو',
- *   in_stock: true,
- * })
- *
- * خروجی:
- *
- * ?page=2&search=جارو&in_stock=true
  */
 export function buildQueryString(
   params: QueryParameters,
@@ -360,16 +398,6 @@ export function buildQueryString(
 
 /**
  * اتصال مسیر API به query string.
- *
- * نمونه:
- *
- * buildUrl(
- *   API_ENDPOINTS.PRODUCT.LIST,
- *   {
- *     page: 2,
- *     search: 'جارو',
- *   },
- * )
  */
 export function buildUrl(
   path: string,
@@ -391,9 +419,6 @@ export function buildUrl(
 
 /**
  * ساخت آدرس کامل همراه با query string.
- *
- * این تابع برای موقعیت‌هایی مناسب است که آدرس مطلق
- * لازم باشد؛ مثلاً لینک دانلود یا ارسال URL به سرویس دیگر.
  */
 export function buildFullUrl(
   path: string,

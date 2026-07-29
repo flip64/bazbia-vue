@@ -183,33 +183,33 @@ const handleAddToCart = async () => {
       >
         {{ product.name }}
       </RouterLink>
+<div class="product-price">
+  <template v-if="isInStock">
+    <span
+      v-if="hasDiscount"
+      class="product-price__old"
+    >
+      {{ formatPrice(product.price) }}
+      تومان
+    </span>
 
-      <div class="product-price">
-        <span
-          v-if="hasDiscount"
-          class="product-price__old"
-        >
-          {{
-            formatPrice(
-              product.price,
-            )
-          }}
-          تومان
-        </span>
+    <div class="product-price__current">
+      <strong>
+        {{ formatPrice(finalPrice) }}
+      </strong>
 
-        <div class="product-price__current">
-          <strong>
-            {{
-              formatPrice(
-                finalPrice,
-              )
-            }}
-          </strong>
+      <span>تومان</span>
+    </div>
+  </template>
 
-          <span>تومان</span>
-        </div>
-      </div>
-
+  <div
+    v-else
+    class="product-price__unavailable"
+  >
+    ناموجود
+  </div>
+</div>
+      
       <button
         type="button"
         class="add-button"

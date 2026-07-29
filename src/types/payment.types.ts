@@ -7,6 +7,7 @@ export type PaymentStatus =
   | 'failed'
   | 'cancelled'
 
+
 export type PaymentMethod =
   | 'online'
   | 'cod'
@@ -18,7 +19,15 @@ export type PaymentMethod =
 export interface Payment {
   id: number
   order: number
+
+  /**
+   * وضعیت فعلی سفارش مرتبط با پرداخت.
+   */
   order_status: string
+
+  /**
+   * آیا امکان ایجاد درخواست پرداخت مجدد وجود دارد؟
+   */
   can_retry: boolean
 
   /**
@@ -48,6 +57,10 @@ export interface Payment {
 }
 
 
+// =====================================================
+// ایجاد پرداخت
+// =====================================================
+
 export interface CreatePaymentPayload {
   order_id: number
 }
@@ -59,6 +72,10 @@ export interface CreatePaymentResponse {
   payment: Payment
 }
 
+
+// =====================================================
+// پرداخت آزمایشی Mock
+// =====================================================
 
 export type MockPaymentStatus =
   | 'success'
@@ -79,16 +96,9 @@ export interface VerifyPaymentResponse {
 }
 
 
-export interface PaymentApiError {
-  error?: string
-  detail?: string
-
-  order_id?: string[]
-  payment_id?: string[]
-  authority?: string[]
-  mock_status?: string[]
-}
-
+// =====================================================
+// Callback واقعی زرین‌پال
+// =====================================================
 
 export type ZarinpalCallbackStatus =
   | 'OK'
@@ -104,4 +114,50 @@ export interface ZarinpalCallbackPayload {
 export interface ZarinpalCallbackResponse {
   message: string
   payment: Payment
+}
+
+
+// =====================================================
+// خطاهای API پرداخت
+// =====================================================
+
+export interface PaymentApiError {
+  /**
+   * خطای عمومی که بعضی Viewهای بک‌اند برمی‌گردانند.
+   */
+  error?: string
+
+  /**
+   * خطای استاندارد Django REST Framework.
+   */
+  detail?: string
+
+  /**
+   * پیام برخی پاسخ‌های callback یا verify.
+   */
+  message?: string
+
+  /**
+   * در پرداخت ناموفق ممکن است بک‌اند اطلاعات Payment
+   * را همراه پاسخ خطا برگرداند.
+   */
+  payment?: Payment
+
+  /**
+   * خطاهای اعتبارسنجی Serializerها.
+   */
+  order_id?: string[]
+  payment_id?: string[]
+  authority?: string[]
+  status?: string[]
+  mock_status?: string[]
+
+  /**
+   * برای خطاهای پیش‌بینی‌نشده یا فیلدهای جدید بک‌اند.
+   */
+  [key: string]:
+    | string
+    | string[]
+    | Payment
+    | undefined
 }

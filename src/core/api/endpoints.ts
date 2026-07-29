@@ -189,6 +189,12 @@ export const API_ENDPOINTS = {
      */
     VERIFY: '/payments/verify/',
 
+    
+
+    /** تأیید بازگشت واقعی زرین‌پال - POST */
+    ZARINPAL_CALLBACK: '/payments/callback/zarinpal/',
+
+
     /**
      * دریافت جزئیات و وضعیت فعلی پرداخت.
      *

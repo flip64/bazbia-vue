@@ -88,3 +88,20 @@ export interface PaymentApiError {
   authority?: string[]
   mock_status?: string[]
 }
+
+
+export type ZarinpalCallbackStatus =
+  | 'OK'
+  | 'NOK'
+
+
+export interface ZarinpalCallbackPayload {
+  authority: string
+  status: ZarinpalCallbackStatus
+}
+
+
+export interface ZarinpalCallbackResponse {
+  message: string
+  payment: Payment
+}

@@ -8,6 +8,7 @@ import { API_ENDPOINTS } from '@/core/api/endpoints'
 import type {
   CreatePaymentPayload,
   CreatePaymentResponse,
+  Payment,
   PaymentApiError,
   VerifyPaymentPayload,
   VerifyPaymentResponse,
@@ -127,6 +128,36 @@ function validatePositiveId(
 
 
 class PaymentService {
+
+  /**
+ * دریافت جزئیات و وضعیت فعلی پرداخت.
+ */
+async getPayment(
+  paymentId: number,
+): Promise<Payment> {
+  validatePositiveId(
+    paymentId,
+    'شناسه پرداخت',
+  )
+
+  try {
+    const response =
+      await apiClient.get<Payment>(
+        API_ENDPOINTS.PAYMENT.DETAIL(
+          paymentId,
+        ),
+      )
+
+    return response.data
+  } catch (error: unknown) {
+    throw normalizePaymentError(
+      error,
+      'دریافت وضعیت پرداخت انجام نشد.',
+    )
+  }
+}
+
+  
   /**
    * ساخت درخواست پرداخت برای یک سفارش.
    */
@@ -200,7 +231,7 @@ class PaymentService {
   }
 }
 
-
+⁷
 export const paymentService =
   new PaymentService()
 

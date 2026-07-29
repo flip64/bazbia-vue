@@ -19,58 +19,73 @@ const isAdding = ref(false)
 const addSuccess = ref(false)
 const imageError = ref(false)
 
-
-
-
 const mainVariant = computed(() => {
-  const variants = props.product.variants ?? []
+  const variants =
+    props.product.variants ?? []
 
   return (
-    variants.find((variant) => Number(variant.stock) > 0) ??
+    variants.find(
+      (variant) =>
+        Number(variant.stock) > 0,
+    ) ??
     variants[0] ??
     null
   )
 })
-  
 
 const isInStock = computed(() => {
   return (
-    props.product.in_stock > 0 &&
+    Number(props.product.in_stock) >
+      0 &&
     mainVariant.value !== null &&
-    Number(mainVariant.value.stock) > 0
+    Number(mainVariant.value.stock) >
+      0
   )
 })
 
+const productPrice = computed(() => {
+  return Number(
+    props.product.price ?? 0,
+  )
+})
+
+const productDiscountPrice =
+  computed(() => {
+    return Number(
+      props.product.discount_price ??
+        0,
+    )
+  })
+
 const hasDiscount = computed(() => {
   return (
-    props.product.discount_price !==
-      null &&
-    props.product.discount_price > 0 &&
-    props.product.discount_price <
-      props.product.price
+    isInStock.value &&
+    productDiscountPrice.value > 0 &&
+    productDiscountPrice.value <
+      productPrice.value
   )
 })
 
 const finalPrice = computed(() => {
   if (hasDiscount.value) {
-    return props.product
-      .discount_price as number
+    return productDiscountPrice.value
   }
 
-  return props.product.price
+  return productPrice.value
 })
 
 const discountPercent = computed(() => {
-  if (!hasDiscount.value) {
+  if (
+    !hasDiscount.value ||
+    productPrice.value <= 0
+  ) {
     return 0
   }
 
   return Math.round(
-    ((props.product.price -
-      Number(
-        props.product.discount_price,
-      )) /
-      props.product.price) *
+    ((productPrice.value -
+      productDiscountPrice.value) /
+      productPrice.value) *
       100,
   )
 })
@@ -80,11 +95,14 @@ const stockLabel = computed(() => {
     return 'ناموجود'
   }
 
-  if (
-    mainVariant.value &&
-    mainVariant.value.stock <= 5
-  ) {
-    return `فقط ${mainVariant.value.stock} عدد`
+  const stock = Number(
+    mainVariant.value?.stock ?? 0,
+  )
+
+  if (stock <= 5) {
+    return `فقط ${stock.toLocaleString(
+      'fa-IR',
+    )} عدد`
   }
 
   return 'موجود'
@@ -98,44 +116,50 @@ const formatPrice = (
   )
 }
 
-const handleAddToCart = async () => {
-  if (
-    !mainVariant.value ||
-    !isInStock.value ||
-    isAdding.value
-  ) {
-    return
+const handleAddToCart =
+  async () => {
+    if (
+      !mainVariant.value ||
+      !isInStock.value ||
+      isAdding.value
+    ) {
+      return
+    }
+
+    isAdding.value = true
+    addSuccess.value = false
+
+    try {
+      await cartStore.addItem({
+        variant_id:
+          mainVariant.value.id,
+        quantity: 1,
+      })
+
+      addSuccess.value = true
+
+      window.setTimeout(() => {
+        addSuccess.value = false
+      }, 1800)
+    } catch (error) {
+      console.error(
+        'خطا در افزودن به سبد:',
+        error,
+      )
+    } finally {
+      isAdding.value = false
+    }
   }
-
-  isAdding.value = true
-  addSuccess.value = false
-
-  try {
-    await cartStore.addItem({
-      variant_id:
-        mainVariant.value.id,
-
-      quantity: 1,
-    })
-
-    addSuccess.value = true
-
-    window.setTimeout(() => {
-      addSuccess.value = false
-    }, 1800)
-  } catch (err) {
-    console.error(
-      'خطا در افزودن به سبد:',
-      err,
-    )
-  } finally {
-    isAdding.value = false
-  }
-}
 </script>
 
 <template>
-  <article class="product-card">
+  <article
+    class="product-card"
+    :class="{
+      'product-card--unavailable':
+        !isInStock,
+    }"
+  >
     <RouterLink
       :to="`/product/${product.slug}`"
       class="product-image"
@@ -159,7 +183,10 @@ const handleAddToCart = async () => {
       </div>
 
       <span
-        v-if="hasDiscount"
+        v-if="
+          isInStock &&
+          hasDiscount
+        "
         class="discount-badge"
       >
         {{ discountPercent }}٪
@@ -183,33 +210,44 @@ const handleAddToCart = async () => {
       >
         {{ product.name }}
       </RouterLink>
-<div class="product-price">
-  <template v-if="isInStock">
-    <span
-      v-if="hasDiscount"
-      class="product-price__old"
-    >
-      {{ formatPrice(product.price) }}
-      تومان
-    </span>
 
-    <div class="product-price__current">
-      <strong>
-        {{ formatPrice(finalPrice) }}
-      </strong>
+      <div class="product-price">
+        <template v-if="isInStock">
+          <span
+            v-if="hasDiscount"
+            class="product-price__old"
+          >
+            {{
+              formatPrice(
+                productPrice,
+              )
+            }}
+            تومان
+          </span>
 
-      <span>تومان</span>
-    </div>
-  </template>
+          <div
+            class="product-price__current"
+          >
+            <strong>
+              {{
+                formatPrice(
+                  finalPrice,
+                )
+              }}
+            </strong>
 
-  <div
-    v-else
-    class="product-price__unavailable"
-  >
-    ناموجود
-  </div>
-</div>
-      
+            <span>تومان</span>
+          </div>
+        </template>
+
+        <div
+          v-else
+          class="product-price__unavailable"
+        >
+          ناموجود
+        </div>
+      </div>
+
       <button
         type="button"
         class="add-button"
@@ -258,7 +296,10 @@ const handleAddToCart = async () => {
   box-shadow:
     0 8px 24px
     rgba(15, 23, 42, 0.045);
-  transition: 0.25s;
+  transition:
+    transform 0.25s,
+    border-color 0.25s,
+    box-shadow 0.25s;
 }
 
 .product-card:hover {
@@ -267,6 +308,17 @@ const handleAddToCart = async () => {
   box-shadow:
     0 18px 35px
     rgba(4, 120, 87, 0.12);
+}
+
+.product-card--unavailable {
+  border-color: #e2e8f0;
+}
+
+.product-card--unavailable:hover {
+  border-color: #cbd5e1;
+  box-shadow:
+    0 12px 28px
+    rgba(15, 23, 42, 0.08);
 }
 
 .product-image {
@@ -282,12 +334,21 @@ const handleAddToCart = async () => {
   height: 100%;
   padding: 12px;
   object-fit: contain;
-  transition: 0.35s;
+  transition:
+    transform 0.35s,
+    opacity 0.25s,
+    filter 0.25s;
 }
 
 .product-card:hover
   .product-image img {
   transform: scale(1.05);
+}
+
+.product-card--unavailable
+  .product-image img {
+  opacity: 0.65;
+  filter: grayscale(20%);
 }
 
 .product-image__empty {
@@ -350,6 +411,10 @@ const handleAddToCart = async () => {
 }
 
 .product-price {
+  display: flex;
+  min-height: 70px;
+  flex-direction: column;
+  justify-content: flex-end;
   margin-top: auto;
   padding: 18px 0 13px;
 }
@@ -377,6 +442,15 @@ const handleAddToCart = async () => {
   font-size: 10px;
 }
 
+.product-price__unavailable {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 .add-button {
   width: 100%;
   height: 42px;
@@ -388,7 +462,9 @@ const handleAddToCart = async () => {
   font-size: 12px;
   font-weight: 900;
   cursor: pointer;
-  transition: 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .add-button:hover:not(:disabled) {
@@ -416,8 +492,17 @@ const handleAddToCart = async () => {
     font-size: 11px;
   }
 
+  .product-price {
+    min-height: 62px;
+    padding: 14px 0 11px;
+  }
+
   .product-price__current strong {
     font-size: 14px;
+  }
+
+  .product-price__unavailable {
+    font-size: 12px;
   }
 
   .add-button {

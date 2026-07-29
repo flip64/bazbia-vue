@@ -483,6 +483,16 @@ const retryPayment =
       return
     }
 
+
+    if (
+  payment.value.can_retry === false
+) {
+  errorMessage.value =
+    'امکان پرداخت مجدد برای این سفارش وجود ندارد.'
+
+  return
+    }
+    
     isRetrying.value = true
     errorMessage.value = ''
 

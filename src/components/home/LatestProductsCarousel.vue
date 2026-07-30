@@ -57,7 +57,7 @@
         <!-- Products -->
         <template v-else>
           <article
-            v-for="product in store.products"
+            v-for="product in sortedProducts"
             :key="product.id"
             class="group min-w-[180px] cursor-pointer overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-xl md:min-w-[220px]"
             :class="{
@@ -158,12 +158,8 @@
               <button
                 type="button"
                 class="mt-2 w-full rounded-lg bg-green-600 py-2 text-xs font-bold text-white transition hover:bg-green-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:active:scale-100"
-                :disabled="
-                  !isProductInStock(product)
-                "
-                @click.stop="
-                  addToCart(product)
-                "
+                :disabled="!isProductInStock(product)"
+                @click.stop="addToCart(product)"
               >
                 {{
                   isProductInStock(product)
@@ -179,7 +175,7 @@
         <div
           v-if="
             !store.loading &&
-            store.products.length === 0
+            sortedProducts.length === 0
           "
           class="flex min-h-[180px] w-full items-center justify-center text-sm text-gray-500"
         >
@@ -192,6 +188,7 @@
 
 <script setup lang="ts">
 import {
+  computed,
   onMounted,
   ref,
 } from 'vue'
@@ -240,6 +237,30 @@ const slider =
   ref<HTMLElement | null>(null)
 
 const store = useLatestProductStore()
+
+const sortedProducts = computed(() => {
+  return [...store.products].sort(
+    (
+      firstProduct: LatestProduct,
+      secondProduct: LatestProduct,
+    ) => {
+      const firstIsInStock =
+        isProductInStock(firstProduct)
+
+      const secondIsInStock =
+        isProductInStock(secondProduct)
+
+      if (
+        firstIsInStock ===
+        secondIsInStock
+      ) {
+        return 0
+      }
+
+      return firstIsInStock ? -1 : 1
+    },
+  )
+})
 
 onMounted(() => {
   store.fetchLatestProducts()

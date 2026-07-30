@@ -10,14 +10,14 @@ import { useRoute, useRouter } from 'vue-router'
 
 import ProductCard from '@/components/products/ProductCard.vue'
 import ProductFilters from '@/components/products/ProductFilters.vue'
-import ProductsToolbar from '@/components/products/ProductsToolbar.vue'
 import ProductPagination from '@/components/products/ProductPagination.vue'
+import ProductsToolbar from '@/components/products/ProductsToolbar.vue'
 
-import { productService } from '@/services/product.service'
 import { categoryService } from '@/services/category.service'
+import { productService } from '@/services/product.service'
 
-import type { Product } from '@/types/product.types'
 import type { Category } from '@/types/category.types'
+import type { Product } from '@/types/product.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -71,8 +71,55 @@ const pagination = reactive({
   totalProducts: 0,
 })
 
-let searchTimer: ReturnType<typeof setTimeout> | null =
-  null
+let searchTimer: ReturnType<
+  typeof setTimeout
+> | null = null
+
+const isProductInStock = (
+  product: Product,
+): boolean => {
+  const variants =
+    product.variants ?? []
+
+  if (variants.length > 0) {
+    return variants.some(
+      (variant) =>
+        Number(variant.stock) > 0,
+    )
+  }
+
+  if (
+    typeof product.in_stock ===
+    'boolean'
+  ) {
+    return product.in_stock
+  }
+
+  return (
+    Number(product.in_stock ?? 0) > 0
+  )
+}
+
+const sortedProducts = computed(() => {
+  return [...products.value].sort(
+    (firstProduct, secondProduct) => {
+      const firstIsInStock =
+        isProductInStock(firstProduct)
+
+      const secondIsInStock =
+        isProductInStock(secondProduct)
+
+      if (
+        firstIsInStock ===
+        secondIsInStock
+      ) {
+        return 0
+      }
+
+      return firstIsInStock ? -1 : 1
+    },
+  )
+})
 
 const activeCategoryName = computed(() => {
   if (!categoryPath.value.length) {
@@ -125,7 +172,9 @@ const loadCategoryPath = async (
 
   try {
     categoryPath.value =
-      await categoryService.getCategoryPath(slug)
+      await categoryService.getCategoryPath(
+        slug,
+      )
   } catch (err) {
     console.error(
       'خطا در دریافت مسیر دسته‌بندی:',
@@ -150,18 +199,21 @@ const loadProducts = async (
       page,
     }
 
-    const search = searchQuery.value.trim()
+    const search =
+      searchQuery.value.trim()
 
     if (search) {
       params.search = search
     }
 
     if (filters.category) {
-      params.category = filters.category
+      params.category =
+        filters.category
     }
 
     if (filters.ordering) {
-      params.ordering = filters.ordering
+      params.ordering =
+        filters.ordering
     }
 
     if (filters.inStock) {
@@ -173,17 +225,22 @@ const loadProducts = async (
     }
 
     if (filters.minPrice) {
-      params.min_price = filters.minPrice
+      params.min_price =
+        filters.minPrice
     }
 
     if (filters.maxPrice) {
-      params.max_price = filters.maxPrice
+      params.max_price =
+        filters.maxPrice
     }
 
     const response =
-      await productService.getProducts(params)
+      await productService.getProducts(
+        params,
+      )
 
-    products.value = response.data ?? []
+    products.value =
+      response.data ?? []
 
     pagination.currentPage =
       response.current_page ?? page
@@ -210,18 +267,24 @@ const loadProducts = async (
 }
 
 const updateRouteQuery = async () => {
-  const query: Record<string, string> = {}
+  const query: Record<
+    string,
+    string
+  > = {}
 
   if (searchQuery.value.trim()) {
-    query.search = searchQuery.value.trim()
+    query.search =
+      searchQuery.value.trim()
   }
 
   if (filters.category) {
-    query.category = filters.category
+    query.category =
+      filters.category
   }
 
   if (filters.ordering) {
-    query.ordering = filters.ordering
+    query.ordering =
+      filters.ordering
   }
 
   if (filters.inStock) {
@@ -233,11 +296,13 @@ const updateRouteQuery = async () => {
   }
 
   if (filters.minPrice) {
-    query.min_price = filters.minPrice
+    query.min_price =
+      filters.minPrice
   }
 
   if (filters.maxPrice) {
-    query.max_price = filters.maxPrice
+    query.max_price =
+      filters.maxPrice
   }
 
   if (pagination.currentPage > 1) {
@@ -340,7 +405,9 @@ const handlePageChange = async (
 }
 
 const retryLoad = () => {
-  loadProducts(pagination.currentPage)
+  loadProducts(
+    pagination.currentPage,
+  )
 }
 
 onMounted(async () => {
@@ -376,7 +443,9 @@ onBeforeUnmount(() => {
   <div class="products-page">
     <!-- هدر فروشگاه -->
     <section class="store-hero">
-      <div class="store-hero__pattern"></div>
+      <div
+        class="store-hero__pattern"
+      ></div>
 
       <div class="store-hero__content">
         <span class="store-hero__badge">
@@ -387,9 +456,12 @@ onBeforeUnmount(() => {
           خرید راحت، انتخاب مطمئن
         </h1>
 
-        <p class="store-hero__description">
-          محصولات کاربردی را با قیمت مناسب
-          پیدا کن و دوباره به بازبیا برگرد.
+        <p
+          class="store-hero__description"
+        >
+          محصولات کاربردی را با قیمت
+          مناسب پیدا کن و دوباره به
+          بازبیا برگرد.
         </p>
 
         <div class="main-search">
@@ -443,7 +515,9 @@ onBeforeUnmount(() => {
           خانه
         </RouterLink>
 
-        <span class="breadcrumb__separator">
+        <span
+          class="breadcrumb__separator"
+        >
           /
         </span>
 
@@ -459,11 +533,15 @@ onBeforeUnmount(() => {
           v-for="category in categoryPath"
           :key="category.id"
         >
-          <span class="breadcrumb__separator">
+          <span
+            class="breadcrumb__separator"
+          >
             /
           </span>
 
-          <span class="breadcrumb__current">
+          <span
+            class="breadcrumb__current"
+          >
             {{ category.name }}
           </span>
         </template>
@@ -471,28 +549,44 @@ onBeforeUnmount(() => {
 
       <div class="products-layout">
         <ProductFilters
-          v-model:category="filters.category"
-          v-model:in-stock="filters.inStock"
+          v-model:category="
+            filters.category
+          "
+          v-model:in-stock="
+            filters.inStock
+          "
           v-model:has-discount="
             filters.hasDiscount
           "
-          v-model:min-price="filters.minPrice"
-          v-model:max-price="filters.maxPrice"
+          v-model:min-price="
+            filters.minPrice
+          "
+          v-model:max-price="
+            filters.maxPrice
+          "
           :categories="categories"
-          :loading="loadingCategories"
-          :mobile-open="showMobileFilters"
+          :loading="
+            loadingCategories
+          "
+          :mobile-open="
+            showMobileFilters
+          "
           :active-filters-count="
             activeFiltersCount
           "
           @apply="applyFilters"
           @clear="clearAllFilters"
-          @select-category="selectCategory"
+          @select-category="
+            selectCategory
+          "
           @close="
             showMobileFilters = false
           "
         />
 
-        <main class="products-content">
+        <main
+          class="products-content"
+        >
           <ProductsToolbar
             :title="
               activeCategoryName ||
@@ -501,7 +595,9 @@ onBeforeUnmount(() => {
             :total-products="
               pagination.totalProducts
             "
-            :ordering="filters.ordering"
+            :ordering="
+              filters.ordering
+            "
             :active-filters-count="
               activeFiltersCount
             "
@@ -554,7 +650,9 @@ onBeforeUnmount(() => {
             v-else-if="error"
             class="message-state"
           >
-            <div class="message-state__icon">
+            <div
+              class="message-state__icon"
+            >
               !
             </div>
 
@@ -575,11 +673,14 @@ onBeforeUnmount(() => {
           <!-- Empty -->
           <div
             v-else-if="
-              products.length === 0
+              sortedProducts.length ===
+              0
             "
             class="message-state"
           >
-            <div class="message-state__icon">
+            <div
+              class="message-state__icon"
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -593,7 +694,9 @@ onBeforeUnmount(() => {
               </svg>
             </div>
 
-            <h3>محصولی پیدا نشد</h3>
+            <h3>
+              محصولی پیدا نشد
+            </h3>
 
             <p>
               فیلترها یا عبارت جستجو را
@@ -614,7 +717,7 @@ onBeforeUnmount(() => {
             class="products-grid"
           >
             <ProductCard
-              v-for="product in products"
+              v-for="product in sortedProducts"
               :key="product.id"
               :product="product"
             />
@@ -631,7 +734,9 @@ onBeforeUnmount(() => {
             :total-pages="
               pagination.totalPages
             "
-            @change="handlePageChange"
+            @change="
+              handlePageChange
+            "
           />
         </main>
       </div>

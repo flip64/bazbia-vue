@@ -51,7 +51,7 @@
 
       <!-- Empty -->
       <div
-        v-if="!products.length"
+        v-if="!sortedProducts.length"
         class="flex min-h-52 items-center justify-center rounded-2xl
                border border-dashed border-gray-200 bg-white/70
                text-sm text-gray-400"
@@ -69,7 +69,7 @@
         class="featured-products-swiper !overflow-visible pb-4"
       >
         <SwiperSlide
-          v-for="product in products"
+          v-for="product in sortedProducts"
           :key="product.id"
           class="!h-auto !w-[210px] sm:!w-[230px] lg:!w-[245px]"
         >
@@ -191,8 +191,8 @@
               >
                 {{
                   isProductInStock(product)
-                    ? "افزودن به سبد خرید"
-                    : "ناموجود"
+                    ? 'افزودن به سبد خرید'
+                    : 'ناموجود'
                 }}
               </button>
             </div>
@@ -204,39 +204,83 @@
 </template>
 
 <script setup lang="ts">
-import { Swiper, SwiperSlide } from "swiper/vue"
-import { Navigation } from "swiper/modules"
+import { computed } from 'vue'
 
-import "swiper/css"
-import "swiper/css/navigation"
+import { Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/vue'
 
-import type { Product } from "@/types/product.types"
+import 'swiper/css'
+import 'swiper/css/navigation'
+
+import type { Product } from '@/types/product.types'
 
 const modules = [Navigation]
 
-defineProps<{
+const props = defineProps<{
   products: Product[]
 }>()
 
-function isProductInStock(product: Product): boolean {
-  const variants = product.variants ?? []
+const sortedProducts = computed<Product[]>(() => {
+  return [...props.products].sort(
+    (
+      firstProduct,
+      secondProduct,
+    ) => {
+      const firstIsInStock =
+        isProductInStock(firstProduct)
+
+      const secondIsInStock =
+        isProductInStock(secondProduct)
+
+      if (
+        firstIsInStock ===
+        secondIsInStock
+      ) {
+        return 0
+      }
+
+      return firstIsInStock ? -1 : 1
+    },
+  )
+})
+
+function isProductInStock(
+  product: Product,
+): boolean {
+  const variants =
+    product.variants ?? []
 
   if (variants.length > 0) {
     return variants.some(
-      (variant) => Number(variant.stock) > 0,
+      (variant) =>
+        Number(variant.stock) > 0,
     )
   }
 
-  if (typeof product.in_stock === "boolean") {
+  if (
+    typeof product.in_stock ===
+    'boolean'
+  ) {
     return product.in_stock
   }
 
-  return Number(product.in_stock ?? 0) > 0
+  return (
+    Number(
+      product.in_stock ?? 0,
+    ) > 0
+  )
 }
 
-function hasDiscount(product: Product): boolean {
-  const price = Number(product.price ?? 0)
-  const discountPrice = Number(product.discount_price ?? 0)
+function hasDiscount(
+  product: Product,
+): boolean {
+  const price = Number(
+    product.price ?? 0,
+  )
+
+  const discountPrice = Number(
+    product.discount_price ?? 0,
+  )
 
   return (
     isProductInStock(product) &&
@@ -246,44 +290,72 @@ function hasDiscount(product: Product): boolean {
   )
 }
 
-function getFinalPrice(product: Product): number {
+function getFinalPrice(
+  product: Product,
+): number {
   if (hasDiscount(product)) {
-    return Number(product.discount_price)
+    return Number(
+      product.discount_price,
+    )
   }
 
-  return Number(product.price ?? 0)
+  return Number(
+    product.price ?? 0,
+  )
 }
 
-function getDiscountPercent(product: Product): number {
+function getDiscountPercent(
+  product: Product,
+): number {
   if (!hasDiscount(product)) {
     return 0
   }
 
-  const price = Number(product.price)
-  const discountPrice = Number(product.discount_price)
+  const price = Number(
+    product.price,
+  )
+
+  const discountPrice = Number(
+    product.discount_price,
+  )
 
   return Math.round(
-    ((price - discountPrice) / price) * 100,
+    ((price - discountPrice) /
+      price) *
+      100,
   )
 }
 
 function formatPrice(
-  price: number | string | null | undefined,
+  price:
+    | number
+    | string
+    | null
+    | undefined,
 ): string {
-  const numericPrice = Number(price ?? 0)
+  const numericPrice = Number(
+    price ?? 0,
+  )
 
   return (
-    new Intl.NumberFormat("fa-IR").format(numericPrice) +
-    " تومان"
+    new Intl.NumberFormat(
+      'fa-IR',
+    ).format(numericPrice) +
+    ' تومان'
   )
 }
 
-function addToCart(product: Product) {
+function addToCart(
+  product: Product,
+) {
   if (!isProductInStock(product)) {
     return
   }
 
-  console.log("🛒 add to cart:", product)
+  console.log(
+    '🛒 add to cart:',
+    product,
+  )
 }
 </script>
 

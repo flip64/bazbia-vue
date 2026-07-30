@@ -84,9 +84,9 @@ import { onMounted, ref } from 'vue'
 
 import BannerCarousel from '@/components/home/BannerCarousel.vue'
 import CategoryGrid from '@/components/home/CategoryGrid.vue'
-import CheapestProductsCarouel from '@/components/home/CheapestProductsCarouel.vue'
+import CheapestProductsCarouel from '@/components/home/CheapestProductsCarousel.vue'
 import FeaturedProductsSwiper from '@/components/home/FeaturedProductsSwiper.vue'
-import LatestProductsCarousel from '@/components/home/LatestProductsCarouel.vue'
+import LatestProductsCarousel from '@/components/home/LatestProductsCarousel.vue'
 import PromoBanner from '@/components/home/PromoBanner.vue'
 import WhyBazbia from '@/components/home/WhyBazbia.vue'
 

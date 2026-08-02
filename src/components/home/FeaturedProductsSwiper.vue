@@ -1,175 +1,134 @@
 <template>
-  <section class="w-full">
-    <div
-      class="overflow-hidden rounded-3xl border border-emerald-100
-             bg-gradient-to-l from-emerald-50 via-white to-green-50
-             p-4 shadow-sm md:p-6"
-    >
-      <!-- Header -->
-      <div class="mb-5 flex items-center justify-between gap-3">
-        <div class="flex min-w-0 items-center gap-3">
-          <div
-            class="flex h-11 w-11 shrink-0 items-center justify-center
-                   rounded-2xl bg-white shadow-sm ring-1 ring-emerald-100"
-          >
-            <img
-              src="/images/bazbin.svg"
-              alt="بازبین"
-              class="h-8 w-8 object-contain"
-            />
-          </div>
-
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <h2 class="font-bold text-gray-900 md:text-lg">
-                محصولات ویژه
-              </h2>
-
-              <span
-                class="rounded-full bg-red-500 px-2.5 py-1
-                       text-[10px] font-bold text-white shadow-sm"
-              >
-                فقط امروز
-              </span>
-            </div>
-
-            <p class="mt-1 text-xs text-gray-500">
-              پیشنهادهای منتخب بازبیا با قیمت ویژه
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="shrink-0 rounded-xl px-3 py-2 text-xs font-medium
-                 text-emerald-700 transition
-                 hover:bg-emerald-100 md:text-sm"
+  <section class="mt-10 px-4">
+    <!-- Header -->
+    <div class="mb-4 flex items-center justify-between">
+      <h2
+        class="flex items-center gap-2 text-lg font-bold text-gray-800 md:text-xl"
+      >
+        <span
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-white"
         >
-          مشاهده همه
-        </button>
-      </div>
+          🏷️
+        </span>
 
-      <!-- Empty -->
+        ارزان‌ترین محصولات
+      </h2>
+
+      <button
+        type="button"
+        class="text-sm text-green-600 transition hover:text-green-700"
+        @click="goToAll"
+      >
+        مشاهده همه
+      </button>
+    </div>
+
+    <div class="relative">
       <div
-        v-if="!sortedProducts.length"
-        class="flex min-h-52 items-center justify-center rounded-2xl
-               border border-dashed border-gray-200 bg-white/70
-               text-sm text-gray-400"
+        ref="slider"
+        class="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-2"
       >
-        محصول ویژه‌ای موجود نیست
-      </div>
+        <!-- Skeleton -->
+        <template v-if="store.loading">
+          <div
+            v-for="n in 6"
+            :key="n"
+            class="min-w-[180px] animate-pulse rounded-2xl bg-gray-100 p-3 md:min-w-[220px]"
+          >
+            <div class="h-44 rounded-xl bg-gray-200" />
+            <div class="mt-3 h-3 w-3/4 rounded bg-gray-200" />
+            <div class="mt-2 h-3 w-1/2 rounded bg-gray-200" />
+            <div class="mt-4 h-9 rounded-lg bg-gray-200" />
+          </div>
+        </template>
 
-      <!-- Swiper -->
-      <Swiper
-        v-else
-        :modules="modules"
-        slides-per-view="auto"
-        :space-between="14"
-        :navigation="true"
-        class="featured-products-swiper !overflow-visible pb-4"
-      >
-        <SwiperSlide
-          v-for="product in sortedProducts"
-          :key="product.id"
-          class="!h-auto !w-[210px] sm:!w-[230px] lg:!w-[245px]"
-        >
+        <!-- Products -->
+        <template v-else>
           <article
-            class="group flex h-full flex-col overflow-hidden rounded-2xl
-                   border border-gray-100 bg-white shadow-sm
-                   transition duration-300
-                   hover:-translate-y-1 hover:shadow-xl"
+            v-for="product in sortedProducts"
+            :key="product.id"
+            class="group min-w-[180px] cursor-pointer overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-xl md:min-w-[220px]"
             :class="{
-              'opacity-90': !isProductInStock(product),
+              'border-gray-200 opacity-90':
+                !isProductInStock(product),
             }"
+            @click="goToProduct(product)"
           >
             <!-- Image -->
-            <div class="relative aspect-square overflow-hidden bg-gray-50">
-              <!-- Special Badge -->
-              <span
-                v-if="
-                  isProductInStock(product) &&
-                  hasDiscount(product)
-                "
-                class="absolute right-3 top-3 z-10 rounded-full
-                       bg-red-500 px-2.5 py-1 text-[11px]
-                       font-bold text-white shadow"
-              >
-                پیشنهاد ویژه
-              </span>
-
-              <!-- Unavailable Overlay -->
-              <span
-                v-if="!isProductInStock(product)"
-                class="absolute inset-0 z-10 flex items-center justify-center
-                       bg-white/70 text-sm font-bold text-gray-600
-                       backdrop-blur-[2px]"
-              >
-                ناموجود
-              </span>
-
+            <div class="relative overflow-hidden bg-gray-50">
               <img
                 v-if="product.thumb"
                 :src="product.thumb"
                 :alt="product.name"
-                loading="lazy"
-                class="h-full w-full object-contain p-3
-                       transition duration-500
-                       group-hover:scale-105"
+                class="h-44 w-full object-cover transition duration-300 group-hover:scale-105"
                 :class="{
-                  'grayscale-[20%] opacity-70':
+                  'opacity-70 grayscale-[20%]':
                     !isProductInStock(product),
                 }"
+                loading="lazy"
               />
 
               <div
                 v-else
-                class="flex h-full w-full items-center justify-center
-                       text-xs text-gray-400"
+                class="flex h-44 items-center justify-center text-xs text-gray-400"
               >
                 تصویر موجود نیست
               </div>
+
+              <!-- Discount -->
+              <span
+                v-if="
+                  isProductInStock(product) &&
+                  product.discount
+                "
+                class="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white"
+              >
+                -{{ product.discount }}%
+              </span>
+
+              <!-- Stock -->
+              <span
+                class="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold"
+                :class="
+                  isProductInStock(product)
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-slate-700 text-white'
+                "
+              >
+                {{
+                  isProductInStock(product)
+                    ? 'موجود'
+                    : 'ناموجود'
+                }}
+              </span>
             </div>
 
             <!-- Content -->
-            <div class="flex flex-1 flex-col p-4">
+            <div class="flex flex-col gap-2 p-3">
               <h3
-                class="line-clamp-2 min-h-11 text-center text-sm
-                       font-medium leading-6 text-gray-800"
+                class="line-clamp-2 min-h-[40px] text-center text-sm text-gray-800"
               >
                 {{ product.name }}
               </h3>
 
               <!-- Price -->
-              <div
-                class="mt-4 flex min-h-[58px] flex-col justify-end"
-              >
+              <div class="flex min-h-[42px] flex-col justify-center">
                 <template v-if="isProductInStock(product)">
-                  <div
-                    v-if="hasDiscount(product)"
+                  <span
+                    v-if="hasOldPrice(product)"
                     class="mb-1 text-xs text-gray-400 line-through"
                   >
+                    {{ formatPrice(product.old_price) }}
+                  </span>
+
+                  <span class="text-sm font-bold text-green-600">
                     {{ formatPrice(product.price) }}
-                  </div>
-
-                  <div class="flex items-end justify-between gap-2">
-                    <span class="text-base font-bold text-emerald-600">
-                      {{ formatPrice(getFinalPrice(product)) }}
-                    </span>
-
-                    <span
-                      v-if="hasDiscount(product)"
-                      class="rounded-lg bg-red-50 px-2 py-1
-                             text-[10px] font-bold text-red-500"
-                    >
-                      {{ getDiscountPercent(product) }}٪ تخفیف
-                    </span>
-                  </div>
+                  </span>
                 </template>
 
                 <div
                   v-else
-                  class="flex min-h-[42px] items-center justify-center
-                         text-sm font-bold text-gray-500"
+                  class="flex min-h-[42px] items-center justify-center text-sm font-bold text-gray-500"
                 >
                   ناموجود
                 </div>
@@ -178,53 +137,93 @@
               <!-- Button -->
               <button
                 type="button"
-                class="mt-4 flex w-full items-center justify-center
-                       rounded-xl bg-emerald-500 px-3 py-2.5
-                       text-sm font-bold text-white
-                       transition active:scale-95
-                       hover:bg-emerald-600
-                       disabled:cursor-not-allowed
-                       disabled:bg-gray-200 disabled:text-gray-400
-                       disabled:active:scale-100"
-                :disabled="!isProductInStock(product)"
-                @click="addToCart(product)"
+                class="mt-2 w-full rounded-lg bg-green-600 py-2 text-xs font-bold text-white transition hover:bg-green-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:active:scale-100"
+                :disabled="
+                  !isProductInStock(product) ||
+                  addingProductId === product.id
+                "
+                @click.stop="addToCart(product)"
               >
-                {{
-                  isProductInStock(product)
-                    ? 'افزودن به سبد خرید'
-                    : 'ناموجود'
-                }}
+                <template v-if="addingProductId === product.id">
+                  در حال افزودن...
+                </template>
+
+                <template v-else-if="addedProductId === product.id">
+                  به سبد اضافه شد ✓
+                </template>
+
+                <template v-else>
+                  {{
+                    isProductInStock(product)
+                      ? 'افزودن به سبد'
+                      : 'ناموجود'
+                  }}
+                </template>
               </button>
             </div>
           </article>
-        </SwiperSlide>
-      </Swiper>
+        </template>
+
+        <!-- Empty -->
+        <div
+          v-if="
+            !store.loading &&
+            sortedProducts.length === 0
+          "
+          class="flex min-h-[180px] w-full items-center justify-center text-sm text-gray-500"
+        >
+          محصولی برای نمایش وجود ندارد.
+        </div>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref,
+} from 'vue'
+import { useRouter } from 'vue-router'
 
-import { Navigation } from 'swiper/modules'
-import { Swiper, SwiperSlide } from 'swiper/vue'
+import { cheapestProductStore } from '@/core/store/cheapestProductStore'
+import { useCartStore } from '@/core/store/cartStore'
 
-import 'swiper/css'
-import 'swiper/css/navigation'
+interface ProductVariant {
+  id?: number
+  stock?: number | string | null
+}
 
-import type { Product } from '@/types/product.types'
+interface CheapestProduct {
+  id: number
+  slug?: string
+  name: string
+  thumb?: string | null
+  price: number | string
+  old_price?: number | string | null
+  discount?: number | string | null
+  discount_price?: number | string | null
+  in_stock?: number | string | boolean | null
+  stock?: number | string | null
+  variants?: ProductVariant[]
+}
 
-const modules = [Navigation]
+const router = useRouter()
 
-const props = defineProps<{
-  products: Product[]
-}>()
+const slider = ref<HTMLElement | null>(null)
 
-const sortedProducts = computed<Product[]>(() => {
-  return [...props.products].sort(
+const store = cheapestProductStore()
+const cartStore = useCartStore()
+
+const addingProductId = ref<number | null>(null)
+const addedProductId = ref<number | null>(null)
+
+const sortedProducts = computed(() => {
+  return [...store.products].sort(
     (
-      firstProduct,
-      secondProduct,
+      firstProduct: CheapestProduct,
+      secondProduct: CheapestProduct,
     ) => {
       const firstIsInStock =
         isProductInStock(firstProduct)
@@ -232,10 +231,7 @@ const sortedProducts = computed<Product[]>(() => {
       const secondIsInStock =
         isProductInStock(secondProduct)
 
-      if (
-        firstIsInStock ===
-        secondIsInStock
-      ) {
+      if (firstIsInStock === secondIsInStock) {
         return 0
       }
 
@@ -244,11 +240,28 @@ const sortedProducts = computed<Product[]>(() => {
   )
 })
 
+onMounted(() => {
+  store.fetchCheapestProducts()
+})
+
+function getAvailableVariant(
+  product: CheapestProduct,
+): ProductVariant | null {
+  const variants = product.variants ?? []
+
+  return (
+    variants.find(
+      (variant) =>
+        variant.id &&
+        Number(variant.stock) > 0,
+    ) ?? null
+  )
+}
+
 function isProductInStock(
-  product: Product,
+  product: CheapestProduct,
 ): boolean {
-  const variants =
-    product.variants ?? []
+  const variants = product.variants ?? []
 
   if (variants.length > 0) {
     return variants.some(
@@ -266,64 +279,94 @@ function isProductInStock(
 
   return (
     Number(
-      product.in_stock ?? 0,
+      product.in_stock ??
+        product.stock ??
+        0,
     ) > 0
   )
 }
 
-function hasDiscount(
-  product: Product,
+function hasOldPrice(
+  product: CheapestProduct,
 ): boolean {
   const price = Number(
     product.price ?? 0,
   )
 
-  const discountPrice = Number(
-    product.discount_price ?? 0,
+  const oldPrice = Number(
+    product.old_price ?? 0,
   )
 
   return (
     isProductInStock(product) &&
-    price > 0 &&
-    discountPrice > 0 &&
-    discountPrice < price
+    oldPrice > 0 &&
+    oldPrice > price
   )
 }
 
-function getFinalPrice(
-  product: Product,
-): number {
-  if (hasDiscount(product)) {
-    return Number(
-      product.discount_price,
+function goToProduct(
+  product: CheapestProduct,
+) {
+  router.push(
+    `/product/${
+      product.slug || product.id
+    }`,
+  )
+}
+
+function goToAll() {
+  router.push('/products')
+}
+
+async function addToCart(
+  product: CheapestProduct,
+) {
+  if (
+    !isProductInStock(product) ||
+    addingProductId.value !== null
+  ) {
+    return
+  }
+
+  const variant =
+    getAvailableVariant(product)
+
+  if (!variant?.id) {
+    console.error(
+      'برای این محصول واریانت موجود پیدا نشد:',
+      product,
     )
+
+    return
   }
 
-  return Number(
-    product.price ?? 0,
-  )
-}
+  addingProductId.value = product.id
+  addedProductId.value = null
 
-function getDiscountPercent(
-  product: Product,
-): number {
-  if (!hasDiscount(product)) {
-    return 0
+  try {
+    await cartStore.addItem({
+      variant_id: variant.id,
+      quantity: 1,
+    })
+
+    addedProductId.value = product.id
+
+    window.setTimeout(() => {
+      if (
+        addedProductId.value ===
+        product.id
+      ) {
+        addedProductId.value = null
+      }
+    }, 2000)
+  } catch (error) {
+    console.error(
+      'خطا در افزودن محصول به سبد خرید:',
+      error,
+    )
+  } finally {
+    addingProductId.value = null
   }
-
-  const price = Number(
-    product.price,
-  )
-
-  const discountPrice = Number(
-    product.discount_price,
-  )
-
-  return Math.round(
-    ((price - discountPrice) /
-      price) *
-      100,
-  )
 }
 
 function formatPrice(
@@ -344,37 +387,15 @@ function formatPrice(
     ' تومان'
   )
 }
-
-function addToCart(
-  product: Product,
-) {
-  if (!isProductInStock(product)) {
-    return
-  }
-
-  console.log(
-    '🛒 add to cart:',
-    product,
-  )
-}
 </script>
 
 <style scoped>
-.featured-products-swiper {
-  --swiper-navigation-size: 16px;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.featured-products-swiper :deep(.swiper-button-next),
-.featured-products-swiper :deep(.swiper-button-prev) {
-  width: 38px;
-  height: 38px;
-  border-radius: 9999px;
-  background: white;
-  color: #059669;
-  box-shadow: 0 4px 14px rgb(0 0 0 / 10%);
-}
-
-.featured-products-swiper :deep(.swiper-button-disabled) {
-  opacity: 0;
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 </style>

@@ -1,17 +1,19 @@
-<!-- src/components/layout/header/Header.vue -->
 <template>
   <header
     class="header"
     :class="{ 'header--sticky': isSticky }"
   >
     <div class="header__container">
-      <!-- دسکتاپ -->
+      <!-- =========================
+           نسخه دسکتاپ
+      ========================== -->
       <div class="header__desktop">
         <!-- لوگو -->
         <div class="header__logo">
           <router-link
             to="/"
             class="header__logo-link"
+            @click="closeAllMenus"
           >
             <img
               :src="logoUrl"
@@ -27,7 +29,10 @@
         </div>
 
         <!-- منوی اصلی -->
-        <nav class="header__nav">
+        <nav
+          class="header__nav"
+          aria-label="منوی اصلی"
+        >
           <ul class="header__nav-list">
             <li
               v-for="item in menuItems"
@@ -41,6 +46,7 @@
                   'header__nav-link--active':
                     isActiveRoute(item.path)
                 }"
+                @click="closeAllMenus"
               >
                 {{ item.title }}
               </router-link>
@@ -52,13 +58,16 @@
         <div class="header__search">
           <form
             class="header__search-form"
+            role="search"
             @submit.prevent="handleSearch"
           >
             <input
               v-model="searchQuery"
-              type="text"
+              type="search"
               placeholder="جستجوی محصولات..."
               class="header__search-input"
+              aria-label="جستجوی محصولات"
+              autocomplete="off"
             >
 
             <button
@@ -71,9 +80,9 @@
           </form>
         </div>
 
-        <!-- آیکون‌های کاربری -->
+        <!-- عملیات کاربری -->
         <div class="header__actions">
-          <!-- منوی کاربر -->
+          <!-- حساب کاربری -->
           <div
             class="header__user-menu"
             :class="{
@@ -84,6 +93,8 @@
               type="button"
               class="header__action-btn header__user-btn"
               aria-label="حساب کاربری"
+              :aria-expanded="isUserMenuOpen"
+              aria-controls="desktop-user-dropdown"
               @click.stop="toggleUserMenu"
             >
               <template v-if="isAuthenticated">
@@ -107,6 +118,7 @@
 
               <User
                 v-else
+                :size="22"
                 class="header__action-icon"
               />
             </button>
@@ -114,6 +126,7 @@
             <transition name="fade">
               <div
                 v-if="isUserMenuOpen && isAuthenticated"
+                id="desktop-user-dropdown"
                 v-click-outside="closeUserMenu"
                 class="header__dropdown"
                 @click.stop
@@ -138,7 +151,10 @@
                         {{ userFullName }}
                       </div>
 
-                      <div class="header__dropdown-email">
+                      <div
+                        v-if="userEmail"
+                        class="header__dropdown-email"
+                      >
                         {{ userEmail }}
                       </div>
                     </div>
@@ -155,8 +171,7 @@
                       <User
                         :size="16"
                         class="header__dropdown-icon"
-                      >
-                      </User>
+                      />
 
                       <span>پروفایل من</span>
                     </router-link>
@@ -199,21 +214,6 @@
                     </router-link>
                   </li>
 
-                  <li>
-                    <router-link
-                      to="/settings"
-                      class="header__dropdown-link"
-                      @click="closeUserMenu"
-                    >
-                      <Settings
-                        :size="16"
-                        class="header__dropdown-icon"
-                      />
-
-                      <span>تنظیمات</span>
-                    </router-link>
-                  </li>
-
                   <li class="header__dropdown-divider"></li>
 
                   <li>
@@ -245,7 +245,10 @@
             aria-label="علاقه‌مندی‌ها"
             @click="goToWishlist"
           >
-            <Heart class="header__action-icon" />
+            <Heart
+              :size="22"
+              class="header__action-icon"
+            />
 
             <span
               v-if="wishlistCount"
@@ -260,8 +263,12 @@
             to="/cart"
             class="header__action-btn"
             aria-label="سبد خرید"
+            @click="closeAllMenus"
           >
-            <ShoppingBag class="header__action-icon" />
+            <ShoppingBag
+              :size="22"
+              class="header__action-icon"
+            />
 
             <span
               v-if="cartTotalItems"
@@ -273,25 +280,37 @@
         </div>
       </div>
 
-      <!-- موبایل -->
+      <!-- =========================
+           نسخه موبایل
+      ========================== -->
       <div class="header__mobile">
         <div class="header__mobile-top">
-
+          <!-- دکمه منو -->
           <button
-  type="button"
-  class="header__mobile-menu-btn"
-  :aria-expanded="isMobileMenuOpen"
-  aria-label="باز و بسته کردن منو"
-  @click.stop="toggleMobileMenu"
->
-  <Menu v-if="!isMobileMenuOpen" />
-  <X v-else />
-</button>
+            type="button"
+            class="header__mobile-menu-btn"
+            :aria-expanded="isMobileMenuOpen"
+            aria-controls="mobile-navigation"
+            aria-label="باز و بسته کردن منو"
+            @click.stop="toggleMobileMenu"
+          >
+            <Menu
+              v-if="!isMobileMenuOpen"
+              :size="24"
+            />
 
+            <X
+              v-else
+              :size="24"
+            />
+          </button>
+
+          <!-- لوگو -->
           <router-link
             to="/"
             class="header__logo"
-            @click="closeMobileMenu"
+            aria-label="صفحه اصلی بازبیا"
+            @click="closeAllMenus"
           >
             <img
               :src="logoUrl"
@@ -301,21 +320,32 @@
             >
           </router-link>
 
+          <!-- عملیات موبایل -->
           <div class="header__mobile-actions">
             <button
               type="button"
               class="header__mobile-search-btn"
+              :aria-expanded="isMobileSearchOpen"
+              aria-controls="mobile-search"
               aria-label="جستجو"
               @click.stop="toggleSearch"
             >
-              <Search :size="20" />
+              <X
+                v-if="isMobileSearchOpen"
+                :size="20"
+              />
+
+              <Search
+                v-else
+                :size="20"
+              />
             </button>
 
             <router-link
               to="/cart"
               class="header__mobile-cart"
               aria-label="سبد خرید"
-              @click="closeMobileMenu"
+              @click="closeAllMenus"
             >
               <ShoppingBag :size="20" />
 
@@ -329,193 +359,26 @@
           </div>
         </div>
 
-        <!-- منوی موبایل -->
-        <transition name="slide">
-          <div
-            v-if="isMobileMenuOpen"
-            class="header__mobile-menu"
-            @click.stop
-          >
-            <nav class="header__mobile-nav">
-              <!-- اطلاعات کاربر -->
-              <div
-                v-if="isAuthenticated"
-                class="header__mobile-user"
-              >
-                <div class="header__mobile-user-info">
-                  <div class="header__mobile-user-avatar">
-                    <img
-                      v-if="userAvatar"
-                      :src="userAvatar"
-                      alt="تصویر کاربر"
-                      @error="handleAvatarError"
-                    >
-
-                    <span v-else>
-                      {{ userInitial }}
-                    </span>
-                  </div>
-
-                  <div class="header__mobile-user-details">
-                    <div class="header__mobile-user-name">
-                      {{ userFullName }}
-                    </div>
-
-                    <div class="header__mobile-user-email">
-                      {{ userEmail }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <ul class="header__mobile-nav-list">
-                <!-- ورود و ثبت‌نام -->
-                <li
-                  v-if="!isAuthenticated"
-                  class="header__mobile-auth"
-                >
-                  <router-link
-                    to="/login"
-                    class="header__mobile-auth-link"
-                    @click="closeMobileMenu"
-                  >
-                    <LogIn
-                      :size="20"
-                      class="header__mobile-auth-icon"
-                    />
-
-                    <span>ورود / ثبت‌نام</span>
-                  </router-link>
-                </li>
-
-                <!-- لینک‌های اصلی -->
-                <li
-                  v-for="item in menuItems"
-                  :key="item.id"
-                >
-                  <router-link
-                    :to="item.path"
-                    class="header__mobile-nav-link"
-                    :class="{
-                      'header__mobile-nav-link--active':
-                        isActiveRoute(item.path)
-                    }"
-                    @click="closeMobileMenu"
-                  >
-                    {{ item.title }}
-                  </router-link>
-                </li>
-
-                <!-- لینک‌های کاربری -->
-                <template v-if="isAuthenticated">
-                  <li class="header__mobile-divider"></li>
-
-                  <li>
-                    <router-link
-                      to="/profile"
-                      class="header__mobile-nav-link"
-                      @click="closeMobileMenu"
-                    >
-                      <User
-                        :size="18"
-                        class="header__mobile-nav-icon"
-                      />
-
-                      <span>پروفایل من</span>
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link
-                      to="/orders"
-                      class="header__mobile-nav-link"
-                      @click="closeMobileMenu"
-                    >
-                      <ShoppingBag
-                        :size="18"
-                        class="header__mobile-nav-icon"
-                      />
-
-                      <span>سفارش‌های من</span>
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link
-                      to="/wishlist"
-                      class="header__mobile-nav-link"
-                      @click="closeMobileMenu"
-                    >
-                      <Heart
-                        :size="18"
-                        class="header__mobile-nav-icon"
-                      />
-
-                      <span>علاقه‌مندی‌ها</span>
-
-                      <span
-                        v-if="wishlistCount"
-                        class="header__badge"
-                      >
-                        {{ wishlistCount }}
-                      </span>
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link
-                      to="/settings"
-                      class="header__mobile-nav-link"
-                      @click="closeMobileMenu"
-                    >
-                      <Settings
-                        :size="18"
-                        class="header__mobile-nav-icon"
-                      />
-
-                      <span>تنظیمات</span>
-                    </router-link>
-                  </li>
-
-                  <li class="header__mobile-divider"></li>
-
-                  <li>
-                    <button
-                      type="button"
-                      class="
-                        header__mobile-nav-link
-                        header__mobile-nav-link--logout
-                      "
-                      @click="handleMobileLogout"
-                    >
-                      <LogOut
-                        :size="18"
-                        class="header__mobile-nav-icon"
-                      />
-
-                      <span>خروج از حساب</span>
-                    </button>
-                  </li>
-                </template>
-              </ul>
-            </nav>
-          </div>
-        </transition>
-
         <!-- جستجوی موبایل -->
         <transition name="fade">
           <div
             v-if="isMobileSearchOpen"
+            id="mobile-search"
             class="header__mobile-search"
             @click.stop
           >
-            <form @submit.prevent="handleSearch">
+            <form
+              role="search"
+              @submit.prevent="handleSearch"
+            >
               <input
                 ref="mobileSearchInput"
                 v-model="searchQuery"
-                type="text"
+                type="search"
                 placeholder="جستجوی محصولات..."
                 class="header__mobile-search-input"
+                aria-label="جستجوی محصولات"
+                autocomplete="off"
               >
             </form>
           </div>
@@ -523,6 +386,213 @@
       </div>
     </div>
   </header>
+
+  <!-- =========================
+       منوی کشویی موبایل
+       خارج از Header رندر می‌شود
+  ========================== -->
+  <Teleport to="body">
+    <transition name="mobile-menu">
+      <div
+        v-if="isMobileMenuOpen"
+        class="header__mobile-overlay"
+        @click="closeMobileMenu"
+      >
+        <aside
+          id="mobile-navigation"
+          class="header__mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="منوی موبایل"
+          @click.stop
+        >
+          <!-- سربرگ منو -->
+          <div class="header__mobile-menu-header">
+            <router-link
+              to="/"
+              class="header__mobile-menu-logo"
+              @click="closeMobileMenu"
+            >
+              <img
+                :src="logoUrl"
+                alt="بازبیا"
+                class="header__logo-img"
+                @error="handleImageError"
+              >
+
+              <span class="header__logo-text">
+                بازبیا
+              </span>
+            </router-link>
+
+            <button
+              type="button"
+              class="header__mobile-menu-close"
+              aria-label="بستن منو"
+              @click="closeMobileMenu"
+            >
+              <X :size="24" />
+            </button>
+          </div>
+
+          <!-- اطلاعات کاربر -->
+          <div
+            v-if="isAuthenticated"
+            class="header__mobile-user"
+          >
+            <div class="header__mobile-user-info">
+              <div class="header__mobile-user-avatar">
+                <img
+                  v-if="userAvatar"
+                  :src="userAvatar"
+                  alt="تصویر کاربر"
+                  @error="handleAvatarError"
+                >
+
+                <span v-else>
+                  {{ userInitial }}
+                </span>
+              </div>
+
+              <div class="header__mobile-user-details">
+                <div class="header__mobile-user-name">
+                  {{ userFullName }}
+                </div>
+
+                <div
+                  v-if="userEmail"
+                  class="header__mobile-user-email"
+                >
+                  {{ userEmail }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ورود و ثبت‌نام -->
+          <div
+            v-else
+            class="header__mobile-auth"
+          >
+            <router-link
+              to="/login"
+              class="header__mobile-auth-link"
+              @click="closeMobileMenu"
+            >
+              <LogIn
+                :size="20"
+                class="header__mobile-auth-icon"
+              />
+
+              <span>ورود / ثبت‌نام</span>
+            </router-link>
+          </div>
+
+          <!-- لینک‌های منو -->
+          <nav
+            class="header__mobile-nav"
+            aria-label="منوی موبایل"
+          >
+            <ul class="header__mobile-nav-list">
+              <li
+                v-for="item in menuItems"
+                :key="item.id"
+              >
+                <router-link
+                  :to="item.path"
+                  class="header__mobile-nav-link"
+                  :class="{
+                    'header__mobile-nav-link--active':
+                      isActiveRoute(item.path)
+                  }"
+                  @click="closeMobileMenu"
+                >
+                  <span>{{ item.title }}</span>
+                </router-link>
+              </li>
+
+              <!-- لینک‌های کاربر -->
+              <template v-if="isAuthenticated">
+                <li class="header__mobile-divider"></li>
+
+                <li>
+                  <router-link
+                    to="/profile"
+                    class="header__mobile-nav-link"
+                    @click="closeMobileMenu"
+                  >
+                    <User
+                      :size="18"
+                      class="header__mobile-nav-icon"
+                    />
+
+                    <span>پروفایل من</span>
+                  </router-link>
+                </li>
+
+                <li>
+                  <router-link
+                    to="/orders"
+                    class="header__mobile-nav-link"
+                    @click="closeMobileMenu"
+                  >
+                    <ShoppingBag
+                      :size="18"
+                      class="header__mobile-nav-icon"
+                    />
+
+                    <span>سفارش‌های من</span>
+                  </router-link>
+                </li>
+
+                <li>
+                  <router-link
+                    to="/wishlist"
+                    class="header__mobile-nav-link"
+                    @click="closeMobileMenu"
+                  >
+                    <Heart
+                      :size="18"
+                      class="header__mobile-nav-icon"
+                    />
+
+                    <span>علاقه‌مندی‌ها</span>
+
+                    <span
+                      v-if="wishlistCount"
+                      class="header__badge"
+                    >
+                      {{ wishlistCount }}
+                    </span>
+                  </router-link>
+                </li>
+
+                <li class="header__mobile-divider"></li>
+
+                <li>
+                  <button
+                    type="button"
+                    class="
+                      header__mobile-nav-link
+                      header__mobile-nav-link--logout
+                    "
+                    @click="handleMobileLogout"
+                  >
+                    <LogOut
+                      :size="18"
+                      class="header__mobile-nav-icon"
+                    />
+
+                    <span>خروج از حساب</span>
+                  </button>
+                </li>
+              </template>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

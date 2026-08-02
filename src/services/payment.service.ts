@@ -231,7 +231,7 @@ async getPayment(
   }
 }
 
-⁷
+
 export const paymentService =
   new PaymentService()
 

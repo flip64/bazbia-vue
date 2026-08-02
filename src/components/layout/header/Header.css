@@ -1,12 +1,24 @@
 /* src/components/layout/header/Header.css */
 
 /* =========================
+   تنظیمات عمومی
+========================= */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+
+/* =========================
    استایل اصلی هدر
 ========================= */
 
 .header {
   position: relative;
   z-index: 1000;
+  width: 100%;
   color: white;
   background: linear-gradient(
     135deg,
@@ -25,10 +37,10 @@
   left: 0;
   z-index: 1000;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
-  animation: slideDown 0.3s ease;
+  animation: headerSlideDown 0.3s ease;
 }
 
-@keyframes slideDown {
+@keyframes headerSlideDown {
   from {
     transform: translateY(-100%);
   }
@@ -39,6 +51,8 @@
 }
 
 .header__container {
+  box-sizing: border-box;
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 1rem 2rem;
@@ -79,9 +93,9 @@
 }
 
 .header__logo-text {
+  color: white;
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
 }
 
 
@@ -151,6 +165,7 @@
 }
 
 .header__search-input {
+  box-sizing: border-box;
   width: 250px;
   padding: 0.5rem 1rem;
   color: white;
@@ -242,12 +257,13 @@
 ========================= */
 
 .header__mobile {
-  display: none;
   position: relative;
+  display: none;
 }
 
 .header__mobile-top {
   position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -272,6 +288,7 @@
   border: none;
   border-radius: 9999px;
   cursor: pointer;
+  pointer-events: auto;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -304,6 +321,7 @@
 
 .header__mobile-search {
   position: relative;
+  z-index: 1;
   padding: 0.75rem 0 0.25rem;
 }
 
@@ -341,16 +359,18 @@
 
 /* =========================
    پوشش منوی موبایل
-   این بخش با Teleport داخل body است
+   با Teleport داخل body
 ========================= */
 
 .header__mobile-overlay {
   position: fixed;
   z-index: 99990;
   inset: 0;
-  display: flex;
-  justify-content: flex-start;
-  direction: rtl;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  direction: ltr;
   background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
@@ -362,25 +382,39 @@
 ========================= */
 
 .header__mobile-menu {
-  position: relative;
+  position: fixed;
   z-index: 99999;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+
   display: flex;
   flex-direction: column;
+
+  box-sizing: border-box;
   width: min(86vw, 360px);
-  height: 100%;
-  max-height: 100dvh;
+  max-width: 100%;
+  height: 100vh;
+  height: 100dvh;
+
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+
   direction: rtl;
   color: white;
+
   background: linear-gradient(
     160deg,
     #16a34a 0%,
     #059669 55%,
     #047857 100%
   );
+
   box-shadow: -12px 0 35px rgba(0, 0, 0, 0.25);
+  transform: translateX(0);
+  will-change: transform;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -392,7 +426,7 @@
 .header__mobile-menu-header {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -447,84 +481,7 @@
 
 
 /* =========================
-   ناوبری منوی موبایل
-========================= */
-
-.header__mobile-nav {
-  width: 100%;
-  padding-bottom: 2rem;
-}
-
-.header__mobile-nav-list {
-  margin: 0;
-  padding: 1rem 1.25rem 2rem;
-  list-style: none;
-}
-
-.header__mobile-nav-link {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.75rem;
-  box-sizing: border-box;
-  width: 100%;
-  padding: 1rem 0.75rem;
-  color: white;
-  font-family: inherit;
-  font-size: 1rem;
-  text-align: right;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  cursor: pointer;
-  transition:
-    padding 0.2s ease,
-    background 0.2s ease;
-}
-
-.header__mobile-nav-link:hover,
-.header__mobile-nav-link:active {
-  padding-right: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.header__mobile-nav-link--active {
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.header__mobile-nav-link .header__badge {
-  position: static;
-  margin-right: auto;
-}
-
-.header__mobile-nav-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  opacity: 0.9;
-}
-
-.header__mobile-nav-link--logout {
-  color: #fecaca;
-}
-
-.header__mobile-nav-link--logout:hover {
-  background: rgba(239, 68, 68, 0.15);
-}
-
-.header__mobile-divider {
-  height: 1px;
-  margin: 1rem 0;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-
-/* =========================
-   اطلاعات کاربر در موبایل
+   اطلاعات کاربر موبایل
 ========================= */
 
 .header__mobile-user {
@@ -592,6 +549,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
   padding: 1rem;
   color: #047857;
   font-weight: 700;
@@ -617,6 +576,88 @@
   flex-shrink: 0;
   width: 20px;
   height: 20px;
+}
+
+
+/* =========================
+   ناوبری منوی موبایل
+========================= */
+
+.header__mobile-nav {
+  width: 100%;
+  padding-bottom: 2rem;
+}
+
+.header__mobile-nav-list {
+  margin: 0;
+  padding: 1rem 1.25rem 2rem;
+  list-style: none;
+}
+
+.header__mobile-nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+
+  box-sizing: border-box;
+  width: 100%;
+  padding: 1rem 0.75rem;
+
+  color: white;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: right;
+  text-decoration: none;
+
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition:
+    padding 0.2s ease,
+    background 0.2s ease;
+}
+
+.header__mobile-nav-link:hover,
+.header__mobile-nav-link:active {
+  padding-right: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.header__mobile-nav-link--active {
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.header__mobile-nav-link .header__badge {
+  position: static;
+  margin-right: auto;
+}
+
+.header__mobile-nav-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
+}
+
+.header__mobile-nav-link--logout {
+  color: #fecaca;
+}
+
+.header__mobile-nav-link--logout:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.header__mobile-divider {
+  height: 1px;
+  margin: 1rem 0;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 
@@ -736,6 +777,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  box-sizing: border-box;
   width: 100%;
   padding: 0.75rem 1rem;
   color: #333;
@@ -784,7 +826,7 @@
 
 
 /* =========================
-   انیمیشن دراپ‌داون و جستجو
+   انیمیشن Fade
 ========================= */
 
 .fade-enter-active,
@@ -873,7 +915,7 @@
 
 
 /* =========================
-   نمایش دسکتاپ
+   نسخه دسکتاپ
 ========================= */
 
 @media (min-width: 769px) {

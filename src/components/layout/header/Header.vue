@@ -1,52 +1,52 @@
+<!-- src/components/layout/header/Header.vue -->
+
 <template>
   <header
-    class="header"
-    :class="{ 'header--sticky': isSticky }"
+    class="site-header"
+    :class="{ 'site-header--sticky': isSticky }"
   >
-    <div class="header__container">
+    <div class="site-header__container">
       <!-- =========================
            نسخه دسکتاپ
       ========================== -->
-      <div class="header__desktop">
+      <div class="desktop-header">
         <!-- لوگو -->
-        <div class="header__logo">
-          <router-link
-            to="/"
-            class="header__logo-link"
-            @click="closeAllMenus"
+        <router-link
+          to="/"
+          class="desktop-header__logo"
+          aria-label="صفحه اصلی بازبیا"
+          @click="closeAll"
+        >
+          <img
+            :src="logoUrl"
+            alt="بازبیا"
+            class="desktop-header__logo-image"
+            @error="handleLogoError"
           >
-            <img
-              :src="logoUrl"
-              alt="بازبیا"
-              class="header__logo-img"
-              @error="handleImageError"
-            >
 
-            <span class="header__logo-text">
-              بازبیا
-            </span>
-          </router-link>
-        </div>
+          <span class="desktop-header__logo-text">
+            بازبیا
+          </span>
+        </router-link>
 
         <!-- منوی اصلی -->
         <nav
-          class="header__nav"
+          class="desktop-header__nav"
           aria-label="منوی اصلی"
         >
-          <ul class="header__nav-list">
+          <ul class="desktop-header__nav-list">
             <li
               v-for="item in menuItems"
               :key="item.id"
-              class="header__nav-item"
             >
               <router-link
                 :to="item.path"
-                class="header__nav-link"
+                class="desktop-header__nav-link"
                 :class="{
-                  'header__nav-link--active':
+                  'desktop-header__nav-link--active':
                     isActiveRoute(item.path)
                 }"
-                @click="closeAllMenus"
+                @click="closeAll"
               >
                 {{ item.title }}
               </router-link>
@@ -55,204 +55,159 @@
         </nav>
 
         <!-- جستجو -->
-        <div class="header__search">
-          <form
-            class="header__search-form"
-            role="search"
-            @submit.prevent="handleSearch"
+        <form
+          class="desktop-header__search"
+          role="search"
+          @submit.prevent="handleSearch"
+        >
+          <input
+            v-model="searchQuery"
+            type="search"
+            class="desktop-header__search-input"
+            placeholder="جستجوی محصولات..."
+            aria-label="جستجوی محصولات"
+            autocomplete="off"
           >
-            <input
-              v-model="searchQuery"
-              type="search"
-              placeholder="جستجوی محصولات..."
-              class="header__search-input"
-              aria-label="جستجوی محصولات"
-              autocomplete="off"
-            >
 
-            <button
-              type="submit"
-              class="header__search-btn"
-              aria-label="جستجو"
-            >
-              <Search :size="18" />
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            class="desktop-header__search-button"
+            aria-label="جستجو"
+          >
+            <Search :size="19" />
+          </button>
+        </form>
 
         <!-- عملیات کاربری -->
-        <div class="header__actions">
+        <div class="desktop-header__actions">
           <!-- حساب کاربری -->
           <div
-            class="header__user-menu"
-            :class="{
-              'header__user-menu--open': isUserMenuOpen
-            }"
+            ref="desktopUserMenuRef"
+            class="desktop-user"
           >
             <button
               type="button"
-              class="header__action-btn header__user-btn"
+              class="desktop-header__action"
               aria-label="حساب کاربری"
               :aria-expanded="isUserMenuOpen"
-              aria-controls="desktop-user-dropdown"
               @click.stop="toggleUserMenu"
             >
-              <template v-if="isAuthenticated">
-                <div class="header__user-avatar">
+              <span
+                v-if="isAuthenticated"
+                class="desktop-user__avatar"
+              >
+                <img
+                  v-if="userAvatar"
+                  :src="userAvatar"
+                  alt="تصویر کاربر"
+                  @error="handleAvatarError"
+                >
+
+                <span v-else>
+                  {{ userInitial }}
+                </span>
+              </span>
+
+              <User
+                v-else
+                :size="23"
+              />
+            </button>
+
+            <div
+              v-if="isUserMenuOpen && isAuthenticated"
+              class="desktop-user__dropdown"
+              @click.stop
+            >
+              <div class="desktop-user__summary">
+                <div class="desktop-user__large-avatar">
                   <img
                     v-if="userAvatar"
                     :src="userAvatar"
                     alt="تصویر کاربر"
-                    class="header__user-avatar-img"
                     @error="handleAvatarError"
                   >
 
-                  <span
-                    v-else
-                    class="header__user-avatar-text"
-                  >
+                  <span v-else>
                     {{ userInitial }}
                   </span>
                 </div>
-              </template>
 
-              <User
-                v-else
-                :size="22"
-                class="header__action-icon"
-              />
-            </button>
+                <div class="desktop-user__identity">
+                  <strong>
+                    {{ userFullName }}
+                  </strong>
 
-            <transition name="fade">
-              <div
-                v-if="isUserMenuOpen && isAuthenticated"
-                id="desktop-user-dropdown"
-                v-click-outside="closeUserMenu"
-                class="header__dropdown"
-                @click.stop
-              >
-                <div class="header__dropdown-header">
-                  <div class="header__dropdown-user">
-                    <div class="header__dropdown-avatar">
-                      <img
-                        v-if="userAvatar"
-                        :src="userAvatar"
-                        alt="تصویر کاربر"
-                        @error="handleAvatarError"
-                      >
-
-                      <span v-else>
-                        {{ userInitial }}
-                      </span>
-                    </div>
-
-                    <div class="header__dropdown-info">
-                      <div class="header__dropdown-name">
-                        {{ userFullName }}
-                      </div>
-
-                      <div
-                        v-if="userEmail"
-                        class="header__dropdown-email"
-                      >
-                        {{ userEmail }}
-                      </div>
-                    </div>
-                  </div>
+                  <span v-if="userContact">
+                    {{ userContact }}
+                  </span>
                 </div>
-
-                <ul class="header__dropdown-menu">
-                  <li>
-                    <router-link
-                      to="/profile"
-                      class="header__dropdown-link"
-                      @click="closeUserMenu"
-                    >
-                      <User
-                        :size="16"
-                        class="header__dropdown-icon"
-                      />
-
-                      <span>پروفایل من</span>
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link
-                      to="/orders"
-                      class="header__dropdown-link"
-                      @click="closeUserMenu"
-                    >
-                      <ShoppingBag
-                        :size="16"
-                        class="header__dropdown-icon"
-                      />
-
-                      <span>سفارش‌های من</span>
-                    </router-link>
-                  </li>
-
-                  <li>
-                    <router-link
-                      to="/wishlist"
-                      class="header__dropdown-link"
-                      @click="closeUserMenu"
-                    >
-                      <Heart
-                        :size="16"
-                        class="header__dropdown-icon"
-                      />
-
-                      <span>علاقه‌مندی‌ها</span>
-
-                      <span
-                        v-if="wishlistCount"
-                        class="header__dropdown-badge"
-                      >
-                        {{ wishlistCount }}
-                      </span>
-                    </router-link>
-                  </li>
-
-                  <li class="header__dropdown-divider"></li>
-
-                  <li>
-                    <button
-                      type="button"
-                      class="
-                        header__dropdown-link
-                        header__dropdown-link--logout
-                      "
-                      @click="handleLogout"
-                    >
-                      <LogOut
-                        :size="16"
-                        class="header__dropdown-icon"
-                      />
-
-                      <span>خروج از حساب</span>
-                    </button>
-                  </li>
-                </ul>
               </div>
-            </transition>
+
+              <nav aria-label="منوی کاربری">
+                <router-link
+                  to="/profile"
+                  class="desktop-user__link"
+                  @click="closeUserMenu"
+                >
+                  <User :size="18" />
+                  <span>پروفایل من</span>
+                </router-link>
+
+                <router-link
+                  to="/orders"
+                  class="desktop-user__link"
+                  @click="closeUserMenu"
+                >
+                  <ShoppingBag :size="18" />
+                  <span>سفارش‌های من</span>
+                </router-link>
+
+                <router-link
+                  to="/wishlist"
+                  class="desktop-user__link"
+                  @click="closeUserMenu"
+                >
+                  <Heart :size="18" />
+                  <span>علاقه‌مندی‌ها</span>
+
+                  <span
+                    v-if="wishlistCount"
+                    class="desktop-user__count"
+                  >
+                    {{ wishlistCount }}
+                  </span>
+                </router-link>
+
+                <div class="desktop-user__divider"></div>
+
+                <button
+                  type="button"
+                  class="
+                    desktop-user__link
+                    desktop-user__link--logout
+                  "
+                  @click="handleLogout"
+                >
+                  <LogOut :size="18" />
+                  <span>خروج از حساب</span>
+                </button>
+              </nav>
+            </div>
           </div>
 
           <!-- علاقه‌مندی‌ها -->
           <button
             type="button"
-            class="header__action-btn"
+            class="desktop-header__action"
             aria-label="علاقه‌مندی‌ها"
             @click="goToWishlist"
           >
-            <Heart
-              :size="22"
-              class="header__action-icon"
-            />
+            <Heart :size="23" />
 
             <span
               v-if="wishlistCount"
-              class="header__badge"
+              class="header-counter"
             >
               {{ wishlistCount }}
             </span>
@@ -261,18 +216,15 @@
           <!-- سبد خرید -->
           <router-link
             to="/cart"
-            class="header__action-btn"
+            class="desktop-header__action"
             aria-label="سبد خرید"
-            @click="closeAllMenus"
+            @click="closeAll"
           >
-            <ShoppingBag
-              :size="22"
-              class="header__action-icon"
-            />
+            <ShoppingBag :size="23" />
 
             <span
               v-if="cartTotalItems"
-              class="header__badge"
+              class="header-counter"
             >
               {{ cartTotalItems }}
             </span>
@@ -283,295 +235,299 @@
       <!-- =========================
            نسخه موبایل
       ========================== -->
-      <div class="header__mobile">
-        <div class="header__mobile-top">
-          <!-- دکمه منو -->
+      <div class="mobile-header">
+        <!-- دکمه منو -->
+        <button
+          type="button"
+          class="mobile-header__button"
+          aria-label="باز کردن منو"
+          :aria-expanded="isMobileMenuOpen"
+          @click="openMobileMenu"
+        >
+          <Menu :size="25" />
+        </button>
+
+        <!-- لوگو -->
+        <router-link
+          to="/"
+          class="mobile-header__logo"
+          aria-label="صفحه اصلی بازبیا"
+          @click="closeAll"
+        >
+          <img
+            :src="logoUrl"
+            alt="بازبیا"
+            class="mobile-header__logo-image"
+            @error="handleLogoError"
+          >
+        </router-link>
+
+        <!-- عملیات -->
+        <div class="mobile-header__actions">
           <button
             type="button"
-            class="header__mobile-menu-btn"
-            :aria-expanded="isMobileMenuOpen"
-            aria-controls="mobile-navigation"
-            aria-label="باز و بسته کردن منو"
-            @click.stop="toggleMobileMenu"
+            class="mobile-header__button"
+            aria-label="جستجو"
+            :aria-expanded="isMobileSearchOpen"
+            @click="toggleMobileSearch"
           >
-            <Menu
-              v-if="!isMobileMenuOpen"
-              :size="24"
+            <X
+              v-if="isMobileSearchOpen"
+              :size="22"
             />
 
-            <X
+            <Search
               v-else
-              :size="24"
+              :size="22"
             />
           </button>
 
-          <!-- لوگو -->
           <router-link
-            to="/"
-            class="header__logo"
-            aria-label="صفحه اصلی بازبیا"
-            @click="closeAllMenus"
+            to="/cart"
+            class="mobile-header__button"
+            aria-label="سبد خرید"
+            @click="closeAll"
           >
-            <img
-              :src="logoUrl"
-              alt="بازبیا"
-              class="header__logo-img"
-              @error="handleImageError"
+            <ShoppingBag :size="22" />
+
+            <span
+              v-if="cartTotalItems"
+              class="header-counter"
             >
+              {{ cartTotalItems }}
+            </span>
           </router-link>
-
-          <!-- عملیات موبایل -->
-          <div class="header__mobile-actions">
-            <button
-              type="button"
-              class="header__mobile-search-btn"
-              :aria-expanded="isMobileSearchOpen"
-              aria-controls="mobile-search"
-              aria-label="جستجو"
-              @click.stop="toggleSearch"
-            >
-              <X
-                v-if="isMobileSearchOpen"
-                :size="20"
-              />
-
-              <Search
-                v-else
-                :size="20"
-              />
-            </button>
-
-            <router-link
-              to="/cart"
-              class="header__mobile-cart"
-              aria-label="سبد خرید"
-              @click="closeAllMenus"
-            >
-              <ShoppingBag :size="20" />
-
-              <span
-                v-if="cartTotalItems"
-                class="header__badge"
-              >
-                {{ cartTotalItems }}
-              </span>
-            </router-link>
-          </div>
         </div>
+      </div>
 
-        <!-- جستجوی موبایل -->
-        <transition name="fade">
-          <div
-            v-if="isMobileSearchOpen"
-            id="mobile-search"
-            class="header__mobile-search"
-            @click.stop
+      <!-- جستجوی موبایل -->
+      <div
+        v-if="isMobileSearchOpen"
+        class="mobile-search"
+      >
+        <form
+          role="search"
+          @submit.prevent="handleSearch"
+        >
+          <input
+            ref="mobileSearchInput"
+            v-model="searchQuery"
+            type="search"
+            class="mobile-search__input"
+            placeholder="جستجوی محصولات..."
+            aria-label="جستجوی محصولات"
+            autocomplete="off"
           >
-            <form
-              role="search"
-              @submit.prevent="handleSearch"
-            >
-              <input
-                ref="mobileSearchInput"
-                v-model="searchQuery"
-                type="search"
-                placeholder="جستجوی محصولات..."
-                class="header__mobile-search-input"
-                aria-label="جستجوی محصولات"
-                autocomplete="off"
-              >
-            </form>
-          </div>
-        </transition>
+
+          <button
+            type="submit"
+            class="mobile-search__button"
+            aria-label="جستجو"
+          >
+            <Search :size="20" />
+          </button>
+        </form>
       </div>
     </div>
   </header>
 
   <!-- =========================
-       منوی کشویی موبایل
-       خارج از Header رندر می‌شود
-  ===================-->
+       منوی موبایل
+  ========================== -->
   <Teleport to="body">
-  <div
-    v-if="isMobileMenuOpen"
-    class="mobile-drawer"
-    @click="closeMobileMenu"
-  >
-    <aside
-      id="mobile-navigation"
-      class="mobile-drawer__panel"
-      role="dialog"
-      aria-modal="true"
-      aria-label="منوی اصلی"
-      @click.stop
+    <div
+      v-if="isMobileMenuOpen"
+      class="mobile-drawer-overlay"
+      @click="closeMobileMenu"
     >
-      <!-- سربرگ منو -->
-      <div class="mobile-drawer__header">
+      <aside
+        class="mobile-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="منوی موبایل"
+        @click.stop
+      >
+        <!-- سربرگ -->
+        <div class="mobile-drawer__header">
+          <router-link
+            to="/"
+            class="mobile-drawer__brand"
+            @click="closeMobileMenu"
+          >
+            <img
+              :src="logoUrl"
+              alt="بازبیا"
+              @error="handleLogoError"
+            >
+
+            <span>بازبیا</span>
+          </router-link>
+
+          <button
+            type="button"
+            class="mobile-drawer__close"
+            aria-label="بستن منو"
+            @click="closeMobileMenu"
+          >
+            <X :size="25" />
+          </button>
+        </div>
+
+        <!-- کاربر مهمان -->
         <router-link
-          to="/"
-          class="mobile-drawer__logo"
+          v-if="!isAuthenticated"
+          to="/login"
+          class="mobile-drawer__login"
           @click="closeMobileMenu"
         >
-          <img
-            :src="logoUrl"
-            alt="بازبیا"
-            class="mobile-drawer__logo-image"
-            @error="handleImageError"
-          >
-
-          <span class="mobile-drawer__logo-text">
-            بازبیا
+          <span class="mobile-drawer__login-icon">
+            <LogIn :size="22" />
           </span>
+
+          <span class="mobile-drawer__login-text">
+            <strong>ورود / ثبت‌نام</strong>
+            <small>برای مشاهده سفارش‌ها وارد شوید</small>
+          </span>
+
+          <ChevronLeft :size="20" />
         </router-link>
 
-        <button
-          type="button"
-          class="mobile-drawer__close"
-          aria-label="بستن منو"
-          @click="closeMobileMenu"
+        <!-- کاربر واردشده -->
+        <div
+          v-else
+          class="mobile-drawer__user"
         >
-          <X :size="24" />
-        </button>
-      </div>
-
-      <!-- کاربر وارد شده -->
-      <div
-        v-if="isAuthenticated"
-        class="mobile-drawer__user"
-      >
-        <div class="mobile-drawer__avatar">
-          <img
-            v-if="userAvatar"
-            :src="userAvatar"
-            alt="تصویر کاربر"
-            @error="handleAvatarError"
-          >
-
-          <span v-else>
-            {{ userInitial }}
-          </span>
-        </div>
-
-        <div class="mobile-drawer__user-content">
-          <strong class="mobile-drawer__user-name">
-            {{ userFullName }}
-          </strong>
-
-          <span
-            v-if="userEmail"
-            class="mobile-drawer__user-contact"
-          >
-            {{ userEmail }}
-          </span>
-        </div>
-      </div>
-
-      <!-- کاربر مهمان -->
-      <router-link
-        v-else
-        to="/login"
-        class="mobile-drawer__login"
-        @click="closeMobileMenu"
-      >
-        <LogIn :size="21" />
-
-        <span>ورود / ثبت‌نام</span>
-      </router-link>
-
-      <!-- منوی اصلی -->
-      <nav
-        class="mobile-drawer__nav"
-        aria-label="منوی موبایل"
-      >
-        <ul class="mobile-drawer__list">
-          <li
-            v-for="item in menuItems"
-            :key="item.id"
-          >
-            <router-link
-              :to="item.path"
-              class="mobile-drawer__link"
-              :class="{
-                'mobile-drawer__link--active':
-                  isActiveRoute(item.path)
-              }"
-              @click="closeMobileMenu"
+          <div class="mobile-drawer__avatar">
+            <img
+              v-if="userAvatar"
+              :src="userAvatar"
+              alt="تصویر کاربر"
+              @error="handleAvatarError"
             >
-              {{ item.title }}
-            </router-link>
-          </li>
 
+            <span v-else>
+              {{ userInitial }}
+            </span>
+          </div>
+
+          <div class="mobile-drawer__user-info">
+            <strong>
+              {{ userFullName }}
+            </strong>
+
+            <span v-if="userContact">
+              {{ userContact }}
+            </span>
+          </div>
+        </div>
+
+        <!-- منوی اصلی -->
+        <nav
+          class="mobile-drawer__navigation"
+          aria-label="منوی اصلی موبایل"
+        >
+          <p class="mobile-drawer__section-title">
+            منوی اصلی
+          </p>
+
+          <ul class="mobile-drawer__list">
+            <li
+              v-for="item in menuItems"
+              :key="item.id"
+            >
+              <router-link
+                :to="item.path"
+                class="mobile-drawer__link"
+                :class="{
+                  'mobile-drawer__link--active':
+                    isActiveRoute(item.path)
+                }"
+                @click="closeMobileMenu"
+              >
+                <span>{{ item.title }}</span>
+                <ChevronLeft :size="18" />
+              </router-link>
+            </li>
+          </ul>
+
+          <!-- منوی حساب -->
           <template v-if="isAuthenticated">
-            <li class="mobile-drawer__divider"></li>
+            <p class="mobile-drawer__section-title">
+              حساب کاربری
+            </p>
 
-            <li>
-              <router-link
-                to="/profile"
-                class="mobile-drawer__link"
-                @click="closeMobileMenu"
-              >
-                <User :size="19" />
-
-                <span>پروفایل من</span>
-              </router-link>
-            </li>
-
-            <li>
-              <router-link
-                to="/orders"
-                class="mobile-drawer__link"
-                @click="closeMobileMenu"
-              >
-                <ShoppingBag :size="19" />
-
-                <span>سفارش‌های من</span>
-              </router-link>
-            </li>
-
-            <li>
-              <router-link
-                to="/wishlist"
-                class="mobile-drawer__link"
-                @click="closeMobileMenu"
-              >
-                <Heart :size="19" />
-
-                <span>علاقه‌مندی‌ها</span>
-
-                <span
-                  v-if="wishlistCount"
-                  class="mobile-drawer__badge"
+            <ul class="mobile-drawer__list">
+              <li>
+                <router-link
+                  to="/profile"
+                  class="mobile-drawer__link"
+                  @click="closeMobileMenu"
                 >
-                  {{ wishlistCount }}
-                </span>
-              </router-link>
-            </li>
+                  <span class="mobile-drawer__link-content">
+                    <User :size="20" />
+                    <span>پروفایل من</span>
+                  </span>
 
-            <li class="mobile-drawer__divider"></li>
+                  <ChevronLeft :size="18" />
+                </router-link>
+              </li>
 
-            <li>
-              <button
-                type="button"
-                class="
-                  mobile-drawer__link
-                  mobile-drawer__link--logout
-                "
-                @click="handleMobileLogout"
-              >
-                <LogOut :size="19" />
+              <li>
+                <router-link
+                  to="/orders"
+                  class="mobile-drawer__link"
+                  @click="closeMobileMenu"
+                >
+                  <span class="mobile-drawer__link-content">
+                    <ShoppingBag :size="20" />
+                    <span>سفارش‌های من</span>
+                  </span>
 
-                <span>خروج از حساب</span>
-              </button>
-            </li>
+                  <ChevronLeft :size="18" />
+                </router-link>
+              </li>
+
+              <li>
+                <router-link
+                  to="/wishlist"
+                  class="mobile-drawer__link"
+                  @click="closeMobileMenu"
+                >
+                  <span class="mobile-drawer__link-content">
+                    <Heart :size="20" />
+                    <span>علاقه‌مندی‌ها</span>
+                  </span>
+
+                  <span
+                    v-if="wishlistCount"
+                    class="mobile-drawer__count"
+                  >
+                    {{ wishlistCount }}
+                  </span>
+                </router-link>
+              </li>
+
+              <li>
+                <button
+                  type="button"
+                  class="
+                    mobile-drawer__link
+                    mobile-drawer__link--logout
+                  "
+                  @click="handleLogout"
+                >
+                  <span class="mobile-drawer__link-content">
+                    <LogOut :size="20" />
+                    <span>خروج از حساب</span>
+                  </span>
+                </button>
+              </li>
+            </ul>
           </template>
-        </ul>
-      </nav>
-    </aside>
-  </div>
-</Teleport>
-  
-  
-                      
+        </nav>
+      </aside>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -592,12 +548,12 @@ import {
 import { storeToRefs } from 'pinia'
 
 import {
+  ChevronLeft,
   Heart,
   LogIn,
   LogOut,
   Menu,
   Search,
-  Settings,
   ShoppingBag,
   User,
   X
@@ -606,20 +562,24 @@ import {
 import { useAuthStore } from '@/core/store/authStore'
 import { useCartStore } from '@/core/store/cartStore'
 import { useWishlistStore } from '@/core/store/wishlistStore'
-import { vClickOutside } from '@/directives/clickOutside'
 
 import './Header.css'
 
-// ========== Router ==========
+// =========================
+// Router
+// =========================
+
 const router = useRouter()
 const route = useRoute()
 
-// ========== Stores ==========
+// =========================
+// Stores
+// =========================
+
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 
-// ========== Store Refs ==========
 const {
   isAuthenticated,
   user,
@@ -635,42 +595,31 @@ const {
   totalItems: wishlistCount
 } = storeToRefs(wishlistStore)
 
-// ========== User Computed ==========
-const userFullName = computed(() => {
-  return userName.value || 'کاربر بازبیا'
-})
+// =========================
+// State
+// =========================
 
-const userInitial = computed(() => {
-  return userInitials.value || 'ک'
-})
-
-const userEmail = computed(() => {
-  return (
-    user.value?.email ||
-    user.value?.phone ||
-    user.value?.mobile ||
-    ''
-  )
-})
-
-const userAvatar = computed(() => {
-  return user.value?.avatar || ''
-})
-
-// ========== State ==========
 const isSticky = ref(false)
 const isMobileMenuOpen = ref(false)
 const isMobileSearchOpen = ref(false)
 const isUserMenuOpen = ref(false)
 
 const searchQuery = ref('')
-const mobileSearchInput = ref<HTMLInputElement | null>(null)
+
+const mobileSearchInput =
+  ref<HTMLInputElement | null>(null)
+
+const desktopUserMenuRef =
+  ref<HTMLElement | null>(null)
 
 const logoUrl = ref(
   'https://bazbia.ir/media/logo/bazbialogo.gif'
 )
 
-// ========== Menu Items ==========
+// =========================
+// Menu
+// =========================
+
 const menuItems = [
   {
     id: 1,
@@ -704,37 +653,54 @@ const menuItems = [
   }
 ]
 
-// ========== Computed ==========
-const bodyShouldBeLocked = computed(() => {
+// =========================
+// User
+// =========================
+
+const currentUser = computed<Record<string, any>>(() => {
+  return (user.value || {}) as Record<string, any>
+})
+
+const userFullName = computed(() => {
   return (
-    isMobileMenuOpen.value ||
-    isMobileSearchOpen.value
+    userName.value ||
+    currentUser.value.full_name ||
+    currentUser.value.name ||
+    'کاربر بازبیا'
   )
 })
 
-// ========== Route Helpers ==========
+const userInitial = computed(() => {
+  return (
+    userInitials.value ||
+    userFullName.value.trim().charAt(0) ||
+    'ک'
+  )
+})
+
+const userContact = computed(() => {
+  return (
+    currentUser.value.email ||
+    currentUser.value.phone ||
+    currentUser.value.mobile ||
+    ''
+  )
+})
+
+const userAvatar = computed(() => {
+  return currentUser.value.avatar || ''
+})
+
+// =========================
+// Helpers
+// =========================
+
 const isActiveRoute = (path: string) => {
   if (path === '/') {
     return route.path === '/'
   }
 
   return route.path.startsWith(path)
-}
-
-// ========== Body Scroll ==========
-const lockBodyScroll = () => {
-  document.documentElement.style.overflow = 'hidden'
-  document.body.style.overflow = 'hidden'
-}
-
-const unlockBodyScroll = () => {
-  document.documentElement.style.overflow = ''
-  document.body.style.overflow = ''
-}
-
-// ========== Close Methods ==========
-const closeUserMenu = () => {
-  isUserMenuOpen.value = false
 }
 
 const closeMobileMenu = () => {
@@ -745,48 +711,44 @@ const closeMobileSearch = () => {
   isMobileSearchOpen.value = false
 }
 
-const closeAllMenus = () => {
+const closeUserMenu = () => {
+  isUserMenuOpen.value = false
+}
+
+const closeAll = () => {
   closeMobileMenu()
   closeMobileSearch()
   closeUserMenu()
 }
 
-// ========== Search ==========
-const handleSearch = async () => {
-  const query = searchQuery.value.trim()
+// =========================
+// Mobile menu
+// =========================
 
-  if (!query) {
-    return
+const openMobileMenu = () => {
+  closeMobileSearch()
+  closeUserMenu()
+
+  isMobileMenuOpen.value = true
+}
+
+const toggleMobileSearch = async () => {
+  closeMobileMenu()
+  closeUserMenu()
+
+  isMobileSearchOpen.value =
+    !isMobileSearchOpen.value
+
+  if (isMobileSearchOpen.value) {
+    await nextTick()
+    mobileSearchInput.value?.focus()
   }
-
-  await router.push({
-    path: '/products',
-    query: {
-      search: query
-    }
-  })
-
-  searchQuery.value = ''
-  closeAllMenus()
 }
 
-// ========== Images ==========
-const handleImageError = (event: Event) => {
-  const image = event.target as HTMLImageElement
+// =========================
+// Desktop user menu
+// =========================
 
-  image.onerror = null
-  image.src =
-    'https://via.placeholder.com/150x50?text=Bazbia'
-}
-
-const handleAvatarError = (event: Event) => {
-  const image = event.target as HTMLImageElement
-
-  image.onerror = null
-  image.style.display = 'none'
-}
-
-// ========== Desktop User Menu ==========
 const toggleUserMenu = async () => {
   closeMobileMenu()
   closeMobileSearch()
@@ -802,12 +764,39 @@ const toggleUserMenu = async () => {
     return
   }
 
-  isUserMenuOpen.value = !isUserMenuOpen.value
+  isUserMenuOpen.value =
+    !isUserMenuOpen.value
 }
 
-// ========== Wishlist ==========
+// =========================
+// Search
+// =========================
+
+const handleSearch = async () => {
+  const query = searchQuery.value.trim()
+
+  if (!query) {
+    return
+  }
+
+  closeAll()
+
+  await router.push({
+    path: '/products',
+    query: {
+      search: query
+    }
+  })
+
+  searchQuery.value = ''
+}
+
+// =========================
+// Navigation
+// =========================
+
 const goToWishlist = async () => {
-  closeAllMenus()
+  closeAll()
 
   if (!isAuthenticated.value) {
     await router.push({
@@ -823,128 +812,112 @@ const goToWishlist = async () => {
   await router.push('/wishlist')
 }
 
-// ========== Logout ==========
+// =========================
+// Logout
+// =========================
+
 const handleLogout = async () => {
   try {
     await authStore.logout()
 
-    closeAllMenus()
+    closeAll()
 
     await router.push('/')
   } catch (error) {
-    console.error('خطا در خروج از حساب:', error)
+    console.error(
+      'خطا در خروج از حساب:',
+      error
+    )
   }
 }
 
-const handleMobileLogout = async () => {
-  await handleLogout()
+// =========================
+// Images
+// =========================
+
+const handleLogoError = (event: Event) => {
+  const image =
+    event.target as HTMLImageElement
+
+  image.onerror = null
+  image.src =
+    'https://via.placeholder.com/150x50?text=Bazbia'
 }
 
-// ========== Mobile Menu ==========
-const toggleMobileMenu = () => {
-  const nextState = !isMobileMenuOpen.value
+const handleAvatarError = (event: Event) => {
+  const image =
+    event.target as HTMLImageElement
 
-  closeMobileSearch()
-  closeUserMenu()
-
-  isMobileMenuOpen.value = nextState
+  image.onerror = null
+  image.style.display = 'none'
 }
 
-// ========== Mobile Search ==========
-const toggleSearch = async () => {
-  const nextState = !isMobileSearchOpen.value
+// =========================
+// Browser events
+// =========================
 
-  closeMobileMenu()
-  closeUserMenu()
-
-  isMobileSearchOpen.value = nextState
-
-  if (nextState) {
-    await nextTick()
-    mobileSearchInput.value?.focus()
-  }
-}
-
-// ========== Events ==========
 const handleScroll = () => {
-  isSticky.value = window.scrollY > 50
-}
-
-const handleDocumentClick = (event: MouseEvent) => {
-  const target = event.target as HTMLElement | null
-
-  if (!target) {
-    return
-  }
-
-  const clickedInsideMobileMenu = target.closest(
-    '.header__mobile-menu'
-  )
-
-  const clickedMobileMenuButton = target.closest(
-    '.header__mobile-menu-btn'
-  )
-
-  const clickedInsideMobileSearch = target.closest(
-    '.header__mobile-search'
-  )
-
-  const clickedMobileSearchButton = target.closest(
-    '.header__mobile-search-btn'
-  )
-
-  if (
-    isMobileMenuOpen.value &&
-    !clickedInsideMobileMenu &&
-    !clickedMobileMenuButton
-  ) {
-    closeMobileMenu()
-  }
-
-  if (
-    isMobileSearchOpen.value &&
-    !clickedInsideMobileSearch &&
-    !clickedMobileSearchButton
-  ) {
-    closeMobileSearch()
-  }
-}
-
-const handleEscape = (event: KeyboardEvent) => {
-  if (event.key !== 'Escape') {
-    return
-  }
-
-  closeAllMenus()
+  isSticky.value =
+    window.scrollY > 50
 }
 
 const handleResize = () => {
-  if (window.innerWidth >= 992) {
+  if (window.innerWidth > 768) {
     closeMobileMenu()
     closeMobileSearch()
   }
 }
 
-// ========== Watchers ==========
+const handleEscape = (
+  event: KeyboardEvent
+) => {
+  if (event.key === 'Escape') {
+    closeAll()
+  }
+}
+
+const handleDocumentClick = (
+  event: MouseEvent
+) => {
+  if (!isUserMenuOpen.value) {
+    return
+  }
+
+  const target =
+    event.target as Node | null
+
+  if (
+    target &&
+    desktopUserMenuRef.value &&
+    !desktopUserMenuRef.value.contains(target)
+  ) {
+    closeUserMenu()
+  }
+}
+
+// =========================
+// Watchers
+// =========================
+
 watch(
   () => route.fullPath,
   () => {
-    closeAllMenus()
+    closeAll()
   }
 )
 
 watch(
-  bodyShouldBeLocked,
-  (shouldLock) => {
-    if (shouldLock) {
-      lockBodyScroll()
-    } else {
-      unlockBodyScroll()
-    }
+  isMobileMenuOpen,
+  (isOpen) => {
+    document.body.style.overflow =
+      isOpen ? 'hidden' : ''
   }
 )
 
-// ========== Lifecycle ==========
+// =========================
+// Lifecycle
+// =========================
+
 onMounted(() => {
   window.addEventListener(
     'scroll',
@@ -968,7 +941,6 @@ onMounted(() => {
   )
 
   handleScroll()
-  handleResize()
 
   if (!cartStore.initialized) {
     cartStore.initializeCart()
@@ -996,6 +968,6 @@ onUnmounted(() => {
     handleDocumentClick
   )
 
-  unlockBodyScroll()
+  document.body.style.overflow = ''
 })
 </script>

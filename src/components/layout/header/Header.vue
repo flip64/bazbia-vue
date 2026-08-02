@@ -573,10 +573,9 @@ const wishlistStore = useWishlistStore()
 // ========== Store Refs ==========
 const {
   isAuthenticated,
-  userInitial,
-  userFullName,
-  userEmail,
-  userAvatar
+  user,
+  userName,
+  userInitials
 } = storeToRefs(authStore)
 
 const {
@@ -586,6 +585,28 @@ const {
 const {
   totalItems: wishlistCount
 } = storeToRefs(wishlistStore)
+
+// ========== User Computed ==========
+const userFullName = computed(() => {
+  return userName.value || 'کاربر بازبیا'
+})
+
+const userInitial = computed(() => {
+  return userInitials.value || 'ک'
+})
+
+const userEmail = computed(() => {
+  return (
+    user.value?.email ||
+    user.value?.phone ||
+    user.value?.mobile ||
+    ''
+  )
+})
+
+const userAvatar = computed(() => {
+  return user.value?.avatar || ''
+})
 
 // ========== State ==========
 const isSticky = ref(false)
@@ -636,22 +657,52 @@ const menuItems = [
 
 // ========== Computed ==========
 const bodyShouldBeLocked = computed(() => {
-  return isMobileMenuOpen.value
+  return (
+    isMobileMenuOpen.value ||
+    isMobileSearchOpen.value
+  )
 })
 
-// ========== Methods ==========
+// ========== Route Helpers ==========
 const isActiveRoute = (path: string) => {
-  return route.path === path
+  if (path === '/') {
+    return route.path === '/'
+  }
+
+  return route.path.startsWith(path)
 }
 
+// ========== Body Scroll ==========
 const lockBodyScroll = () => {
+  document.documentElement.style.overflow = 'hidden'
   document.body.style.overflow = 'hidden'
 }
 
 const unlockBodyScroll = () => {
+  document.documentElement.style.overflow = ''
   document.body.style.overflow = ''
 }
 
+// ========== Close Methods ==========
+const closeUserMenu = () => {
+  isUserMenuOpen.value = false
+}
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+}
+
+const closeMobileSearch = () => {
+  isMobileSearchOpen.value = false
+}
+
+const closeAllMenus = () => {
+  closeMobileMenu()
+  closeMobileSearch()
+  closeUserMenu()
+}
+
+// ========== Search ==========
 const handleSearch = async () => {
   const query = searchQuery.value.trim()
 
@@ -667,10 +718,10 @@ const handleSearch = async () => {
   })
 
   searchQuery.value = ''
-  closeMobileSearch()
-  closeMobileMenu()
+  closeAllMenus()
 }
 
+// ========== Images ==========
 const handleImageError = (event: Event) => {
   const image = event.target as HTMLImageElement
 
@@ -681,41 +732,54 @@ const handleImageError = (event: Event) => {
 
 const handleAvatarError = (event: Event) => {
   const image = event.target as HTMLImageElement
+
+  image.onerror = null
   image.style.display = 'none'
 }
 
-const toggleUserMenu = () => {
+// ========== Desktop User Menu ==========
+const toggleUserMenu = async () => {
   closeMobileMenu()
-  
+  closeMobileSearch()
 
   if (!isAuthenticated.value) {
-    router.push('/login')
+    await router.push({
+      path: '/login',
+      query: {
+        redirect: route.fullPath
+      }
+    })
+
     return
   }
 
   isUserMenuOpen.value = !isUserMenuOpen.value
 }
 
-const closeUserMenu = () => {
-  isUserMenuOpen.value = false
-}
+// ========== Wishlist ==========
+const goToWishlist = async () => {
+  closeAllMenus()
 
-const goToWishlist = () => {
   if (!isAuthenticated.value) {
-    router.push('/login?redirect=wishlist')
+    await router.push({
+      path: '/login',
+      query: {
+        redirect: '/wishlist'
+      }
+    })
+
     return
   }
 
-  router.push('/wishlist')
+  await router.push('/wishlist')
 }
 
+// ========== Logout ==========
 const handleLogout = async () => {
   try {
     await authStore.logout()
 
-    closeUserMenu()
-    closeMobileMenu()
-    closeMobileSearch()
+    closeAllMenus()
 
     await router.push('/')
   } catch (error) {
@@ -727,44 +791,74 @@ const handleMobileLogout = async () => {
   await handleLogout()
 }
 
+// ========== Mobile Menu ==========
 const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
+  const nextState = !isMobileMenuOpen.value
 
-  console.log(
-    'isMobileMenuOpen =',
-    isMobileMenuOpen.value
-  )
-  alert('دکمه منو کلیک شد')
-  
   closeMobileSearch()
+  closeUserMenu()
+
+  isMobileMenuOpen.value = nextState
 }
 
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false
-}
-
+// ========== Mobile Search ==========
 const toggleSearch = async () => {
-  isMobileSearchOpen.value = !isMobileSearchOpen.value
+  const nextState = !isMobileSearchOpen.value
 
   closeMobileMenu()
   closeUserMenu()
 
-  if (isMobileSearchOpen.value) {
+  isMobileSearchOpen.value = nextState
+
+  if (nextState) {
     await nextTick()
     mobileSearchInput.value?.focus()
   }
 }
 
-const closeMobileSearch = () => {
-  isMobileSearchOpen.value = false
-}
-
+// ========== Events ==========
 const handleScroll = () => {
   isSticky.value = window.scrollY > 50
 }
 
-const handleDocumentClick = () => {
-  
+const handleDocumentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null
+
+  if (!target) {
+    return
+  }
+
+  const clickedInsideMobileMenu = target.closest(
+    '.header__mobile-menu'
+  )
+
+  const clickedMobileMenuButton = target.closest(
+    '.header__mobile-menu-btn'
+  )
+
+  const clickedInsideMobileSearch = target.closest(
+    '.header__mobile-search'
+  )
+
+  const clickedMobileSearchButton = target.closest(
+    '.header__mobile-search-btn'
+  )
+
+  if (
+    isMobileMenuOpen.value &&
+    !clickedInsideMobileMenu &&
+    !clickedMobileMenuButton
+  ) {
+    closeMobileMenu()
+  }
+
+  if (
+    isMobileSearchOpen.value &&
+    !clickedInsideMobileSearch &&
+    !clickedMobileSearchButton
+  ) {
+    closeMobileSearch()
+  }
 }
 
 const handleEscape = (event: KeyboardEvent) => {
@@ -772,18 +866,21 @@ const handleEscape = (event: KeyboardEvent) => {
     return
   }
 
-  closeMobileMenu()
-  closeMobileSearch()
-  closeUserMenu()
+  closeAllMenus()
+}
+
+const handleResize = () => {
+  if (window.innerWidth >= 992) {
+    closeMobileMenu()
+    closeMobileSearch()
+  }
 }
 
 // ========== Watchers ==========
 watch(
   () => route.fullPath,
   () => {
-    closeMobileMenu()
-    closeMobileSearch()
-    closeUserMenu()
+    closeAllMenus()
   }
 )
 
@@ -792,20 +889,37 @@ watch(
   (shouldLock) => {
     if (shouldLock) {
       lockBodyScroll()
-      return
+    } else {
+      unlockBodyScroll()
     }
-
-    unlockBodyScroll()
   }
 )
 
 // ========== Lifecycle ==========
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-  window.addEventListener('keydown', handleEscape)
-  document.addEventListener('click', handleDocumentClick)
+  window.addEventListener(
+    'scroll',
+    handleScroll,
+    { passive: true }
+  )
+
+  window.addEventListener(
+    'resize',
+    handleResize
+  )
+
+  window.addEventListener(
+    'keydown',
+    handleEscape
+  )
+
+  document.addEventListener(
+    'click',
+    handleDocumentClick
+  )
 
   handleScroll()
+  handleResize()
 
   if (!cartStore.initialized) {
     cartStore.initializeCart()
@@ -813,9 +927,25 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('keydown', handleEscape)
-  document.removeEventListener('click', handleDocumentClick)
+  window.removeEventListener(
+    'scroll',
+    handleScroll
+  )
+
+  window.removeEventListener(
+    'resize',
+    handleResize
+  )
+
+  window.removeEventListener(
+    'keydown',
+    handleEscape
+  )
+
+  document.removeEventListener(
+    'click',
+    handleDocumentClick
+  )
 
   unlockBodyScroll()
 })

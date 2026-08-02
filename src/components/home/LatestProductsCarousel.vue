@@ -158,14 +158,35 @@
               <button
                 type="button"
                 class="mt-2 w-full rounded-lg bg-green-600 py-2 text-xs font-bold text-white transition hover:bg-green-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:active:scale-100"
-                :disabled="!isProductInStock(product)"
+                :disabled="
+                  !isProductInStock(product) ||
+                  addingProductId === product.id
+                "
                 @click.stop="addToCart(product)"
               >
-                {{
-                  isProductInStock(product)
-                    ? 'افزودن به سبد'
-                    : 'ناموجود'
-                }}
+                <template
+                  v-if="
+                    addingProductId === product.id
+                  "
+                >
+                  در حال افزودن...
+                </template>
+
+                <template
+                  v-else-if="
+                    addedProductId === product.id
+                  "
+                >
+                  به سبد اضافه شد ✓
+                </template>
+
+                <template v-else>
+                  {{
+                    isProductInStock(product)
+                      ? 'افزودن به سبد'
+                      : 'ناموجود'
+                  }}
+                </template>
               </button>
             </div>
           </article>
@@ -194,6 +215,7 @@ import {
 } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { useCartStore } from '@/core/store/cartStore'
 import { useLatestProductStore } from '@/core/store/latestProductStore'
 
 interface ProductVariant {
@@ -207,27 +229,33 @@ interface LatestProduct {
   name: string
   thumb?: string | null
   price: number | string
+
   discount_price?:
     | number
     | string
     | null
+
   old_price?:
     | number
     | string
     | null
+
   discount?:
     | number
     | string
     | null
+
   in_stock?:
     | number
     | string
     | boolean
     | null
+
   stock?:
     | number
     | string
     | null
+
   variants?: ProductVariant[]
 }
 
@@ -236,7 +264,17 @@ const router = useRouter()
 const slider =
   ref<HTMLElement | null>(null)
 
-const store = useLatestProductStore()
+const store =
+  useLatestProductStore()
+
+const cartStore =
+  useCartStore()
+
+const addingProductId =
+  ref<number | null>(null)
+
+const addedProductId =
+  ref<number | null>(null)
 
 const sortedProducts = computed(() => {
   return [...store.products].sort(
@@ -265,6 +303,21 @@ const sortedProducts = computed(() => {
 onMounted(() => {
   store.fetchLatestProducts()
 })
+
+function getAvailableVariant(
+  product: LatestProduct,
+): ProductVariant | null {
+  const variants =
+    product.variants ?? []
+
+  return (
+    variants.find(
+      (variant) =>
+        Number(variant.id) > 0 &&
+        Number(variant.stock) > 0,
+    ) ?? null
+  )
+}
 
 function isProductInStock(
   product: LatestProduct,
@@ -364,17 +417,60 @@ function goToAll() {
   router.push('/products')
 }
 
-function addToCart(
+async function addToCart(
   product: LatestProduct,
 ) {
-  if (!isProductInStock(product)) {
+  if (
+    !isProductInStock(product) ||
+    addingProductId.value !== null
+  ) {
     return
   }
 
-  console.log(
-    'ADD TO CART:',
-    product,
-  )
+  const variant =
+    getAvailableVariant(product)
+
+  if (!variant?.id) {
+    console.error(
+      'واریانت دارای موجودی برای این محصول پیدا نشد:',
+      product,
+    )
+
+    return
+  }
+
+  addingProductId.value =
+    product.id
+
+  addedProductId.value = null
+
+  try {
+    await cartStore.addItem({
+      variant_id: Number(
+        variant.id,
+      ),
+      quantity: 1,
+    })
+
+    addedProductId.value =
+      product.id
+
+    window.setTimeout(() => {
+      if (
+        addedProductId.value ===
+        product.id
+      ) {
+        addedProductId.value = null
+      }
+    }, 2000)
+  } catch (error) {
+    console.error(
+      'خطا در افزودن محصول جدید به سبد خرید:',
+      error,
+    )
+  } finally {
+    addingProductId.value = null
+  }
 }
 
 function formatPrice(

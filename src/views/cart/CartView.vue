@@ -62,12 +62,12 @@
           <span>مبلغ قابل پرداخت</span>
           <strong>{{ formatPrice(totalPrice) }} تومان</strong>
         </div>
-        
+        <!--
         <BazbinPurchaseProgress
           :current-amount="totalPrice"
           :target-amount="BAZBIN_LIMIT"
          />
-          
+         -->
         
         <button
           class="checkout-btn"

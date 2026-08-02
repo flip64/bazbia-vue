@@ -6,11 +6,8 @@
     :class="{ 'site-header--sticky': isSticky }"
   >
     <div class="site-header__container">
-      <!-- =========================
-           نسخه دسکتاپ
-      ========================== -->
+      <!-- نسخه دسکتاپ -->
       <div class="desktop-header">
-        <!-- لوگو -->
         <router-link
           to="/"
           class="desktop-header__logo"
@@ -29,7 +26,6 @@
           </span>
         </router-link>
 
-        <!-- منوی اصلی -->
         <nav
           class="desktop-header__nav"
           aria-label="منوی اصلی"
@@ -54,7 +50,6 @@
           </ul>
         </nav>
 
-        <!-- جستجو -->
         <form
           class="desktop-header__search"
           role="search"
@@ -78,9 +73,7 @@
           </button>
         </form>
 
-        <!-- عملیات کاربری -->
         <div class="desktop-header__actions">
-          <!-- حساب کاربری -->
           <div
             ref="desktopUserMenuRef"
             class="desktop-user"
@@ -196,7 +189,6 @@
             </div>
           </div>
 
-          <!-- علاقه‌مندی‌ها -->
           <button
             type="button"
             class="desktop-header__action"
@@ -213,7 +205,6 @@
             </span>
           </button>
 
-          <!-- سبد خرید -->
           <router-link
             to="/cart"
             class="desktop-header__action"
@@ -232,22 +223,19 @@
         </div>
       </div>
 
-      <!-- =========================
-           نسخه موبایل
-      ========================== -->
+      <!-- نسخه موبایل -->
       <div class="mobile-header">
-        <!-- دکمه منو -->
         <button
           type="button"
           class="mobile-header__button"
           aria-label="باز کردن منو"
           :aria-expanded="isMobileMenuOpen"
-          @click="openMobileMenu"
+          aria-controls="mobile-drawer"
+          @click.stop="openMobileMenu"
         >
           <Menu :size="25" />
         </button>
 
-        <!-- لوگو -->
         <router-link
           to="/"
           class="mobile-header__logo"
@@ -262,14 +250,13 @@
           >
         </router-link>
 
-        <!-- عملیات -->
         <div class="mobile-header__actions">
           <button
             type="button"
             class="mobile-header__button"
             aria-label="جستجو"
             :aria-expanded="isMobileSearchOpen"
-            @click="toggleMobileSearch"
+            @click.stop="toggleMobileSearch"
           >
             <X
               v-if="isMobileSearchOpen"
@@ -300,7 +287,6 @@
         </div>
       </div>
 
-      <!-- جستجوی موبایل -->
       <div
         v-if="isMobileSearchOpen"
         class="mobile-search"
@@ -331,9 +317,7 @@
     </div>
   </header>
 
-  <!-- =========================
-       منوی موبایل
-  ========================== -->
+  <!-- منوی موبایل -->
   <Teleport to="body">
     <div
       v-if="isMobileMenuOpen"
@@ -341,13 +325,13 @@
       @click="closeMobileMenu"
     >
       <aside
+        id="mobile-drawer"
         class="mobile-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="منوی موبایل"
         @click.stop
       >
-        <!-- سربرگ -->
         <div class="mobile-drawer__header">
           <router-link
             to="/"
@@ -373,7 +357,6 @@
           </button>
         </div>
 
-        <!-- کاربر مهمان -->
         <router-link
           v-if="!isAuthenticated"
           to="/login"
@@ -392,7 +375,6 @@
           <ChevronLeft :size="20" />
         </router-link>
 
-        <!-- کاربر واردشده -->
         <div
           v-else
           class="mobile-drawer__user"
@@ -421,7 +403,6 @@
           </div>
         </div>
 
-        <!-- منوی اصلی -->
         <nav
           class="mobile-drawer__navigation"
           aria-label="منوی اصلی موبایل"
@@ -450,7 +431,6 @@
             </li>
           </ul>
 
-          <!-- منوی حساب -->
           <template v-if="isAuthenticated">
             <p class="mobile-drawer__section-title">
               حساب کاربری
@@ -565,17 +545,11 @@ import { useWishlistStore } from '@/core/store/wishlistStore'
 
 import './Header.css'
 
-// =========================
 // Router
-// =========================
-
 const router = useRouter()
 const route = useRoute()
 
-// =========================
 // Stores
-// =========================
-
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
@@ -595,10 +569,7 @@ const {
   totalItems: wishlistCount
 } = storeToRefs(wishlistStore)
 
-// =========================
 // State
-// =========================
-
 const isSticky = ref(false)
 const isMobileMenuOpen = ref(false)
 const isMobileSearchOpen = ref(false)
@@ -616,10 +587,7 @@ const logoUrl = ref(
   'https://bazbia.ir/media/logo/bazbialogo.gif'
 )
 
-// =========================
 // Menu
-// =========================
-
 const menuItems = [
   {
     id: 1,
@@ -653,10 +621,7 @@ const menuItems = [
   }
 ]
 
-// =========================
-// User
-// =========================
-
+// User data
 const currentUser = computed<Record<string, any>>(() => {
   return (user.value || {}) as Record<string, any>
 })
@@ -691,10 +656,7 @@ const userAvatar = computed(() => {
   return currentUser.value.avatar || ''
 })
 
-// =========================
 // Helpers
-// =========================
-
 const isActiveRoute = (path: string) => {
   if (path === '/') {
     return route.path === '/'
@@ -721,25 +683,16 @@ const closeAll = () => {
   closeUserMenu()
 }
 
-// =========================
 // Mobile menu
-// =========================
-
 const openMobileMenu = () => {
   closeMobileSearch()
   closeUserMenu()
 
   isMobileMenuOpen.value = true
-  
 }
 
+// Mobile search
 const toggleMobileSearch = async () => {
- 
-  const openMobileMenu = () => {
-  isMobileMenuOpen.value = true
-  console.log('mobile menu:', isMobileMenuOpen.value)
-  }
-  
   closeMobileMenu()
   closeUserMenu()
 
@@ -752,10 +705,7 @@ const toggleMobileSearch = async () => {
   }
 }
 
-// =========================
 // Desktop user menu
-// =========================
-
 const toggleUserMenu = async () => {
   closeMobileMenu()
   closeMobileSearch()
@@ -775,10 +725,7 @@ const toggleUserMenu = async () => {
     !isUserMenuOpen.value
 }
 
-// =========================
 // Search
-// =========================
-
 const handleSearch = async () => {
   const query = searchQuery.value.trim()
 
@@ -798,10 +745,7 @@ const handleSearch = async () => {
   searchQuery.value = ''
 }
 
-// =========================
-// Navigation
-// =========================
-
+// Wishlist
 const goToWishlist = async () => {
   closeAll()
 
@@ -819,10 +763,7 @@ const goToWishlist = async () => {
   await router.push('/wishlist')
 }
 
-// =========================
 // Logout
-// =========================
-
 const handleLogout = async () => {
   try {
     await authStore.logout()
@@ -838,10 +779,7 @@ const handleLogout = async () => {
   }
 }
 
-// =========================
 // Images
-// =========================
-
 const handleLogoError = (event: Event) => {
   const image =
     event.target as HTMLImageElement
@@ -859,10 +797,7 @@ const handleAvatarError = (event: Event) => {
   image.style.display = 'none'
 }
 
-// =========================
 // Browser events
-// =========================
-
 const handleScroll = () => {
   isSticky.value =
     window.scrollY > 50
@@ -902,10 +837,7 @@ const handleDocumentClick = (
   }
 }
 
-// =========================
 // Watchers
-// =========================
-
 watch(
   () => route.fullPath,
   () => {
@@ -916,15 +848,15 @@ watch(
 watch(
   isMobileMenuOpen,
   (isOpen) => {
+    document.documentElement.style.overflow =
+      isOpen ? 'hidden' : ''
+
     document.body.style.overflow =
       isOpen ? 'hidden' : ''
   }
 )
 
-// =========================
 // Lifecycle
-// =========================
-
 onMounted(() => {
   window.addEventListener(
     'scroll',
@@ -975,6 +907,7 @@ onUnmounted(() => {
     handleDocumentClick
   )
 
+  document.documentElement.style.overflow = ''
   document.body.style.overflow = ''
 })
 </script>

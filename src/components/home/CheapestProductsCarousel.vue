@@ -24,7 +24,6 @@
     </div>
 
     <div class="relative">
-      <!-- List -->
       <div
         ref="slider"
         class="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-2"
@@ -37,18 +36,9 @@
             class="min-w-[180px] animate-pulse rounded-2xl bg-gray-100 p-3 md:min-w-[220px]"
           >
             <div class="h-44 rounded-xl bg-gray-200" />
-
-            <div
-              class="mt-3 h-3 w-3/4 rounded bg-gray-200"
-            />
-
-            <div
-              class="mt-2 h-3 w-1/2 rounded bg-gray-200"
-            />
-
-            <div
-              class="mt-4 h-9 rounded-lg bg-gray-200"
-            />
+            <div class="mt-3 h-3 w-3/4 rounded bg-gray-200" />
+            <div class="mt-2 h-3 w-1/2 rounded bg-gray-200" />
+            <div class="mt-4 h-9 rounded-lg bg-gray-200" />
           </div>
         </template>
 
@@ -122,9 +112,7 @@
               </h3>
 
               <!-- Price -->
-              <div
-                class="flex min-h-[42px] flex-col justify-center"
-              >
+              <div class="flex min-h-[42px] flex-col justify-center">
                 <template v-if="isProductInStock(product)">
                   <span
                     v-if="hasOldPrice(product)"
@@ -133,9 +121,7 @@
                     {{ formatPrice(product.old_price) }}
                   </span>
 
-                  <span
-                    class="text-sm font-bold text-green-600"
-                  >
+                  <span class="text-sm font-bold text-green-600">
                     {{ formatPrice(product.price) }}
                   </span>
                 </template>
@@ -152,14 +138,27 @@
               <button
                 type="button"
                 class="mt-2 w-full rounded-lg bg-green-600 py-2 text-xs font-bold text-white transition hover:bg-green-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:active:scale-100"
-                :disabled="!isProductInStock(product)"
+                :disabled="
+                  !isProductInStock(product) ||
+                  addingProductId === product.id
+                "
                 @click.stop="addToCart(product)"
               >
-                {{
-                  isProductInStock(product)
-                    ? 'افزودن به سبد'
-                    : 'ناموجود'
-                }}
+                <template v-if="addingProductId === product.id">
+                  در حال افزودن...
+                </template>
+
+                <template v-else-if="addedProductId === product.id">
+                  به سبد اضافه شد ✓
+                </template>
+
+                <template v-else>
+                  {{
+                    isProductInStock(product)
+                      ? 'افزودن به سبد'
+                      : 'ناموجود'
+                  }}
+                </template>
               </button>
             </div>
           </article>
@@ -189,6 +188,7 @@ import {
 import { useRouter } from 'vue-router'
 
 import { cheapestProductStore } from '@/core/store/cheapestProductStore'
+import { useCartStore } from '@/core/store/cartStore'
 
 interface ProductVariant {
   id?: number
@@ -204,26 +204,23 @@ interface CheapestProduct {
   old_price?: number | string | null
   discount?: number | string | null
   discount_price?: number | string | null
-  in_stock?:
-    | number
-    | string
-    | boolean
-    | null
+  in_stock?: number | string | boolean | null
   stock?: number | string | null
   variants?: ProductVariant[]
 }
 
 const router = useRouter()
 
-const slider =
-  ref<HTMLElement | null>(null)
+const slider = ref<HTMLElement | null>(null)
 
 const store = cheapestProductStore()
+const cartStore = useCartStore()
+
+const addingProductId = ref<number | null>(null)
+const addedProductId = ref<number | null>(null)
 
 const sortedProducts = computed(() => {
-  return [
-    ...store.products,
-  ].sort(
+  return [...store.products].sort(
     (
       firstProduct: CheapestProduct,
       secondProduct: CheapestProduct,
@@ -232,14 +229,9 @@ const sortedProducts = computed(() => {
         isProductInStock(firstProduct)
 
       const secondIsInStock =
-        isProductInStock(
-          secondProduct,
-        )
+        isProductInStock(secondProduct)
 
-      if (
-        firstIsInStock ===
-        secondIsInStock
-      ) {
+      if (firstIsInStock === secondIsInStock) {
         return 0
       }
 
@@ -252,11 +244,24 @@ onMounted(() => {
   store.fetchCheapestProducts()
 })
 
+function getAvailableVariant(
+  product: CheapestProduct,
+): ProductVariant | null {
+  const variants = product.variants ?? []
+
+  return (
+    variants.find(
+      (variant) =>
+        variant.id &&
+        Number(variant.stock) > 0,
+    ) ?? null
+  )
+}
+
 function isProductInStock(
   product: CheapestProduct,
 ): boolean {
-  const variants =
-    product.variants ?? []
+  const variants = product.variants ?? []
 
   if (variants.length > 0) {
     return variants.some(
@@ -313,17 +318,55 @@ function goToAll() {
   router.push('/products')
 }
 
-function addToCart(
+async function addToCart(
   product: CheapestProduct,
 ) {
-  if (!isProductInStock(product)) {
+  if (
+    !isProductInStock(product) ||
+    addingProductId.value !== null
+  ) {
     return
   }
 
-  console.log(
-    'ADD TO CART:',
-    product,
-  )
+  const variant =
+    getAvailableVariant(product)
+
+  if (!variant?.id) {
+    console.error(
+      'برای این محصول واریانت موجود پیدا نشد:',
+      product,
+    )
+
+    return
+  }
+
+  addingProductId.value = product.id
+  addedProductId.value = null
+
+  try {
+    await cartStore.addItem({
+      variant_id: variant.id,
+      quantity: 1,
+    })
+
+    addedProductId.value = product.id
+
+    window.setTimeout(() => {
+      if (
+        addedProductId.value ===
+        product.id
+      ) {
+        addedProductId.value = null
+      }
+    }, 2000)
+  } catch (error) {
+    console.error(
+      'خطا در افزودن محصول به سبد خرید:',
+      error,
+    )
+  } finally {
+    addingProductId.value = null
+  }
 }
 
 function formatPrice(

@@ -730,6 +730,10 @@ const openMobileMenu = () => {
   closeUserMenu()
 
   isMobileMenuOpen.value = true
+  const openMobileMenu = () => {
+  isMobileMenuOpen.value = true
+  console.log('mobile menu:', isMobileMenuOpen.value)
+  }
 }
 
 const toggleMobileSearch = async () => {

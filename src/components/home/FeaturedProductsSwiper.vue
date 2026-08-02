@@ -1,134 +1,171 @@
 <template>
-  <section class="mt-10 px-4">
-    <!-- Header -->
-    <div class="mb-4 flex items-center justify-between">
-      <h2
-        class="flex items-center gap-2 text-lg font-bold text-gray-800 md:text-xl"
-      >
-        <span
-          class="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-white"
-        >
-          🏷️
-        </span>
-
-        ارزان‌ترین محصولات
-      </h2>
-
-      <button
-        type="button"
-        class="text-sm text-green-600 transition hover:text-green-700"
-        @click="goToAll"
-      >
-        مشاهده همه
-      </button>
-    </div>
-
-    <div class="relative">
-      <div
-        ref="slider"
-        class="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-2"
-      >
-        <!-- Skeleton -->
-        <template v-if="store.loading">
+  <section class="w-full">
+    <div
+      class="overflow-hidden rounded-3xl border border-emerald-100
+             bg-gradient-to-l from-emerald-50 via-white to-green-50
+             p-4 shadow-sm md:p-6"
+    >
+      <!-- Header -->
+      <div class="mb-5 flex items-center justify-between gap-3">
+        <div class="flex min-w-0 items-center gap-3">
           <div
-            v-for="n in 6"
-            :key="n"
-            class="min-w-[180px] animate-pulse rounded-2xl bg-gray-100 p-3 md:min-w-[220px]"
+            class="flex h-11 w-11 shrink-0 items-center justify-center
+                   rounded-2xl bg-white shadow-sm ring-1 ring-emerald-100"
           >
-            <div class="h-44 rounded-xl bg-gray-200" />
-            <div class="mt-3 h-3 w-3/4 rounded bg-gray-200" />
-            <div class="mt-2 h-3 w-1/2 rounded bg-gray-200" />
-            <div class="mt-4 h-9 rounded-lg bg-gray-200" />
+            <img
+              src="/images/bazbin.svg"
+              alt="بازبین"
+              class="h-8 w-8 object-contain"
+            />
           </div>
-        </template>
 
-        <!-- Products -->
-        <template v-else>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="font-bold text-gray-900 md:text-lg">
+                محصولات ویژه
+              </h2>
+
+              <span
+                class="rounded-full bg-red-500 px-2.5 py-1
+                       text-[10px] font-bold text-white shadow-sm"
+              >
+                فقط امروز
+              </span>
+            </div>
+
+            <p class="mt-1 text-xs text-gray-500">
+              پیشنهادهای منتخب بازبیا با قیمت ویژه
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="shrink-0 rounded-xl px-3 py-2 text-xs font-medium
+                 text-emerald-700 transition
+                 hover:bg-emerald-100 md:text-sm"
+        >
+          مشاهده همه
+        </button>
+      </div>
+
+      <!-- Empty -->
+      <div
+        v-if="!sortedProducts.length"
+        class="flex min-h-52 items-center justify-center rounded-2xl
+               border border-dashed border-gray-200 bg-white/70
+               text-sm text-gray-400"
+      >
+        محصول ویژه‌ای موجود نیست
+      </div>
+
+      <!-- Swiper -->
+      <Swiper
+        v-else
+        :modules="modules"
+        slides-per-view="auto"
+        :space-between="14"
+        :navigation="true"
+        class="featured-products-swiper !overflow-visible pb-4"
+      >
+        <SwiperSlide
+          v-for="product in sortedProducts"
+          :key="product.id"
+          class="!h-auto !w-[210px] sm:!w-[230px] lg:!w-[245px]"
+        >
           <article
-            v-for="product in sortedProducts"
-            :key="product.id"
-            class="group min-w-[180px] cursor-pointer overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-xl md:min-w-[220px]"
+            class="group flex h-full flex-col overflow-hidden rounded-2xl
+                   border border-gray-100 bg-white shadow-sm
+                   transition duration-300
+                   hover:-translate-y-1 hover:shadow-xl"
             :class="{
-              'border-gray-200 opacity-90':
-                !isProductInStock(product),
+              'opacity-90': !isProductInStock(product),
             }"
-            @click="goToProduct(product)"
           >
             <!-- Image -->
-            <div class="relative overflow-hidden bg-gray-50">
+            <div class="relative aspect-square overflow-hidden bg-gray-50">
+              <span
+                v-if="
+                  isProductInStock(product) &&
+                  hasDiscount(product)
+                "
+                class="absolute right-3 top-3 z-10 rounded-full
+                       bg-red-500 px-2.5 py-1 text-[11px]
+                       font-bold text-white shadow"
+              >
+                پیشنهاد ویژه
+              </span>
+
+              <span
+                v-if="!isProductInStock(product)"
+                class="absolute inset-0 z-10 flex items-center justify-center
+                       bg-white/70 text-sm font-bold text-gray-600
+                       backdrop-blur-[2px]"
+              >
+                ناموجود
+              </span>
+
               <img
                 v-if="product.thumb"
                 :src="product.thumb"
                 :alt="product.name"
-                class="h-44 w-full object-cover transition duration-300 group-hover:scale-105"
+                loading="lazy"
+                class="h-full w-full object-contain p-3
+                       transition duration-500
+                       group-hover:scale-105"
                 :class="{
-                  'opacity-70 grayscale-[20%]':
+                  'grayscale-[20%] opacity-70':
                     !isProductInStock(product),
                 }"
-                loading="lazy"
               />
 
               <div
                 v-else
-                class="flex h-44 items-center justify-center text-xs text-gray-400"
+                class="flex h-full w-full items-center justify-center
+                       text-xs text-gray-400"
               >
                 تصویر موجود نیست
               </div>
-
-              <!-- Discount -->
-              <span
-                v-if="
-                  isProductInStock(product) &&
-                  product.discount
-                "
-                class="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white"
-              >
-                -{{ product.discount }}%
-              </span>
-
-              <!-- Stock -->
-              <span
-                class="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold"
-                :class="
-                  isProductInStock(product)
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-slate-700 text-white'
-                "
-              >
-                {{
-                  isProductInStock(product)
-                    ? 'موجود'
-                    : 'ناموجود'
-                }}
-              </span>
             </div>
 
             <!-- Content -->
-            <div class="flex flex-col gap-2 p-3">
+            <div class="flex flex-1 flex-col p-4">
               <h3
-                class="line-clamp-2 min-h-[40px] text-center text-sm text-gray-800"
+                class="line-clamp-2 min-h-11 text-center text-sm
+                       font-medium leading-6 text-gray-800"
               >
                 {{ product.name }}
               </h3>
 
               <!-- Price -->
-              <div class="flex min-h-[42px] flex-col justify-center">
+              <div class="mt-4 flex min-h-[58px] flex-col justify-end">
                 <template v-if="isProductInStock(product)">
-                  <span
-                    v-if="hasOldPrice(product)"
+                  <div
+                    v-if="hasDiscount(product)"
                     class="mb-1 text-xs text-gray-400 line-through"
                   >
-                    {{ formatPrice(product.old_price) }}
-                  </span>
-
-                  <span class="text-sm font-bold text-green-600">
                     {{ formatPrice(product.price) }}
-                  </span>
+                  </div>
+
+                  <div class="flex items-end justify-between gap-2">
+                    <span class="text-base font-bold text-emerald-600">
+                      {{ formatPrice(getFinalPrice(product)) }}
+                    </span>
+
+                    <span
+                      v-if="hasDiscount(product)"
+                      class="rounded-lg bg-red-50 px-2 py-1
+                             text-[10px] font-bold text-red-500"
+                    >
+                      {{ getDiscountPercent(product) }}٪ تخفیف
+                    </span>
+                  </div>
                 </template>
 
                 <div
                   v-else
-                  class="flex min-h-[42px] items-center justify-center text-sm font-bold text-gray-500"
+                  class="flex min-h-[42px] items-center justify-center
+                         text-sm font-bold text-gray-500"
                 >
                   ناموجود
                 </div>
@@ -137,7 +174,14 @@
               <!-- Button -->
               <button
                 type="button"
-                class="mt-2 w-full rounded-lg bg-green-600 py-2 text-xs font-bold text-white transition hover:bg-green-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:active:scale-100"
+                class="mt-4 flex w-full items-center justify-center
+                       rounded-xl bg-emerald-500 px-3 py-2.5
+                       text-sm font-bold text-white
+                       transition active:scale-95
+                       hover:bg-emerald-600
+                       disabled:cursor-not-allowed
+                       disabled:bg-gray-200 disabled:text-gray-400
+                       disabled:active:scale-100"
                 :disabled="
                   !isProductInStock(product) ||
                   addingProductId === product.id
@@ -155,26 +199,15 @@
                 <template v-else>
                   {{
                     isProductInStock(product)
-                      ? 'افزودن به سبد'
+                      ? 'افزودن به سبد خرید'
                       : 'ناموجود'
                   }}
                 </template>
               </button>
             </div>
           </article>
-        </template>
-
-        <!-- Empty -->
-        <div
-          v-if="
-            !store.loading &&
-            sortedProducts.length === 0
-          "
-          class="flex min-h-[180px] w-full items-center justify-center text-sm text-gray-500"
-        >
-          محصولی برای نمایش وجود ندارد.
-        </div>
-      </div>
+        </SwiperSlide>
+      </Swiper>
     </div>
   </section>
 </template>
@@ -182,48 +215,40 @@
 <script setup lang="ts">
 import {
   computed,
-  onMounted,
   ref,
 } from 'vue'
-import { useRouter } from 'vue-router'
 
-import { cheapestProductStore } from '@/core/store/cheapestProductStore'
+import { Navigation } from 'swiper/modules'
+import {
+  Swiper,
+  SwiperSlide,
+} from 'swiper/vue'
+
+import 'swiper/css'
+import 'swiper/css/navigation'
+
 import { useCartStore } from '@/core/store/cartStore'
+import type { Product } from '@/types/product.types'
 
-interface ProductVariant {
-  id?: number
-  stock?: number | string | null
-}
+const modules = [Navigation]
 
-interface CheapestProduct {
-  id: number
-  slug?: string
-  name: string
-  thumb?: string | null
-  price: number | string
-  old_price?: number | string | null
-  discount?: number | string | null
-  discount_price?: number | string | null
-  in_stock?: number | string | boolean | null
-  stock?: number | string | null
-  variants?: ProductVariant[]
-}
+const props = defineProps<{
+  products: Product[]
+}>()
 
-const router = useRouter()
-
-const slider = ref<HTMLElement | null>(null)
-
-const store = cheapestProductStore()
 const cartStore = useCartStore()
 
-const addingProductId = ref<number | null>(null)
-const addedProductId = ref<number | null>(null)
+const addingProductId =
+  ref<number | null>(null)
 
-const sortedProducts = computed(() => {
-  return [...store.products].sort(
+const addedProductId =
+  ref<number | null>(null)
+
+const sortedProducts = computed<Product[]>(() => {
+  return [...props.products].sort(
     (
-      firstProduct: CheapestProduct,
-      secondProduct: CheapestProduct,
+      firstProduct,
+      secondProduct,
     ) => {
       const firstIsInStock =
         isProductInStock(firstProduct)
@@ -231,7 +256,10 @@ const sortedProducts = computed(() => {
       const secondIsInStock =
         isProductInStock(secondProduct)
 
-      if (firstIsInStock === secondIsInStock) {
+      if (
+        firstIsInStock ===
+        secondIsInStock
+      ) {
         return 0
       }
 
@@ -240,28 +268,26 @@ const sortedProducts = computed(() => {
   )
 })
 
-onMounted(() => {
-  store.fetchCheapestProducts()
-})
-
 function getAvailableVariant(
-  product: CheapestProduct,
-): ProductVariant | null {
-  const variants = product.variants ?? []
+  product: Product,
+) {
+  const variants =
+    product.variants ?? []
 
   return (
     variants.find(
       (variant) =>
-        variant.id &&
+        Number(variant.id) > 0 &&
         Number(variant.stock) > 0,
     ) ?? null
   )
 }
 
 function isProductInStock(
-  product: CheapestProduct,
+  product: Product,
 ): boolean {
-  const variants = product.variants ?? []
+  const variants =
+    product.variants ?? []
 
   if (variants.length > 0) {
     return variants.some(
@@ -279,47 +305,68 @@ function isProductInStock(
 
   return (
     Number(
-      product.in_stock ??
-        product.stock ??
-        0,
+      product.in_stock ?? 0,
     ) > 0
   )
 }
 
-function hasOldPrice(
-  product: CheapestProduct,
+function hasDiscount(
+  product: Product,
 ): boolean {
   const price = Number(
     product.price ?? 0,
   )
 
-  const oldPrice = Number(
-    product.old_price ?? 0,
+  const discountPrice = Number(
+    product.discount_price ?? 0,
   )
 
   return (
     isProductInStock(product) &&
-    oldPrice > 0 &&
-    oldPrice > price
+    price > 0 &&
+    discountPrice > 0 &&
+    discountPrice < price
   )
 }
 
-function goToProduct(
-  product: CheapestProduct,
-) {
-  router.push(
-    `/product/${
-      product.slug || product.id
-    }`,
+function getFinalPrice(
+  product: Product,
+): number {
+  if (hasDiscount(product)) {
+    return Number(
+      product.discount_price,
+    )
+  }
+
+  return Number(
+    product.price ?? 0,
   )
 }
 
-function goToAll() {
-  router.push('/products')
+function getDiscountPercent(
+  product: Product,
+): number {
+  if (!hasDiscount(product)) {
+    return 0
+  }
+
+  const price = Number(
+    product.price,
+  )
+
+  const discountPrice = Number(
+    product.discount_price,
+  )
+
+  return Math.round(
+    ((price - discountPrice) /
+      price) *
+      100,
+  )
 }
 
 async function addToCart(
-  product: CheapestProduct,
+  product: Product,
 ) {
   if (
     !isProductInStock(product) ||
@@ -333,23 +380,28 @@ async function addToCart(
 
   if (!variant?.id) {
     console.error(
-      'برای این محصول واریانت موجود پیدا نشد:',
+      'واریانت دارای موجودی پیدا نشد:',
       product,
     )
 
     return
   }
 
-  addingProductId.value = product.id
+  addingProductId.value =
+    product.id
+
   addedProductId.value = null
 
   try {
     await cartStore.addItem({
-      variant_id: variant.id,
+      variant_id: Number(
+        variant.id,
+      ),
       quantity: 1,
     })
 
-    addedProductId.value = product.id
+    addedProductId.value =
+      product.id
 
     window.setTimeout(() => {
       if (
@@ -361,7 +413,7 @@ async function addToCart(
     }, 2000)
   } catch (error) {
     console.error(
-      'خطا در افزودن محصول به سبد خرید:',
+      'خطا در افزودن محصول ویژه به سبد:',
       error,
     )
   } finally {
@@ -390,12 +442,21 @@ function formatPrice(
 </script>
 
 <style scoped>
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.featured-products-swiper {
+  --swiper-navigation-size: 16px;
 }
 
-.no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.featured-products-swiper :deep(.swiper-button-next),
+.featured-products-swiper :deep(.swiper-button-prev) {
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  background: white;
+  color: #059669;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 10%);
+}
+
+.featured-products-swiper :deep(.swiper-button-disabled) {
+  opacity: 0;
 }
 </style>

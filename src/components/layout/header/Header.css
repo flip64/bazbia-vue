@@ -4,974 +4,770 @@
    تنظیمات عمومی
 ========================= */
 
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
+.site-header,
+.site-header * {
+  box-sizing: border-box;
 }
 
-
-/* =========================
-   استایل اصلی هدر
-========================= */
-
-.header {
+.site-header {
   position: relative;
   z-index: 1000;
   width: 100%;
-  color: white;
-  background: linear-gradient(
-    135deg,
-    #16a34a 0%,
-    #059669 100%
-  );
-  transition:
-    box-shadow 0.3s ease,
-    transform 0.3s ease;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      #16a34a 0%,
+      #059669 100%
+    );
 }
 
-.header--sticky {
-  position: fixed;
+.site-header--sticky {
+  position: sticky;
   top: 0;
-  right: 0;
-  left: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
-  animation: headerSlideDown 0.3s ease;
+  box-shadow:
+    0 8px 30px rgba(15, 23, 42, 0.14);
 }
 
-@keyframes headerSlideDown {
-  from {
-    transform: translateY(-100%);
-  }
-
-  to {
-    transform: translateY(0);
-  }
+.site-header__container {
+  width: min(100% - 32px, 1280px);
+  margin-inline: auto;
 }
-
-.header__container {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-}
-
 
 /* =========================
-   نسخه دسکتاپ
+   Desktop
 ========================= */
 
-.header__desktop {
+.desktop-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
+  gap: 24px;
+  min-height: 76px;
 }
 
-
-/* =========================
-   لوگو
-========================= */
-
-.header__logo,
-.header__logo-link,
-.header__mobile-menu-logo {
+.desktop-header__logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: white;
+  flex-shrink: 0;
+  gap: 8px;
+  color: #ffffff;
   text-decoration: none;
 }
 
-.header__logo-img {
+.desktop-header__logo-image {
+  display: block;
+  width: auto;
+  height: 44px;
+  object-fit: contain;
+}
+
+.desktop-header__logo-text {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.desktop-header__nav {
+  flex-shrink: 0;
+}
+
+.desktop-header__nav-list {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.desktop-header__nav-link {
+  position: relative;
+  display: block;
+  padding: 10px 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.94rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.desktop-header__nav-link::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 3px;
+  width: 0;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.desktop-header__nav-link:hover,
+.desktop-header__nav-link--active {
+  color: #ffffff;
+}
+
+.desktop-header__nav-link:hover::after,
+.desktop-header__nav-link--active::after {
+  width: 100%;
+}
+
+/* =========================
+   Desktop search
+========================= */
+
+.desktop-header__search {
+  display: flex;
+  flex: 1;
+  min-width: 180px;
+  max-width: 340px;
+  overflow: hidden;
+  margin-right: auto;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 14px;
+}
+
+.desktop-header__search:focus-within {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.desktop-header__search-input {
+  min-width: 0;
+  flex: 1;
+  padding: 11px 14px;
+  color: #ffffff;
+  font-family: inherit;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.desktop-header__search-input::placeholder {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.desktop-header__search-button {
+  display: grid;
+  width: 46px;
+  padding: 0;
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+  place-items: center;
+  cursor: pointer;
+}
+
+/* =========================
+   Desktop actions
+========================= */
+
+.desktop-header__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.desktop-header__action {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #ffffff;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+  cursor: pointer;
+}
+
+.desktop-header__action:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.header-counter {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: grid;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  color: #ffffff;
+  font-size: 0.67rem;
+  font-weight: 700;
+  line-height: 1;
+  background: #ef4444;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  place-items: center;
+}
+
+/* =========================
+   Desktop user
+========================= */
+
+.desktop-user {
+  position: relative;
+}
+
+.desktop-user__avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  color: #059669;
+  font-weight: 800;
+  background: #ffffff;
+  border-radius: 50%;
+  place-items: center;
+}
+
+.desktop-user__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.desktop-user__dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  width: 280px;
+  overflow: hidden;
+  direction: rtl;
+  color: #1f2937;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.18);
+}
+
+.desktop-user__summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.desktop-user__large-avatar {
+  display: grid;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  background: #059669;
+  border-radius: 50%;
+  place-items: center;
+}
+
+.desktop-user__large-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.desktop-user__identity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.desktop-user__identity strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-user__identity span {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktop-user__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 16px;
+  color: #334155;
+  font-family: inherit;
+  font-size: 0.92rem;
+  text-align: right;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.desktop-user__link:hover {
+  background: #f1f5f9;
+}
+
+.desktop-user__link--logout {
+  color: #dc2626;
+}
+
+.desktop-user__count {
+  margin-right: auto;
+  padding: 2px 7px;
+  color: #ffffff;
+  font-size: 0.7rem;
+  background: #ef4444;
+  border-radius: 999px;
+}
+
+.desktop-user__divider {
+  height: 1px;
+  margin: 6px 0;
+  background: #e5e7eb;
+}
+
+/* =========================
+   Mobile header
+========================= */
+
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 62px;
+}
+
+.mobile-header__button {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  color: #ffffff;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  place-items: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.mobile-header__button:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.mobile-header__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.mobile-header__logo-image {
+  display: block;
+  width: auto;
+  height: 42px;
+  object-fit: contain;
+}
+
+.mobile-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* =========================
+   Mobile search
+========================= */
+
+.mobile-search {
+  padding: 0 0 12px;
+}
+
+.mobile-search form {
+  display: flex;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.17);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 13px;
+}
+
+.mobile-search__input {
+  min-width: 0;
+  flex: 1;
+  padding: 12px 14px;
+  color: #ffffff;
+  font-family: inherit;
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.mobile-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.mobile-search__button {
+  display: grid;
+  width: 48px;
+  padding: 0;
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+  place-items: center;
+}
+
+/* =========================
+   Mobile drawer overlay
+========================= */
+
+.mobile-drawer-overlay {
+  position: fixed !important;
+  z-index: 2147483000 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: rgba(15, 23, 42, 0.58) !important;
+}
+
+/* =========================
+   Mobile drawer
+========================= */
+
+.mobile-drawer {
+  position: fixed !important;
+  z-index: 2147483001 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: min(88vw, 370px) !important;
+  max-width: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  direction: rtl !important;
+  color: #1f2937 !important;
+  background: #ffffff !important;
+  box-shadow:
+    -16px 0 50px rgba(15, 23, 42, 0.25) !important;
+  transform: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-drawer__header {
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 68px;
+  padding: 10px 16px;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      #16a34a,
+      #059669
+    );
+}
+
+.mobile-drawer__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.mobile-drawer__brand img {
   display: block;
   width: auto;
   height: 40px;
   object-fit: contain;
 }
 
-.header__logo-text {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-
-/* =========================
-   منوی ناوبری دسکتاپ
-========================= */
-
-.header__nav-list {
-  display: flex;
-  gap: 2rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.header__nav-link {
-  position: relative;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.header__nav-link:hover,
-.header__nav-link--active {
-  color: white;
-}
-
-.header__nav-link::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: -4px;
-  width: 0;
-  height: 2px;
-  background: white;
-  transition: width 0.3s ease;
-}
-
-.header__nav-link:hover::after,
-.header__nav-link--active::after {
-  width: 100%;
-}
-
-
-/* =========================
-   جستجوی دسکتاپ
-========================= */
-
-.header__search {
-  flex-shrink: 1;
-}
-
-.header__search-form {
-  display: flex;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 9999px;
-  transition:
-    background 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-.header__search-form:focus-within {
-  background: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
-}
-
-.header__search-input {
-  box-sizing: border-box;
-  width: 250px;
-  padding: 0.5rem 1rem;
-  color: white;
-  font-family: inherit;
-  background: transparent;
-  border: none;
-  outline: none;
-}
-
-.header__search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.header__search-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  color: white;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.header__search-btn:hover {
-  transform: scale(1.08);
-}
-
-
-/* =========================
-   دکمه‌های کاربری دسکتاپ
-========================= */
-
-.header__actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header__action-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  color: white;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition:
-    background 0.3s ease,
-    transform 0.3s ease;
-}
-
-.header__action-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
-}
-
-.header__action-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.header__badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  color: white;
-  font-size: 0.7rem;
-  line-height: 1;
-  background: #ef4444;
-  border: 2px solid white;
-  border-radius: 9999px;
-}
-
-
-/* =========================
-   هدر موبایل
-========================= */
-
-.header__mobile {
-  position: relative;
-  display: none;
-}
-
-.header__mobile-top {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 48px;
-  gap: 1rem;
-}
-
-.header__mobile-menu-btn,
-.header__mobile-search-btn,
-.header__mobile-cart {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  min-width: 40px;
-  min-height: 40px;
-  padding: 0.5rem;
-  color: white;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.header__mobile-menu-btn:hover,
-.header__mobile-search-btn:hover,
-.header__mobile-cart:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.header__mobile-menu-btn:active,
-.header__mobile-search-btn:active,
-.header__mobile-cart:active {
-  transform: scale(0.94);
-}
-
-.header__mobile-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-
-/* =========================
-   جستجوی موبایل
-========================= */
-
-.header__mobile-search {
-  position: relative;
-  z-index: 1;
-  padding: 0.75rem 0 0.25rem;
-}
-
-.header__mobile-search form {
-  width: 100%;
-}
-
-.header__mobile-search-input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  color: white;
-  font-family: inherit;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.18);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 9999px;
-  outline: none;
-  transition:
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-.header__mobile-search-input:focus {
-  background: rgba(255, 255, 255, 0.28);
-  border-color: white;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
-}
-
-.header__mobile-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-
-/* =========================
-   پوشش منوی موبایل
-   با Teleport داخل body
-========================= */
-
-.header__mobile-overlay {
-  position: fixed;
-  z-index: 99990;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
-  direction: ltr;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-}
-
-
-/* =========================
-   پنل منوی موبایل
-========================= */
-
-.header__mobile-menu {
-  position: fixed;
-  z-index: 99999;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: auto;
-
-  display: flex;
-  flex-direction: column;
-
-  box-sizing: border-box;
-  width: min(86vw, 360px);
-  max-width: 100%;
-  height: 100vh;
-  height: 100dvh;
-
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-
-  direction: rtl;
-  color: white;
-
-  background: linear-gradient(
-    160deg,
-    #16a34a 0%,
-    #059669 55%,
-    #047857 100%
-  );
-
-  box-shadow: -12px 0 35px rgba(0, 0, 0, 0.25);
-  transform: translateX(0);
-  will-change: transform;
-  -webkit-overflow-scrolling: touch;
-}
-
-
-/* =========================
-   سربرگ منوی موبایل
-========================= */
-
-.header__mobile-menu-header {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 64px;
-  padding: 0.75rem 1.25rem;
-  background: rgba(5, 150, 105, 0.96);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.header__mobile-menu-logo {
-  min-width: 0;
-}
-
-.header__mobile-menu-logo .header__logo-img {
-  height: 36px;
-}
-
-.header__mobile-menu-logo .header__logo-text {
-  font-size: 1.25rem;
-}
-
-.header__mobile-menu-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.mobile-drawer__close {
+  display: grid;
   width: 42px;
   height: 42px;
   padding: 0;
-  color: white;
-  background: rgba(255, 255, 255, 0.12);
-  border: none;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  border: 0;
   border-radius: 50%;
+  place-items: center;
   cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
 }
-
-.header__mobile-menu-close:hover {
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.header__mobile-menu-close:active {
-  transform: scale(0.94);
-}
-
 
 /* =========================
-   اطلاعات کاربر موبایل
+   Drawer login
 ========================= */
 
-.header__mobile-user {
-  margin: 1rem 1.25rem 0;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.11);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 14px;
-}
-
-.header__mobile-user-info {
+.mobile-drawer__login {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin: 16px;
+  padding: 14px;
+  color: #064e3b;
+  text-decoration: none;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 15px;
 }
 
-.header__mobile-user-avatar {
+.mobile-drawer__login-icon {
+  display: grid;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  color: #ffffff;
+  background: #059669;
+  border-radius: 50%;
+  place-items: center;
+}
+
+.mobile-drawer__login-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mobile-drawer__login-text small {
+  color: #4b5563;
+  font-size: 0.76rem;
+}
+
+/* =========================
+   Drawer user
+========================= */
+
+.mobile-drawer__user {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  margin: 16px;
+  padding: 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 15px;
+}
+
+.mobile-drawer__avatar {
+  display: grid;
   flex-shrink: 0;
   width: 52px;
   height: 52px;
   overflow: hidden;
-  color: #16a34a;
+  color: #ffffff;
   font-size: 1.2rem;
-  font-weight: 700;
-  background: white;
+  font-weight: 800;
+  background: #059669;
   border-radius: 50%;
+  place-items: center;
 }
 
-.header__mobile-user-avatar img {
+.mobile-drawer__avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.header__mobile-user-details {
-  flex: 1;
+.mobile-drawer__user-info {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.header__mobile-user-name {
-  margin-bottom: 4px;
-  color: white;
-  font-weight: 700;
+.mobile-drawer__user-info strong,
+.mobile-drawer__user-info span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.header__mobile-user-email {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
-  overflow-wrap: anywhere;
+.mobile-drawer__user-info span {
+  color: #64748b;
+  font-size: 0.82rem;
 }
-
 
 /* =========================
-   ورود و ثبت‌نام موبایل
+   Drawer navigation
 ========================= */
 
-.header__mobile-auth {
-  margin: 1rem 1.25rem 0;
+.mobile-drawer__navigation {
+  padding-bottom: 30px;
 }
 
-.header__mobile-auth-link {
+.mobile-drawer__section-title {
+  margin: 18px 20px 8px;
+  color: #94a3b8;
+  font-size: 0.77rem;
+  font-weight: 700;
+}
+
+.mobile-drawer__list {
+  margin: 0;
+  padding: 0 12px;
+  list-style: none;
+}
+
+.mobile-drawer__link {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  box-sizing: border-box;
   width: 100%;
-  padding: 1rem;
-  color: #047857;
-  font-weight: 700;
+  min-height: 52px;
+  padding: 12px;
+  color: #334155;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: right;
   text-decoration: none;
-  background: white;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
-.header__mobile-auth-link:hover {
+.mobile-drawer__link:hover,
+.mobile-drawer__link:active {
+  color: #047857;
   background: #f0fdf4;
 }
 
-.header__mobile-auth-link:active {
-  transform: scale(0.98);
+.mobile-drawer__link--active {
+  color: #047857;
+  background: #ecfdf5;
 }
 
-.header__mobile-auth-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-}
-
-
-/* =========================
-   ناوبری منوی موبایل
-========================= */
-
-.header__mobile-nav {
-  width: 100%;
-  padding-bottom: 2rem;
-}
-
-.header__mobile-nav-list {
-  margin: 0;
-  padding: 1rem 1.25rem 2rem;
-  list-style: none;
-}
-
-.header__mobile-nav-link {
-  position: relative;
+.mobile-drawer__link-content {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.75rem;
-
-  box-sizing: border-box;
-  width: 100%;
-  padding: 1rem 0.75rem;
-
-  color: white;
-  font-family: inherit;
-  font-size: 1rem;
-  text-align: right;
-  text-decoration: none;
-
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-
-  cursor: pointer;
-
-  transition:
-    padding 0.2s ease,
-    background 0.2s ease;
+  gap: 10px;
 }
 
-.header__mobile-nav-link:hover,
-.header__mobile-nav-link:active {
-  padding-right: 1rem;
-  background: rgba(255, 255, 255, 0.1);
+.mobile-drawer__link--logout {
+  color: #dc2626;
 }
 
-.header__mobile-nav-link--active {
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.header__mobile-nav-link .header__badge {
-  position: static;
-  margin-right: auto;
-}
-
-.header__mobile-nav-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  opacity: 0.9;
-}
-
-.header__mobile-nav-link--logout {
-  color: #fecaca;
-}
-
-.header__mobile-nav-link--logout:hover {
-  background: rgba(239, 68, 68, 0.15);
-}
-
-.header__mobile-divider {
-  height: 1px;
-  margin: 1rem 0;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-
-/* =========================
-   منوی کاربر دسکتاپ
-========================= */
-
-.header__user-menu {
-  position: relative;
-}
-
-.header__user-btn {
-  position: relative;
-}
-
-.header__user-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-}
-
-.header__user-avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.header__user-avatar-text {
-  color: white;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-
-/* =========================
-   دراپ‌داون کاربر دسکتاپ
-========================= */
-
-.header__dropdown {
-  position: absolute;
-  z-index: 1100;
-  top: calc(100% + 10px);
-  left: 0;
-  min-width: 280px;
-  overflow: hidden;
-  direction: rtl;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.14);
-}
-
-.header__dropdown-header {
-  padding: 1rem;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.header__dropdown-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header__dropdown-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  overflow: hidden;
-  color: white;
-  font-size: 1.2rem;
-  font-weight: 700;
-  background: linear-gradient(
-    135deg,
-    #22c55e 0%,
-    #059669 100%
-  );
-  border-radius: 50%;
-}
-
-.header__dropdown-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.header__dropdown-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.header__dropdown-name {
-  margin-bottom: 4px;
-  color: #333;
-  font-weight: 700;
-}
-
-.header__dropdown-email {
-  color: #666;
-  font-size: 0.85rem;
-  overflow-wrap: anywhere;
-}
-
-.header__dropdown-menu {
-  margin: 0;
-  padding: 0.5rem 0;
-  list-style: none;
-}
-
-.header__dropdown-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-sizing: border-box;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  color: #333;
-  font-family: inherit;
-  font-size: 0.95rem;
-  text-align: right;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.header__dropdown-link:hover {
-  background: #f5f5f5;
-}
-
-.header__dropdown-link--logout {
-  color: #ef4444;
-}
-
-.header__dropdown-link--logout:hover {
+.mobile-drawer__link--logout:hover {
+  color: #b91c1c;
   background: #fef2f2;
 }
 
-.header__dropdown-icon {
-  width: 18px;
-  height: 18px;
-  opacity: 0.7;
-}
-
-.header__dropdown-badge {
-  margin-right: auto;
-  padding: 2px 6px;
-  color: white;
+.mobile-drawer__count {
+  display: grid;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  color: #ffffff;
   font-size: 0.7rem;
   background: #ef4444;
-  border-radius: 9999px;
+  border-radius: 999px;
+  place-items: center;
 }
-
-.header__dropdown-divider {
-  height: 1px;
-  margin: 0.5rem 0;
-  background: #f0f0f0;
-}
-
 
 /* =========================
-   انیمیشن Fade
+   Accessibility
 ========================= */
 
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+.site-header button:focus-visible,
+.site-header a:focus-visible,
+.site-header input:focus-visible,
+.mobile-drawer button:focus-visible,
+.mobile-drawer a:focus-visible {
+  outline: 2px solid #fde047;
+  outline-offset: 2px;
 }
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
 
 /* =========================
-   انیمیشن منوی موبایل
+   Responsive
 ========================= */
 
-.mobile-menu-enter-active,
-.mobile-menu-leave-active {
-  transition: background-color 0.3s ease;
+@media (max-width: 1100px) {
+  .desktop-header {
+    gap: 14px;
+  }
+
+  .desktop-header__nav-list {
+    gap: 13px;
+  }
+
+  .desktop-header__search {
+    max-width: 250px;
+  }
 }
-
-.mobile-menu-enter-active .header__mobile-menu,
-.mobile-menu-leave-active .header__mobile-menu {
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
-}
-
-.mobile-menu-enter-from,
-.mobile-menu-leave-to {
-  background-color: rgba(15, 23, 42, 0);
-}
-
-.mobile-menu-enter-from .header__mobile-menu,
-.mobile-menu-leave-to .header__mobile-menu {
-  opacity: 0;
-  transform: translateX(100%);
-}
-
-.mobile-menu-enter-to .header__mobile-menu,
-.mobile-menu-leave-from .header__mobile-menu {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-
-/* =========================
-   دسترس‌پذیری
-========================= */
-
-.header button:focus-visible,
-.header a:focus-visible,
-.header input:focus-visible,
-.header__mobile-menu button:focus-visible,
-.header__mobile-menu a:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 3px;
-}
-
-
-/* =========================
-   نسخه موبایل
-========================= */
 
 @media (max-width: 768px) {
-  .header__desktop {
+  .site-header__container {
+    width: min(100% - 20px, 1280px);
+  }
+
+  .desktop-header {
     display: none;
   }
 
-  .header__mobile {
-    display: block;
-  }
-
-  .header__container {
-    padding: 0.5rem 1rem;
-  }
-
-  .header__logo-img {
-    height: 38px;
+  .mobile-header {
+    display: flex;
   }
 }
-
-
-/* =========================
-   نسخه دسکتاپ
-========================= */
 
 @media (min-width: 769px) {
-  .header__mobile-overlay {
+  .mobile-search {
     display: none;
   }
-}
 
-
-/* =========================
-   نمایشگرهای کوچک
-========================= */
-
-@media (max-width: 380px) {
-  .header__mobile-menu {
-    width: 92vw;
-  }
-
-  .header__mobile-menu-header {
-    padding-right: 1rem;
-    padding-left: 1rem;
-  }
-
-  .header__mobile-nav-list {
-    padding-right: 1rem;
-    padding-left: 1rem;
-  }
-
-  .header__mobile-user,
-  .header__mobile-auth {
-    margin-right: 1rem;
-    margin-left: 1rem;
-  }
-
-  .header__mobile-top {
-    gap: 0.25rem;
+  .mobile-drawer-overlay {
+    display: none !important;
   }
 }
 
-
-/* =========================
-   کاهش انیمیشن
-========================= */
+@media (max-width: 360px) {
+  .mobile-drawer {
+    width: 100vw !important;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .header,
-  .header *,
-  .header *::before,
-  .header *::after,
-  .header__mobile-overlay,
-  .header__mobile-overlay *,
-  .header__mobile-overlay *::before,
-  .header__mobile-overlay *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+  .site-header *,
+  .mobile-drawer * {
+    transition: none !important;
+    animation: none !important;
   }
 }

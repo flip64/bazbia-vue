@@ -156,9 +156,9 @@
 
               <a
                 class="contact-card__link"
-                href="mailto:support@bazbia.ir"
+                href="mailto:info@bazbia.ir"
               >
-                support@bazbia.ir
+                info@bazbia.ir
               </a>
 
               <span class="contact-card__hint">

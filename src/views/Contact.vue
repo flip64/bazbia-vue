@@ -498,39 +498,42 @@
       </section>
 
       <!-- Map -->
-      <section class="contact-map-section">
-        <div class="contact-map-section__header">
-          <div>
-            <span class="section-heading__eyebrow">
-              موقعیت فروشگاه
-            </span>
+      
+<section class="contact-map-section">
+  <div class="contact-map-section__header">
+    <div>
+      <span class="section-heading__eyebrow">
+        موقعیت فروشگاه
+      </span>
 
-            <h2 class="contact-map-section__title">
-              بازبیا روی نقشه
-            </h2>
-          </div>
+      <h2 class="contact-map-section__title">
+        بازبیا روی نقشه
+      </h2>
+    </div>
 
-          <a
-            href="https://maps.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="map-link"
-          >
-            مشاهده در نقشه
-          </a>
-        </div>
+    <a
+      href="https://www.google.com/maps?q=35.7156944,51.1136163"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="map-link"
+    >
+      مشاهده در نقشه
+    </a>
+  </div>
 
-        <div class="contact-map">
-          <iframe
-            src="https://www.google.com/maps?q=Shahr-e%20Qods%20Tehran&output=embed"
-            width="100%"
-            height="420"
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-            title="موقعیت فروشگاه بازبیا"
-          ></iframe>
-        </div>
-      </section>
+  <div class="contact-map">
+    <iframe
+      src="https://www.google.com/maps?q=35.7156944,51.1136163&z=18&output=embed"
+      width="100%"
+      height="420"
+      style="border: 0"
+      loading="lazy"
+      allowfullscreen
+      referrerpolicy="no-referrer-when-downgrade"
+      title="موقعیت فروشگاه بازبیا"
+    ></iframe>
+  </div>
+</section>
     </div>
   </main>
 </template>

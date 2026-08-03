@@ -536,9 +536,8 @@
 </template>
 
 <script setup lang="ts">
-  
-import { contactService} from '@/services/contact.service'
 import { reactive, ref } from 'vue'
+import { contactService } from '@/services/contact.service'
 
 type FeedbackType = 'success' | 'error' | ''
 
@@ -554,6 +553,14 @@ interface ContactForm {
 interface FeedbackState {
   type: FeedbackType
   message: string
+}
+
+interface ApiValidationErrors {
+  [field: string]: string[] | string | undefined
+}
+
+interface ApiRequestError extends Error {
+  responseData?: ApiValidationErrors
 }
 
 const loading = ref(false)
@@ -581,6 +588,115 @@ const resetForm = (): void => {
   form.message = ''
 }
 
+const toEnglishDigits = (value: string): string => {
+  const persianDigits = '۰۱۲۳۴۵۶۷۸۹'
+  const arabicDigits = '٠١٢٣٤٥٦٧٨٩'
+
+  return value
+    .replace(/[۰-۹]/g, digit =>
+      String(persianDigits.indexOf(digit))
+    )
+    .replace(/[٠-٩]/g, digit =>
+      String(arabicDigits.indexOf(digit))
+    )
+}
+
+const normalizePhone = (value: string): string => {
+  return toEnglishDigits(value)
+    .replace(/\s+/g, '')
+    .replace(/-/g, '')
+    .trim()
+}
+
+const normalizeOrderNumber = (
+  value: string
+): number | null => {
+  const normalizedValue = toEnglishDigits(value).trim()
+
+  if (!normalizedValue) {
+    return null
+  }
+
+  const orderNumber = Number(normalizedValue)
+
+  if (
+    !Number.isInteger(orderNumber) ||
+    orderNumber <= 0
+  ) {
+    throw new Error('شماره سفارش معتبر نیست.')
+  }
+
+  return orderNumber
+}
+
+const getValidationErrorMessage = (
+  responseData?: ApiValidationErrors
+): string | null => {
+  if (!responseData) {
+    return null
+  }
+
+  const fieldLabels: Record<string, string> = {
+    name: 'نام و نام خانوادگی',
+    phone: 'شماره تماس',
+    email: 'ایمیل',
+    subject: 'موضوع',
+    order_number: 'شماره سفارش',
+    message: 'متن پیام',
+    detail: 'خطا'
+  }
+
+  for (const [field, errors] of Object.entries(responseData)) {
+    if (!errors) {
+      continue
+    }
+
+    const label = fieldLabels[field] ?? field
+
+    if (Array.isArray(errors) && errors.length > 0) {
+      return `${label}: ${errors[0]}`
+    }
+
+    if (typeof errors === 'string') {
+      return `${label}: ${errors}`
+    }
+  }
+
+  return null
+}
+
+const validateForm = (): void => {
+  if (form.name.trim().length < 3) {
+    throw new Error(
+      'نام و نام خانوادگی باید حداقل ۳ کاراکتر باشد.'
+    )
+  }
+
+  const normalizedPhone = normalizePhone(form.phone)
+
+  if (!/^09\d{9}$/.test(normalizedPhone)) {
+    throw new Error(
+      'شماره موبایل را به‌صورت صحیح وارد کنید.'
+    )
+  }
+
+  if (!form.subject) {
+    throw new Error('موضوع پیام را انتخاب کنید.')
+  }
+
+  if (form.message.trim().length < 10) {
+    throw new Error(
+      'متن پیام باید حداقل ۱۰ کاراکتر باشد.'
+    )
+  }
+
+  if (form.message.trim().length > 1000) {
+    throw new Error(
+      'متن پیام نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.'
+    )
+  }
+}
+
 const handleSubmit = async (): Promise<void> => {
   if (loading.value) {
     return
@@ -589,39 +705,276 @@ const handleSubmit = async (): Promise<void> => {
   feedback.type = ''
   feedback.message = ''
 
-  loading.value = true
-
   try {
-    /*
-     * این قسمت بعداً باید به API جنگو متصل شود.
-     *
-     * نمونه:
-     *
-     * await api.post('/api/contact/messages/', {
-     *   name: form.name,
-     *   phone: form.phone,
-     *   email: form.email || null,
-     *   subject: form.subject,
-     *   order_number: form.orderNumber || null,
-     *   message: form.message
-     * })
-     */
+    validateForm()
 
-    await new Promise<void>((resolve) => {
-      window.setTimeout(resolve, 1200)
+    loading.value = true
+
+    const orderNumber = normalizeOrderNumber(
+      form.orderNumber
+    )
+
+    const response = await contactService.sendMessage({
+      name: form.name.trim(),
+      phone: normalizePhone(form.phone),
+      email: form.email.trim() || undefined,
+      subject: form.subject,
+      order_number: orderNumber,
+      message: form.message.trim()
     })
 
     feedback.type = 'success'
     feedback.message =
-      'پیام شما با موفقیت ثبت شد. همکاران ما به‌زودی با شما تماس می‌گیرند.'
+      response.message ||
+      'پیام شما با موفقیت ثبت شد.'
 
     resetForm()
-  } catch (error) {
-    console.error('Contact form submit error:', error)
+  } catch (error: unknown) {
+    console.error(
+      'Contact form submit error:',
+      error
+    )
 
     feedback.type = 'error'
+
+    if (error instanceof Error) {
+      const requestError = error as ApiRequestError
+
+      const validationMessage =
+        getValidationErrorMessage(
+          requestError.responseData
+        )
+
+      feedback.message =
+        validationMessage ||
+        error.message ||
+        'ارسال پیام با خطا مواجه شد.'
+    } else {
+      feedback.message =
+        'ارسال پیام با خطا مواجه شد. لطفاً دوباره تلاش کنید.'
+    }
+  } finally {
+    loading.value = false
+  }
+}
+</script><script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { contactService } from '@/services/contact.service'
+
+type FeedbackType = 'success' | 'error' | ''
+
+interface ContactForm {
+  name: string
+  phone: string
+  email: string
+  subject: string
+  orderNumber: string
+  message: string
+}
+
+interface FeedbackState {
+  type: FeedbackType
+  message: string
+}
+
+interface ApiValidationErrors {
+  [field: string]: string[] | string | undefined
+}
+
+interface ApiRequestError extends Error {
+  responseData?: ApiValidationErrors
+}
+
+const loading = ref(false)
+
+const form = reactive<ContactForm>({
+  name: '',
+  phone: '',
+  email: '',
+  subject: '',
+  orderNumber: '',
+  message: ''
+})
+
+const feedback = reactive<FeedbackState>({
+  type: '',
+  message: ''
+})
+
+const resetForm = (): void => {
+  form.name = ''
+  form.phone = ''
+  form.email = ''
+  form.subject = ''
+  form.orderNumber = ''
+  form.message = ''
+}
+
+const toEnglishDigits = (value: string): string => {
+  const persianDigits = '۰۱۲۳۴۵۶۷۸۹'
+  const arabicDigits = '٠١٢٣٤٥٦٧٨٩'
+
+  return value
+    .replace(/[۰-۹]/g, digit =>
+      String(persianDigits.indexOf(digit))
+    )
+    .replace(/[٠-٩]/g, digit =>
+      String(arabicDigits.indexOf(digit))
+    )
+}
+
+const normalizePhone = (value: string): string => {
+  return toEnglishDigits(value)
+    .replace(/\s+/g, '')
+    .replace(/-/g, '')
+    .trim()
+}
+
+const normalizeOrderNumber = (
+  value: string
+): number | null => {
+  const normalizedValue = toEnglishDigits(value).trim()
+
+  if (!normalizedValue) {
+    return null
+  }
+
+  const orderNumber = Number(normalizedValue)
+
+  if (
+    !Number.isInteger(orderNumber) ||
+    orderNumber <= 0
+  ) {
+    throw new Error('شماره سفارش معتبر نیست.')
+  }
+
+  return orderNumber
+}
+
+const getValidationErrorMessage = (
+  responseData?: ApiValidationErrors
+): string | null => {
+  if (!responseData) {
+    return null
+  }
+
+  const fieldLabels: Record<string, string> = {
+    name: 'نام و نام خانوادگی',
+    phone: 'شماره تماس',
+    email: 'ایمیل',
+    subject: 'موضوع',
+    order_number: 'شماره سفارش',
+    message: 'متن پیام',
+    detail: 'خطا'
+  }
+
+  for (const [field, errors] of Object.entries(responseData)) {
+    if (!errors) {
+      continue
+    }
+
+    const label = fieldLabels[field] ?? field
+
+    if (Array.isArray(errors) && errors.length > 0) {
+      return `${label}: ${errors[0]}`
+    }
+
+    if (typeof errors === 'string') {
+      return `${label}: ${errors}`
+    }
+  }
+
+  return null
+}
+
+const validateForm = (): void => {
+  if (form.name.trim().length < 3) {
+    throw new Error(
+      'نام و نام خانوادگی باید حداقل ۳ کاراکتر باشد.'
+    )
+  }
+
+  const normalizedPhone = normalizePhone(form.phone)
+
+  if (!/^09\d{9}$/.test(normalizedPhone)) {
+    throw new Error(
+      'شماره موبایل را به‌صورت صحیح وارد کنید.'
+    )
+  }
+
+  if (!form.subject) {
+    throw new Error('موضوع پیام را انتخاب کنید.')
+  }
+
+  if (form.message.trim().length < 10) {
+    throw new Error(
+      'متن پیام باید حداقل ۱۰ کاراکتر باشد.'
+    )
+  }
+
+  if (form.message.trim().length > 1000) {
+    throw new Error(
+      'متن پیام نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد.'
+    )
+  }
+}
+
+const handleSubmit = async (): Promise<void> => {
+  if (loading.value) {
+    return
+  }
+
+  feedback.type = ''
+  feedback.message = ''
+
+  try {
+    validateForm()
+
+    loading.value = true
+
+    const orderNumber = normalizeOrderNumber(
+      form.orderNumber
+    )
+
+    const response = await contactService.sendMessage({
+      name: form.name.trim(),
+      phone: normalizePhone(form.phone),
+      email: form.email.trim() || undefined,
+      subject: form.subject,
+      order_number: orderNumber,
+      message: form.message.trim()
+    })
+
+    feedback.type = 'success'
     feedback.message =
-      'ارسال پیام با خطا مواجه شد. لطفاً دوباره تلاش کنید.'
+      response.message ||
+      'پیام شما با موفقیت ثبت شد.'
+
+    resetForm()
+  } catch (error: unknown) {
+    console.error(
+      'Contact form submit error:',
+      error
+    )
+
+    feedback.type = 'error'
+
+    if (error instanceof Error) {
+      const requestError = error as ApiRequestError
+
+      const validationMessage =
+        getValidationErrorMessage(
+          requestError.responseData
+        )
+
+      feedback.message =
+        validationMessage ||
+        error.message ||
+        'ارسال پیام با خطا مواجه شد.'
+    } else {
+      feedback.message =
+        'ارسال پیام با خطا مواجه شد. لطفاً دوباره تلاش کنید.'
+    }
   } finally {
     loading.value = false
   }

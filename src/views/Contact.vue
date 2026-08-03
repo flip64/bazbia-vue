@@ -124,7 +124,7 @@
 
               <a
                 class="contact-card__link"
-                href="tel:02100000000"
+                href="tel:09224274970"
                 dir="ltr"
               >
                 09224274970

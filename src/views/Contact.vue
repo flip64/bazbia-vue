@@ -92,7 +92,7 @@
               </h3>
 
               <p class="contact-card__text">
-                تهران، شهر قدس، آدرس کامل فروشگاه بازبیا
+                تهران، شهر قدس،  بلوار صاحب الزمان کوچه رجایی پلاک 8
               </p>
             </div>
           </article>
@@ -127,7 +127,7 @@
                 href="tel:02100000000"
                 dir="ltr"
               >
-                021-00000000
+                09224274970
               </a>
 
               <span class="contact-card__hint">
@@ -181,11 +181,11 @@
               </h3>
 
               <p class="contact-card__text">
-                شنبه تا چهارشنبه: ۹ تا ۱۸
+                شنبه تا پنج شنبه : ۹ تا ۲۱
               </p>
 
               <span class="contact-card__hint">
-                پنجشنبه: ۹ تا ۱۴
+                جمعه: ۹ تا ۱۴
               </span>
             </div>
           </article>

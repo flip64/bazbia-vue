@@ -536,6 +536,8 @@
 </template>
 
 <script setup lang="ts">
+  
+import { contactService} from '@/services/contact.service'
 import { reactive, ref } from 'vue'
 
 type FeedbackType = 'success' | 'error' | ''

@@ -1148,7 +1148,7 @@ const submitOrder =
       )
 
       
-        مرحله اتصال به API:
+       /* مرحله اتصال به API:*/
        
         const order =
         await orderService.createOrder(payload)

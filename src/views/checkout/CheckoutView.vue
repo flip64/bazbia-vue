@@ -1147,12 +1147,12 @@ const submitOrder =
         payload
       )
 
-      /*
-       * مرحله اتصال به API:
-       *
-       * const order =
-       *   await orderService.createOrder(payload)
-       */
+      
+        مرحله اتصال به API:
+       
+        const order =
+        await orderService.createOrder(payload)
+       
 
       window.alert(
         'اطلاعات Checkout با موفقیت بررسی شد. اتصال ثبت سفارش به API در مرحله بعد انجام می‌شود.'

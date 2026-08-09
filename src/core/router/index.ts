@@ -9,6 +9,8 @@ import {
 import { checkoutGuard } from './checkoutGuard'
 import { setupAuthGuard } from './guard'
 
+import { trackPageView } from '@/services/analytics'
+
 
 const routes: RouteRecordRaw[] = [
   // =================================================
@@ -112,7 +114,7 @@ const routes: RouteRecordRaw[] = [
   },
 
   // =================================================
-  // مراحل تسویه‌حساب
+  // مراحل تسویه حساب
   // =================================================
   {
     path: '/checkout',
@@ -208,8 +210,8 @@ const routes: RouteRecordRaw[] = [
        * این مسیر checkoutGuard ندارد.
        *
        * پس از ثبت سفارش، اطلاعات checkout و cart
-       * پاک می‌شوند؛ بنابراین صفحه موفقیت نباید به
-       * اطلاعات مراحل قبلی وابسته باشد.
+       * پاک می‌شوند؛ بنابراین صفحه موفقیت نباید
+       * به اطلاعات مراحل قبلی وابسته باشد.
        */
       {
         path: 'success/:orderId',
@@ -460,6 +462,9 @@ const routes: RouteRecordRaw[] = [
 ]
 
 
+// =================================================
+// ساخت Router
+// =================================================
 const router = createRouter({
   history: createWebHistory(),
 
@@ -489,9 +494,9 @@ const router = createRouter({
 })
 
 
-/*
- * تنظیم عنوان صفحه.
- */
+// =================================================
+// تنظیم عنوان صفحه
+// =================================================
 router.beforeEach(to => {
   const defaultTitle =
     'فروشگاه بازبیا'
@@ -509,10 +514,29 @@ router.beforeEach(to => {
 })
 
 
+// =================================================
+// Auth Guard
+// =================================================
 /*
- * بررسی ورود، مسیرهای requiresAuth و guestOnly.
+ * بررسی ورود کاربر،
+ * requiresAuth و guestOnly.
  */
 setupAuthGuard(router)
+
+
+// =================================================
+// Analytics
+// =================================================
+/*
+ * پس از موفقیت در هر Navigation،
+ * یک page_view برای صفحه ثبت می‌شود.
+ *
+ * void باعث می‌شود Promise مربوط به Analytics
+ * روی Vue Router تأثیر نگذارد.
+ */
+router.afterEach(() => {
+  void trackPageView()
+})
 
 
 export default router

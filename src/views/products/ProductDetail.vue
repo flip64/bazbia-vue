@@ -33,22 +33,29 @@
           <!-- گالری -->
           <div class="product-gallery">
             <div class="product-gallery__main">
-              <img 
+              <img
+                v-if="currentImage"
                 :src="currentImage" 
                 :alt="product.name"
                 @error="handleImageError"
               >
+              <div v-else class="product-gallery__empty">
+                تصویر موجود نیست
+              </div>
             </div>
 
-            <div v-if="product.images?.length > 1" class="product-gallery__thumbs">
+            <div v-if="galleryImages.length > 1" class="product-gallery__thumbs">
               <button 
-                v-for="(img, index) in product.images" 
-                :key="index"
+                v-for="(img, index) in galleryImages"
+                :key="`${imageUrl(img)}-${index}`"
                 class="thumb-btn"
-                :class="{ 'thumb-btn--active': currentImage === img.image }"
-                @click="currentImage = img.image"
+                :class="{ 'thumb-btn--active': currentImage === imageUrl(img) }"
+                @click="currentImage = imageUrl(img)"
               >
-                <img :src="img.image" :alt="`تصویر ${index + 1}`">
+                <img
+                  :src="imageUrl(img)"
+                  :alt="img.alt_text || `تصویر ${index + 1}`"
+                >
               </button>
             </div>
           </div>
@@ -64,13 +71,54 @@
               </span>
             </div>
 
+            <!-- انتخاب واریانت -->
+            <section
+              v-if="variants.length > 1"
+              class="variant-picker"
+            >
+              <h2 class="variant-picker__title">انتخاب مدل</h2>
+
+              <div class="variant-picker__list">
+                <button
+                  v-for="variant in variants"
+                  :key="variant.id"
+                  type="button"
+                  class="variant-option"
+                  :class="{
+                    'variant-option--selected': selectedVariantId === variant.id,
+                    'variant-option--unavailable': !variantIsInStock(variant),
+                  }"
+                  :disabled="!variantIsInStock(variant)"
+                  @click="selectVariant(variant.id)"
+                >
+                  <span class="variant-option__label">
+                    {{ variantLabel(variant) }}
+                  </span>
+
+                  <span class="variant-option__price">
+                    <template v-if="variantIsInStock(variant)">
+                      {{ formatPrice(variantFinalPrice(variant)) }} تومان
+                    </template>
+                    <template v-else>ناموجود</template>
+                  </span>
+                </button>
+              </div>
+            </section>
+
+            <div
+              v-else-if="currentVariant && currentVariant.attributes?.length"
+              class="single-variant-label"
+            >
+              مدل: {{ variantLabel(currentVariant) }}
+            </div>
+
             <!-- قیمت -->
             <div class="product-info__price-section" v-if="currentVariant">
               <div class="product-info__price">
                 <span class="current-price">
-                  {{ formatPrice(currentVariant.discount_price || currentVariant.price) }} تومان
+                  {{ formatPrice(variantFinalPrice(currentVariant)) }} تومان
                 </span>
-                <span v-if="currentVariant.discount_price" class="old-price">
+                <span v-if="variantHasDiscount(currentVariant)" class="old-price">
                   {{ formatPrice(currentVariant.price) }} تومان
                 </span>
               </div>
@@ -137,28 +185,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/core/store/cartStore'
 import { useWishlistStore } from '@/core/store/wishlistStore'
 import { productService } from '@/services/product.service'
-import { Variant, type ProductDetail } from '@/types/product.types'
+import type {
+  ProductDetail,
+  ProductImage,
+  Variant,
+} from '@/types/product.types'
 
-// ========== دیباگ ==========
-console.log('🔥 PRODUCT DETAIL COMPONENT LOADED')
-console.log('🕐 Time:', new Date().toISOString())
-
-// ========== روت و روت‌ر ==========
 const route = useRoute()
 const router = useRouter()
-
-// ========== Stores ==========
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 
-console.log('📍 Route params:', route.params)
-
-// ========== Stateها ==========
 const loading = ref(false)
 const error = ref<string | null>(null)
 const product = ref<ProductDetail | null>(null)
@@ -168,53 +210,180 @@ const loadingAddToCart = ref(false)
 const loadingWishlist = ref(false)
 const successMessage = ref<string | null>(null)
 
-// ========== Computed Properties ==========
-const currentVariant = computed<Variant | null>(() => {
-  if (!product.value || !product.value.variants?.length) return null
-
-  if (selectedVariantId.value) {
-    return product.value.variants.find(v => v.id === selectedVariantId.value) || product.value.variants[0]
-  }
-
-  return product.value.variants[0]
+const variants = computed<Variant[]>(() => {
+  return product.value?.variants ?? []
 })
 
-const isInStock = computed(() => currentVariant.value ? currentVariant.value.stock > 0 : false)
+const currentVariant = computed<Variant | null>(() => {
+  if (!variants.value.length) return null
+
+  if (selectedVariantId.value !== null) {
+    const selectedVariant = variants.value.find(
+      variant => variant.id === selectedVariantId.value,
+    )
+
+    if (selectedVariant) return selectedVariant
+  }
+
+  return variants.value[0] ?? null
+})
+
+const galleryImages = computed<ProductImage[]>(() => {
+  const variantImages = currentVariant.value?.images?.filter(
+    image => Boolean(imageUrl(image)),
+  ) ?? []
+
+  if (variantImages.length) return variantImages
+
+  return product.value?.images?.filter(
+    image => Boolean(imageUrl(image)),
+  ) ?? []
+})
+
+const isInStock = computed(() => {
+  return currentVariant.value
+    ? variantIsInStock(currentVariant.value)
+    : false
+})
 
 const stockClass = computed(() => {
   if (!currentVariant.value) return {}
+
+  const stock = Number(currentVariant.value.stock ?? 0)
+
   return {
-    'in-stock': currentVariant.value.stock > 5,
-    'low-stock': currentVariant.value.stock > 0 && currentVariant.value.stock <= 5,
-    'out-of-stock': currentVariant.value.stock === 0
+    'in-stock': stock > 5,
+    'low-stock': stock > 0 && stock <= 5,
+    'out-of-stock': stock <= 0,
   }
 })
 
 const stockText = computed(() => {
   if (!currentVariant.value) return ''
-  if (currentVariant.value.stock > 5) return 'موجود در انبار'
-  if (currentVariant.value.stock > 0) return `تنها ${currentVariant.value.stock} عدد باقی‌مانده`
+
+  const stock = Number(currentVariant.value.stock ?? 0)
+
+  if (stock > 5) return 'موجود در انبار'
+  if (stock > 0) return `تنها ${stock.toLocaleString('fa-IR')} عدد باقی‌مانده`
   return 'ناموجود'
 })
 
-// ========== توابع ==========
-const formatPrice = (price: string | number) => {
+const formatPrice = (price: string | number | undefined | null) => {
   return productService.formatPrice(Number(price))
+}
+
+const imageUrl = (image: ProductImage): string => {
+  return image.image || image.source_url || ''
+}
+
+const variantIsInStock = (variant: Variant): boolean => {
+  if (typeof variant.in_stock === 'boolean') {
+    return variant.in_stock
+  }
+
+  return Number(variant.stock ?? 0) > 0
+}
+
+const variantHasDiscount = (variant: Variant): boolean => {
+  const price = Number(variant.price ?? 0)
+  const discountPrice = Number(variant.discount_price ?? 0)
+
+  return (
+    discountPrice > 0 &&
+    price > 0 &&
+    discountPrice < price
+  )
+}
+
+const variantFinalPrice = (variant: Variant): number => {
+  const apiFinalPrice = Number(variant.final_price ?? 0)
+
+  if (apiFinalPrice > 0) return apiFinalPrice
+
+  if (variantHasDiscount(variant)) {
+    return Number(variant.discount_price)
+  }
+
+  return Number(variant.price ?? 0)
+}
+
+const variantLabel = (variant: Variant): string => {
+  if (variant.label?.trim()) return variant.label
+
+  const attributes = variant.attributes ?? []
+  const label = attributes
+    .map(attribute => `${attribute.attribute_name}: ${attribute.value}`)
+    .join(' / ')
+
+  return label || variant.sku || `مدل ${variant.id}`
+}
+
+const setCurrentImage = () => {
+  const images = galleryImages.value
+  const mainImage = images.find(image => image.is_main) ?? images[0]
+
+  currentImage.value = mainImage ? imageUrl(mainImage) : ''
+}
+
+const replaceVariantQuery = async (variantId: number) => {
+  if (String(route.query.variant ?? '') === String(variantId)) return
+
+  await router.replace({
+    query: {
+      ...route.query,
+      variant: String(variantId),
+    },
+  })
+}
+
+const selectVariant = (variantId: number, updateUrl = true) => {
+  const variant = variants.value.find(item => item.id === variantId)
+
+  if (!variant || !variantIsInStock(variant)) return
+
+  selectedVariantId.value = variant.id
+  setCurrentImage()
+
+  if (updateUrl) {
+    void replaceVariantQuery(variant.id)
+  }
+}
+
+const chooseInitialVariant = () => {
+  const queryVariantId = Number(route.query.variant)
+  const queryVariant = Number.isFinite(queryVariantId)
+    ? variants.value.find(variant => variant.id === queryVariantId)
+    : undefined
+
+  const selectedVariant = (
+    queryVariant ??
+    variants.value.find(variant => variantIsInStock(variant)) ??
+    variants.value[0] ??
+    null
+  )
+
+  selectedVariantId.value = selectedVariant?.id ?? null
+  setCurrentImage()
+
+  if (
+    selectedVariant &&
+    queryVariant?.id !== selectedVariant.id
+  ) {
+    void replaceVariantQuery(selectedVariant.id)
+  }
 }
 
 const handleImageError = (e: Event) => {
   const img = e.target as HTMLImageElement
-  img.src = 'https://via.placeholder.com/600x600?text=عکس+موجود+نیست'
+  img.src = '/images/placeholder.jpg'
 }
 
 const fetchProduct = async () => {
-  console.log('🎯 fetchProduct STARTED')
-  
   const slug = route.params.slug as string
-  console.log('📌 slug:', slug)
-  
+
   if (!slug) {
-    console.log('⚠️ slug پیدا نشد')
+    product.value = null
+    error.value = 'آدرس محصول معتبر نیست'
     return
   }
 
@@ -222,108 +391,69 @@ const fetchProduct = async () => {
   error.value = null
 
   try {
-    console.log('📡 در حال دریافت محصول...')
-    const res = await productService.getProductBySlug(slug)
-    const data = res.data ?? res
-    console.log('✅ محصول دریافت شد:', data)
-
-    product.value = data
-
-    if (data.images?.length) {
-      const main = data.images.find(i => i.is_main) || data.images[0]
-      currentImage.value = main.image
-    }
-
-    selectedVariantId.value = data.variants?.[0]?.id ?? null
-
+    product.value = await productService.getProductBySlug(slug)
+    chooseInitialVariant()
   } catch (err: any) {
-    console.error('❌ خطا:', err)
-    error.value = err?.response?.data?.detail || err?.message || 'خطا در دریافت اطلاعات محصول'
+    product.value = null
+    error.value = (
+      err?.response?.data?.detail ||
+      err?.message ||
+      'خطا در دریافت اطلاعات محصول'
+    )
   } finally {
     loading.value = false
-    console.log('🏁 تمام شد')
   }
 }
 
 const addToCart = async () => {
-  // ========== اعتبارسنجی ==========
   if (!currentVariant.value) {
-    console.log('❌ واریانت انتخاب نشده')
-    return
-  }
-  
-  if (!isInStock.value) {
-    console.log('❌ محصول ناموجود است')
-    alert('این محصول موجود نیست')
+    alert('مدل محصول انتخاب نشده است')
     return
   }
 
-  // ========== شروع فرآیند ==========
-  console.log('🛒 ====== ADD TO CART ======')
-  console.log('📦 محصول:', {
-    id: product.value?.id,
-    name: product.value?.name,
-    variantId: currentVariant.value.id,
-    variantName: currentVariant.value.name,
-    quantity: 1
-  })
+  if (!isInStock.value) {
+    alert('مدل انتخاب‌شده موجود نیست')
+    return
+  }
 
   loadingAddToCart.value = true
   successMessage.value = null
 
   try {
-    // ========== افزودن به سبد خرید ==========
-    console.log('🔄 در حال ارسال به store...')
-
     await cartStore.addItem({
       variant_id: currentVariant.value.id,
-      quantity: 1
+      quantity: 1,
     })
 
-    // ========== موفقیت ==========
-    console.log('✅ محصول با موفقیت به سبد خرید اضافه شد')
-    
-    // نمایش پیام موفقیت
-    successMessage.value = 'محصول به سبد خرید اضافه شد'
-    
-    // پاک کردن پیام بعد از ۳ ثانیه
-    setTimeout(() => {
+    successMessage.value = `${variantLabel(currentVariant.value)} به سبد خرید اضافه شد`
+
+    window.setTimeout(() => {
       successMessage.value = null
     }, 3000)
+  } catch (err: any) {
+    const errorMessage = (
+      err?.response?.data?.message ||
+      err?.response?.data?.detail ||
+      err?.message ||
+      'خطا در افزودن به سبد خرید'
+    )
 
-    // ویبره کردن دکمه (اختیاری)
-    // می‌تونی تعداد سبد خرید رو توی هدر آپدیت شده ببینی
-
-  } catch (error: any) {
-    // ========== خطا ==========
-    console.error('❌ خطا در افزودن به سبد خرید:', error)
-    
-    const errorMessage = error.response?.data?.message || 
-                        error.message || 
-                        'خطا در افزودن به سبد خرید'
-    
     alert(errorMessage)
-
   } finally {
-    // ========== پاکسازی ==========
     loadingAddToCart.value = false
-    console.log('🏁 ====== END ADD TO CART ======')
   }
 }
 
 const addToWishlist = async () => {
   if (!product.value) return
-  
-  console.log('❤️ افزودن به علاقه‌مندی‌ها:', product.value.id)
-  
+
   loadingWishlist.value = true
-  
+
   try {
     await wishlistStore.addItem(product.value.id)
     alert('محصول به علاقه‌مندی‌ها اضافه شد')
-  } catch (error: any) {
-    console.error('❌ خطا:', error)
-    alert(error.message || 'خطا در افزودن به علاقه‌مندی‌ها')
+  } catch (err: any) {
+    alert(err?.message || 'خطا در افزودن به علاقه‌مندی‌ها')
   } finally {
     loadingWishlist.value = false
   }
@@ -333,16 +463,28 @@ const goBack = () => {
   router.push('/products')
 }
 
-// ========== Lifecycle ==========
-onMounted(() => {
-  console.log('✅ onMounted اجرا شد')
-  fetchProduct()
-})
+watch(
+  () => route.params.slug,
+  () => {
+    void fetchProduct()
+  },
+  { immediate: true },
+)
 
-watch(() => route.params.slug, (newSlug) => {
-  console.log('🔄 slug تغییر کرد:', newSlug)
-  fetchProduct()
-})
+watch(
+  () => route.query.variant,
+  value => {
+    if (!product.value) return
+
+    const variantId = Number(value)
+    const variant = variants.value.find(item => item.id === variantId)
+
+    if (variant && variant.id !== selectedVariantId.value) {
+      selectedVariantId.value = variant.id
+      setCurrentImage()
+    }
+  },
+)
 </script>
 
 <style scoped>
@@ -397,7 +539,15 @@ watch(() => route.params.slug, (newSlug) => {
 .product-gallery__main img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  padding: 1rem;
+  object-fit: contain;
+}
+
+.product-gallery__empty {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: #94a3b8;
 }
 
 .product-gallery__thumbs {
@@ -451,6 +601,72 @@ watch(() => route.params.slug, (newSlug) => {
   padding: 0.25rem 0.75rem;
   border-radius: 2rem;
   font-size: 0.85rem;
+}
+
+.variant-picker {
+  margin-bottom: 1.5rem;
+}
+
+.variant-picker__title {
+  margin: 0 0 0.75rem;
+  color: #334155;
+  font-size: 1rem;
+}
+
+.variant-picker__list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.variant-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #dbe4df;
+  border-radius: 0.65rem;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  text-align: right;
+  transition: 0.2s ease;
+}
+
+.variant-option:hover:not(:disabled) {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.variant-option--selected {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.12);
+}
+
+.variant-option--unavailable {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.variant-option__label {
+  font-weight: 700;
+}
+
+.variant-option__price {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.single-variant-label {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+  color: #475569;
 }
 
 .product-info__price-section {

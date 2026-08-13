@@ -11,6 +11,19 @@ export interface Category {
   products_count?: number
 }
 
+export interface ProductImage {
+  image?: string | null
+  source_url?: string | null
+  alt_text?: string | null
+  is_main?: boolean
+}
+
+export interface VariantAttribute {
+  id: number
+  attribute_name: string
+  value: string
+}
+
 // =========================
 // Variant (خیلی آزاد)
 // =========================
@@ -19,10 +32,14 @@ export interface Variant {
   sku?: string
   price: string | number
   discount_price?: string | number | null
+  final_price?: string | number
   stock?: number
+  in_stock?: boolean
   low_stock_threshold?: number
   expiration_date?: string | null
-  attributes?: any[]
+  label?: string
+  attributes?: VariantAttribute[]
+  images?: ProductImage[]
 
   // UI helpers
   name?: string
@@ -30,6 +47,8 @@ export interface Variant {
   color_code?: string
   type?: string
 }
+
+export type ProductVariant = Variant
 
 // =========================
 // Product (کاملاً flexible)
@@ -42,7 +61,7 @@ export interface Product {
   base_price: string | number
 
   category?: any
-  images?: any[]
+  images?: ProductImage[]
   variants?: Variant[]
 
   thumb?: string
@@ -62,6 +81,32 @@ export interface Product {
   is_new?: boolean
 
   [key: string]: any
+}
+
+export interface ProductDetail extends Product {
+  tags?: string[]
+  specifications?: Array<{
+    name: string
+    value: string
+  }>
+  videos?: Array<{
+    video: string
+    caption?: string | null
+  }>
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ProductsQueryParams {
+  page?: number
+  category?: string
+  search?: string
+  ordering?: string
+  in_stock?: boolean
+  has_discount?: boolean
+  min_price?: number
+  max_price?: number
 }
 
 // =========================

@@ -144,11 +144,16 @@
       <!-- موبایل -->
       <div class="header__mobile">
         <div class="header__mobile-top">
-          <button @click="toggleMobileMenu" class="header__mobile-menu-btn">
-            <Menu v-if="!isMobileMenuOpen" />
-            <X v-else />
-          </button>
-
+         <button
+          type="button"
+          class="header__mobile-menu-btn"
+          :aria-expanded="isMobileMenuOpen"
+          aria-label="باز و بسته کردن منو"
+          @click.stop="toggleMobileMenu"
+             >
+          <Menu v-if="!isMobileMenuOpen" />
+          <X v-else />
+        </button>
           <router-link to="/" class="header__logo">
             <img 
               :src="logoUrl" 
@@ -172,7 +177,10 @@
 
         <!-- منوی موبایل -->
         <transition name="slide">
-          <div v-if="isMobileMenuOpen" class="header__mobile-menu" v-click-outside="closeMobileMenu" @click.stop>
+          <div v-if="isMobileMenuOpen" 
+          class="header__mobile-menu" 
+          v-click-outside="closeMobileMenu"
+          @click.stop>
             <nav class="header__mobile-nav">
               <!-- بخش کاربر در موبایل -->
               <div class="header__mobile-user" v-if="isAuthenticated">
@@ -392,17 +400,6 @@ const handleLogout = async () => {
 
 const handleMobileLogout = () => {
   handleLogout()
-}
-
-const toggleMobileMenu = () => {
-  console.log('دکمه منو کلیک شد')
-  console.log('وضعیت قبل:')
-
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
-  document.body.style.overflow = isMobileMenuOpen.value ? 'hidden' : ''
-  if (isMobileMenuOpen.value) {
-    isUserMenuOpen.value = false
-  }
 }
 
 const closeMobileMenu = () => {

@@ -172,7 +172,7 @@
 
         <!-- منوی موبایل -->
         <transition name="slide">
-          <div v-if="isMobileMenuOpen" class="header__mobile-menu" v-click-outside="closeMobileMenu">
+          <div v-if="isMobileMenuOpen" class="header__mobile-menu" v-click-outside="closeMobileMenu" @click.stop>
             <nav class="header__mobile-nav">
               <!-- بخش کاربر در موبایل -->
               <div class="header__mobile-user" v-if="isAuthenticated">
@@ -395,6 +395,7 @@ const handleMobileLogout = () => {
 }
 
 const toggleMobileMenu = () => {
+  console.log("Menu Clicked")
   isMobileMenuOpen.value = !isMobileMenuOpen.value
   document.body.style.overflow = isMobileMenuOpen.value ? 'hidden' : ''
   if (isMobileMenuOpen.value) {

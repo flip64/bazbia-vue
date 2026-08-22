@@ -1,27 +1,29 @@
-/* Header.css - استایل‌های کامپوننت هدر */
+/* src/components/layout/header/Header.css */
 
 /* =========================
    استایل اصلی هدر
 ========================= */
 
 .header {
+  position: relative;
+  z-index: 1000;
+  color: white;
   background: linear-gradient(
     135deg,
     #16a34a 0%,
     #059669 100%
   );
-  color: white;
-  position: relative;
-  z-index: 1000;
-  transition: all 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
 .header--sticky {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  left: 0;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
   animation: slideDown 0.3s ease;
 }
 
@@ -64,22 +66,25 @@
    لوگو
 ========================= */
 
+.header__logo,
 .header__logo-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-decoration: none;
   color: white;
+  text-decoration: none;
 }
 
 .header__logo-img {
-  height: 40px;
+  display: block;
   width: auto;
+  height: 40px;
+  object-fit: contain;
 }
 
 .header__logo-text {
   font-size: 1.5rem;
-  font-weight: bold;
+  font-weight: 700;
   background: linear-gradient(
     135deg,
     #ffffff 0%,
@@ -92,34 +97,35 @@
 
 
 /* =========================
-   منوی ناوبری
+   منوی ناوبری دسکتاپ
 ========================= */
 
 .header__nav-list {
   display: flex;
   gap: 2rem;
-  list-style: none;
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 
 .header__nav-link {
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
   position: relative;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.3s ease;
 }
 
-.header__nav-link:hover {
+.header__nav-link:hover,
+.header__nav-link--active {
   color: white;
 }
 
 .header__nav-link::after {
   content: "";
   position: absolute;
+  right: 0;
   bottom: -4px;
-  left: 0;
   width: 0;
   height: 2px;
   background: white;
@@ -133,14 +139,14 @@
 
 
 /* =========================
-   جستجو
+   جستجوی دسکتاپ
 ========================= */
 
 .header__search-form {
   display: flex;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 9999px;
-  overflow: hidden;
   transition:
     background 0.3s ease,
     box-shadow 0.3s ease;
@@ -152,12 +158,12 @@
 }
 
 .header__search-input {
-  background: transparent;
-  border: none;
+  width: 250px;
   padding: 0.5rem 1rem;
   color: white;
+  background: transparent;
+  border: none;
   outline: none;
-  width: 250px;
 }
 
 .header__search-input::placeholder {
@@ -165,16 +171,19 @@
 }
 
 .header__search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  color: white;
   background: transparent;
   border: none;
-  padding: 0.5rem 1rem;
   cursor: pointer;
-  color: white;
   transition: transform 0.3s ease;
 }
 
 .header__search-btn:hover {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 
@@ -189,37 +198,48 @@
 }
 
 .header__action-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  color: white;
+  text-decoration: none;
   background: transparent;
   border: none;
-  cursor: pointer;
-  color: white;
-  position: relative;
-  padding: 0.5rem;
   border-radius: 9999px;
-  transition: all 0.3s ease;
-  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease;
 }
 
 .header__action-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
+}
+
+.header__action-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .header__badge {
   position: absolute;
-  top: 0;
-  right: 0;
-  background: #ef4444;
-  color: white;
-  font-size: 0.75rem;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9999px;
+  top: -2px;
+  right: -2px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 18px;
+  height: 18px;
   padding: 0 4px;
+  color: white;
+  font-size: 0.7rem;
+  line-height: 1;
+  background: #ef4444;
   border: 2px solid white;
+  border-radius: 9999px;
 }
 
 
@@ -229,6 +249,7 @@
 
 .header__mobile {
   display: none;
+  position: relative;
 }
 
 @media (max-width: 768px) {
@@ -239,79 +260,125 @@
   .header__container {
     padding: 0.5rem 1rem;
   }
+
+  .header__logo-img {
+    height: 38px;
+  }
 }
 
 .header__mobile-top {
+  position: relative;
+  z-index: 1003;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 48px;
   gap: 1rem;
 }
 
 .header__mobile-menu-btn,
 .header__mobile-search-btn,
 .header__mobile-cart {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: white;
-  padding: 0.5rem;
-  border-radius: 9999px;
-  transition: all 0.3s ease;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0.5rem;
+  color: white;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.header__mobile-menu-btn {
+  z-index: 1004;
 }
 
 .header__mobile-menu-btn:hover,
 .header__mobile-search-btn:hover,
 .header__mobile-cart:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.header__mobile-menu-btn:active,
+.header__mobile-search-btn:active,
+.header__mobile-cart:active {
+  transform: scale(0.94);
 }
 
 .header__mobile-actions {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.25rem;
 }
+
+
+/* =========================
+   منوی بازشونده موبایل
+========================= */
 
 .header__mobile-menu {
   position: fixed;
-  top: 70px;
-  left: 0;
+  z-index: 1002;
+  top: 64px;
   right: 0;
   bottom: 0;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: linear-gradient(
     135deg,
     #16a34a 0%,
     #059669 100%
   );
-  z-index: 1000;
-  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.header--sticky .header__mobile-menu {
+  top: 64px;
+}
+
+.header__mobile-nav {
+  width: 100%;
+  min-height: 100%;
+  padding-bottom: 2rem;
 }
 
 .header__mobile-nav-list {
-  list-style: none;
-  padding: 2rem;
   margin: 0;
+  padding: 1rem 1.25rem 2rem;
+  list-style: none;
 }
 
 .header__mobile-nav-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem 0;
-  color: white;
-  text-decoration: none;
-  font-size: 1.2rem;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+  justify-content: flex-start;
+  gap: 0.75rem;
   width: 100%;
-  background: transparent;
-  cursor: pointer;
+  padding: 1rem 0.5rem;
+  color: white;
+  font-family: inherit;
+  font-size: 1.05rem;
   text-align: right;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  transition:
+    padding 0.2s ease,
+    background 0.2s ease;
 }
 
 .header__mobile-nav-link:hover {
@@ -319,37 +386,56 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.header__mobile-nav-link .header__badge {
+  position: static;
+  margin-right: auto;
+}
+
+
+/* =========================
+   جستجوی موبایل
+========================= */
+
 .header__mobile-search {
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 0 0 1rem 1rem;
+  position: relative;
+  z-index: 1001;
+  padding: 0.75rem 0 0.25rem;
+}
+
+.header__mobile-search form {
+  width: 100%;
 }
 
 .header__mobile-search-input {
   box-sizing: border-box;
   width: 100%;
   padding: 0.75rem 1rem;
+  color: white;
+  font-family: inherit;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.18);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 1rem;
   outline: none;
-  transition: all 0.3s ease;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .header__mobile-search-input:focus {
+  background: rgba(255, 255, 255, 0.28);
   border-color: white;
-  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
 }
 
 .header__mobile-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 
 /* =========================
-   منوی کاربر
+   منوی کاربر دسکتاپ
 ========================= */
 
 .header__user-menu {
@@ -361,14 +447,14 @@
 }
 
 .header__user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
 }
 
 .header__user-avatar-img {
@@ -379,8 +465,8 @@
 
 .header__user-avatar-text {
   color: white;
-  font-weight: bold;
   font-size: 1rem;
+  font-weight: 700;
 }
 
 
@@ -390,14 +476,15 @@
 
 .header__dropdown {
   position: absolute;
+  z-index: 1100;
   top: calc(100% + 10px);
   left: 0;
   min-width: 280px;
+  overflow: hidden;
+  direction: rtl;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  z-index: 1001;
-  direction: rtl;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.14);
 }
 
 .header__dropdown-header {
@@ -412,21 +499,22 @@
 }
 
 .header__dropdown-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  overflow: hidden;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
   background: linear-gradient(
     135deg,
     #22c55e 0%,
     #059669 100%
   );
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  overflow: hidden;
+  border-radius: 50%;
 }
 
 .header__dropdown-avatar img {
@@ -441,37 +529,38 @@
 }
 
 .header__dropdown-name {
-  font-weight: bold;
-  color: #333;
   margin-bottom: 4px;
+  color: #333;
+  font-weight: 700;
 }
 
 .header__dropdown-email {
-  font-size: 0.85rem;
   color: #666;
+  font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
 
 .header__dropdown-menu {
-  list-style: none;
-  padding: 0.5rem 0;
   margin: 0;
+  padding: 0.5rem 0;
+  list-style: none;
 }
 
 .header__dropdown-link {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 0.75rem 1rem;
   color: #333;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  width: 100%;
-  border: none;
-  background: none;
-  cursor: pointer;
+  font-family: inherit;
   font-size: 0.95rem;
   text-align: right;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .header__dropdown-link:hover {
@@ -494,17 +583,17 @@
 
 .header__dropdown-badge {
   margin-right: auto;
-  background: #ef4444;
+  padding: 2px 6px;
   color: white;
   font-size: 0.7rem;
-  padding: 2px 6px;
+  background: #ef4444;
   border-radius: 9999px;
 }
 
 .header__dropdown-divider {
   height: 1px;
-  background: #f0f0f0;
   margin: 0.5rem 0;
+  background: #f0f0f0;
 }
 
 
@@ -513,10 +602,11 @@
 ========================= */
 
 .header__mobile-user {
-  padding: 1.5rem 1rem;
+  margin: 1rem 1.25rem 0;
+  padding: 1.25rem 1rem;
   background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  margin-bottom: 1rem;
 }
 
 .header__mobile-user-info {
@@ -526,17 +616,18 @@
 }
 
 .header__mobile-user-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: white;
-  color: #16a34a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
   overflow: hidden;
+  color: #16a34a;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: white;
+  border-radius: 50%;
 }
 
 .header__mobile-user-avatar img {
@@ -551,14 +642,14 @@
 }
 
 .header__mobile-user-name {
-  font-weight: bold;
-  color: white;
   margin-bottom: 4px;
+  color: white;
+  font-weight: 700;
 }
 
 .header__mobile-user-email {
-  font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
 
@@ -571,43 +662,39 @@
   align-items: center;
   gap: 12px;
   padding: 1rem;
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease;
 }
 
 .header__mobile-auth-link:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.header__mobile-auth-icon {
+.header__mobile-auth-icon,
+.header__mobile-nav-icon {
+  flex-shrink: 0;
   width: 20px;
   height: 20px;
-}
-
-.header__mobile-nav-icon {
-  width: 18px;
-  height: 18px;
-  margin-left: 8px;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .header__mobile-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
   margin: 1rem 0;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .header__mobile-nav-link--logout {
-  color: #fecaca !important;
+  color: #fecaca;
 }
 
 
 /* =========================
-   آیکون سبد خرید
+   آیکون سبد خرید قدیمی
 ========================= */
 
 .cart-icon {
@@ -627,17 +714,17 @@
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ef4444;
-  color: white;
-  font-size: 0.7rem;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 18px;
+  height: 18px;
   padding: 0 4px;
+  color: white;
+  font-size: 0.7rem;
+  background: #ef4444;
   border: 2px solid white;
+  border-radius: 9999px;
 }
 
 
@@ -647,12 +734,21 @@
 
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .slide-enter-from,
 .slide-leave-to {
-  transform: translateX(-100%);
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .fade-enter-active,
@@ -666,4 +762,28 @@
 .fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+
+/* =========================
+   دسترس‌پذیری
+========================= */
+
+.header button:focus-visible,
+.header a:focus-visible,
+.header input:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .header *,
+  .header *::before,
+  .header *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

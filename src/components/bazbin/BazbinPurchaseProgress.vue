@@ -18,12 +18,12 @@
 
         <p v-if="earnedBazbins > 0">
           با این خرید، {{ formatNumber(earnedBazbins) }}
-          تخم بازبین پس از پرداخت موفق صادر می‌شود.
+           بازبین پس از پرداخت موفق صادر می‌شود.
         </p>
 
         <p v-else>
           با هر {{ formatPrice(targetAmount) }} تومان خرید،
-          یک تخم بازبین هدیه می‌گیرید.
+          یک  بازبین هدیه می‌گیرید.
         </p>
       </div>
 
@@ -46,7 +46,7 @@
     <div class="next-reward">
       <span>
         پیشرفت برای
-        {{ earnedBazbins > 0 ? 'تخم بعدی' : 'اولین تخم' }}
+        {{ earnedBazbins > 0 ? 'بازبین بعدی' : ' اولین  بازبین' }}
       </span>
 
       <strong>
@@ -76,7 +76,7 @@
 
       <span>
         {{ formatPrice(remainingAmount) }}
-        تومان تا تخم بعدی
+        تومان تا تخم بازبین بعدی
       </span>
     </div>
   </div>

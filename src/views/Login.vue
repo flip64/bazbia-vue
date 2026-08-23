@@ -1,4 +1,4 @@
-<!-- src/pages/Login.vue -->
+<!-- src/view/Login.vue -->
 <template>
   <div class="auth-page">
     <div class="auth-container">
@@ -341,7 +341,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #66eadf 0%, #4ba252 100%);
   direction: rtl;
 }
 

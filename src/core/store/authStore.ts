@@ -5,9 +5,12 @@ import { defineStore } from 'pinia'
 
 import { authApi } from '@/modules/auth/api/authApi'
 import type {
-  AuthResponse,
   LoginCredentials,
-  RegisterData,
+  LoginResponse,
+  OtpRequestPayload,
+  OtpRequestResponse,
+  OtpVerifyPayload,
+  OtpVerifyResponse,
   User
 } from '@/modules/auth/types/user'
 
@@ -18,7 +21,10 @@ interface ApiErrorData {
   message?: string
   non_field_errors?: string | string[]
   username?: string | string[]
+  phone?: string | string[]
   password?: string | string[]
+  code?: string | string[]
+  session_id?: string | string[]
 }
 
 interface HttpError {
@@ -45,19 +51,28 @@ function readStorage(key: string): string | null {
   }
 }
 
-function writeStorage(key: string, value: string): void {
+function writeStorage(
+  key: string,
+  value: string
+): void {
   try {
     localStorage.setItem(key, value)
-  } catch (error) {
-    console.warn(`ذخیره ${key} در مرورگر انجام نشد.`, error)
+  } catch (storageError) {
+    console.warn(
+      `ذخیره ${key} در مرورگر انجام نشد.`,
+      storageError
+    )
   }
 }
 
 function removeStorage(key: string): void {
   try {
     localStorage.removeItem(key)
-  } catch (error) {
-    console.warn(`حذف ${key} از مرورگر انجام نشد.`, error)
+  } catch (storageError) {
+    console.warn(
+      `حذف ${key} از مرورگر انجام نشد.`,
+      storageError
+    )
   }
 }
 
@@ -76,17 +91,20 @@ function getFirstErrorMessage(
 }
 
 function getAuthErrorMessage(
-  error: unknown,
+  caughtError: unknown,
   fallbackMessage: string
 ): string {
-  const httpError = error as HttpError
+  const httpError = caughtError as HttpError
   const data = httpError.response?.data
   const status = httpError.response?.status
 
   const apiMessage =
     getFirstErrorMessage(data?.non_field_errors) ||
+    getFirstErrorMessage(data?.phone) ||
     getFirstErrorMessage(data?.username) ||
     getFirstErrorMessage(data?.password) ||
+    getFirstErrorMessage(data?.code) ||
+    getFirstErrorMessage(data?.session_id) ||
     data?.detail ||
     data?.message
 
@@ -94,8 +112,20 @@ function getAuthErrorMessage(
     return apiMessage
   }
 
-  if (status === 400 || status === 401) {
-    return 'اطلاعات واردشده صحیح نیست.'
+  if (status === 400) {
+    return 'اطلاعات واردشده معتبر نیست.'
+  }
+
+  if (status === 401) {
+    return 'اطلاعات ورود صحیح نیست یا نشست شما منقضی شده است.'
+  }
+
+  if (status === 403) {
+    return 'اجازه انجام این عملیات را ندارید.'
+  }
+
+  if (status === 404) {
+    return 'اطلاعات موردنظر پیدا نشد.'
   }
 
   if (status === 429) {
@@ -113,7 +143,9 @@ function getAuthErrorMessage(
   return fallbackMessage
 }
 
-function decodeJwtPayload(token: string): JwtPayload | null {
+function decodeJwtPayload(
+  token: string
+): JwtPayload | null {
   try {
     const parts = token.split('.')
 
@@ -130,7 +162,9 @@ function decodeJwtPayload(token: string): JwtPayload | null {
       '='
     )
 
-    return JSON.parse(atob(paddedPayload)) as JwtPayload
+    return JSON.parse(
+      atob(paddedPayload)
+    ) as JwtPayload
   } catch {
     return null
   }
@@ -169,6 +203,7 @@ export const useAuthStore = defineStore('auth', () => {
     return (
       user.value?.full_name ||
       user.value?.username ||
+      user.value?.phone ||
       'کاربر'
     )
   })
@@ -176,7 +211,8 @@ export const useAuthStore = defineStore('auth', () => {
   const userInitials = computed(() => {
     const name =
       user.value?.full_name?.trim() ||
-      user.value?.username?.trim()
+      user.value?.username?.trim() ||
+      user.value?.phone?.trim()
 
     if (!name) {
       return 'ک'
@@ -202,7 +238,6 @@ export const useAuthStore = defineStore('auth', () => {
       return true
     }
 
-    // سی ثانیه زودتر منقضی در نظر گرفته می‌شود.
     return payload.exp * 1000 <= Date.now() + 30_000
   })
 
@@ -219,7 +254,10 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (newRefreshToken) {
       refreshToken.value = newRefreshToken
-      writeStorage(REFRESH_TOKEN_KEY, newRefreshToken)
+      writeStorage(
+        REFRESH_TOKEN_KEY,
+        newRefreshToken
+      )
     }
   }
 
@@ -227,7 +265,6 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     token.value = null
     refreshToken.value = null
-    error.value = null
 
     removeStorage(ACCESS_TOKEN_KEY)
     removeStorage(REFRESH_TOKEN_KEY)
@@ -237,28 +274,45 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
   }
 
+  async function completeAuthentication(
+    accessToken: string,
+    newRefreshToken: string,
+    authenticatedUser?: User
+  ): Promise<void> {
+    setTokens(
+      accessToken,
+      newRefreshToken
+    )
+
+    if (authenticatedUser) {
+      user.value = authenticatedUser
+    } else {
+      await fetchUserProfile()
+    }
+
+    await mergeGuestCart()
+  }
+
   // ==========================
-  // Authentication
+  // Password authentication
   // ==========================
 
   async function login(
     credentials: LoginCredentials
-  ): Promise<AuthResponse> {
+  ): Promise<LoginResponse> {
     loading.value = true
     error.value = null
 
     try {
-      const response = await authApi.login(credentials)
+      const response = await authApi.login(
+        credentials
+      )
 
-      setTokens(response.access, response.refresh)
-
-      if (response.user) {
-        user.value = response.user
-      } else {
-        await fetchUserProfile()
-      }
-
-      await mergeGuestCart()
+      await completeAuthentication(
+        response.tokens.access,
+        response.tokens.refresh,
+        response.user
+      )
 
       return response
     } catch (caughtError: unknown) {
@@ -275,32 +329,22 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(
-    data: RegisterData
-  ): Promise<AuthResponse> {
+  // ==========================
+  // OTP authentication
+  // ==========================
+
+  async function requestOtp(
+    payload: OtpRequestPayload
+  ): Promise<OtpRequestResponse> {
     loading.value = true
     error.value = null
 
     try {
-      const response = await authApi.register(data)
-
-      setTokens(response.access, response.refresh)
-
-      if (response.user) {
-        user.value = response.user
-      } else {
-        await fetchUserProfile()
-      }
-
-      await mergeGuestCart()
-
-      return response
+      return await authApi.requestOtp(payload)
     } catch (caughtError: unknown) {
-      clearAuthData()
-
       error.value = getAuthErrorMessage(
         caughtError,
-        'ثبت‌نام انجام نشد.'
+        'ارسال کد تأیید انجام نشد.'
       )
 
       throw caughtError
@@ -308,6 +352,42 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = false
     }
   }
+
+  async function verifyOtp(
+    payload: OtpVerifyPayload
+  ): Promise<OtpVerifyResponse> {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.verifyOtp(
+        payload
+      )
+
+      await completeAuthentication(
+        response.tokens.access,
+        response.tokens.refresh,
+        response.user
+      )
+
+      return response
+    } catch (caughtError: unknown) {
+      clearAuthData()
+
+      error.value = getAuthErrorMessage(
+        caughtError,
+        'تأیید کد انجام نشد.'
+      )
+
+      throw caughtError
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ==========================
+  // Logout
+  // ==========================
 
   async function logout(): Promise<void> {
     loading.value = true
@@ -323,7 +403,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (caughtError: unknown) {
       console.warn(
-        'خروج از حساب در سرور انجام نشد؛ داده‌های محلی پاک می‌شوند.',
+        'خروج در سرور انجام نشد؛ داده‌های محلی پاک می‌شوند.',
         caughtError
       )
     } finally {
@@ -353,6 +433,7 @@ export const useAuthStore = defineStore('auth', () => {
       const userData = await authApi.getProfile()
 
       user.value = userData
+
       return userData
     } catch (caughtError: unknown) {
       const httpError = caughtError as HttpError
@@ -360,7 +441,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       const shouldRefresh =
         retryAfterRefresh &&
-        refreshToken.value &&
+        Boolean(refreshToken.value) &&
         (status === 401 || isTokenExpired.value)
 
       if (shouldRefresh) {
@@ -384,14 +465,16 @@ export const useAuthStore = defineStore('auth', () => {
   // ==========================
 
   async function executeTokenRefresh(): Promise<boolean> {
-    if (!refreshToken.value) {
+    const currentRefreshToken = refreshToken.value
+
+    if (!currentRefreshToken) {
       clearAuthData()
       return false
     }
 
     try {
       const response = await authApi.refreshToken({
-        refresh: refreshToken.value
+        refresh: currentRefreshToken
       })
 
       setTokens(
@@ -467,7 +550,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const cartStore = useCartStore()
 
-      await cartStore.mergeGuestCart(sessionKey)
+      await cartStore.mergeGuestCart(
+        sessionKey
+      )
 
       removeStorage(SESSION_KEY)
     } catch (caughtError: unknown) {
@@ -482,7 +567,9 @@ export const useAuthStore = defineStore('auth', () => {
   // User helpers
   // ==========================
 
-  function updateUser(updates: Partial<User>): void {
+  function updateUser(
+    updates: Partial<User>
+  ): void {
     if (!user.value) {
       return
     }
@@ -514,7 +601,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Actions
     login,
-    register,
+    requestOtp,
+    verifyOtp,
     logout,
     checkAuth,
     fetchUserProfile,

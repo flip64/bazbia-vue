@@ -224,69 +224,86 @@
       </div>
 
       <!-- نسخه موبایل -->
-      <div class="mobile-header">
-        <button
-          type="button"
-          class="mobile-header__button"
-          aria-label="باز کردن منو"
-          :aria-expanded="isMobileMenuOpen"
-          aria-controls="mobile-drawer"
-          @click.stop="openMobileMenu"
-        >
-          <Menu :size="25" />
-        </button>
+      
+<!-- نسخه موبایل -->
+<div class="mobile-header">
+  <!-- منو -->
+  <button
+    type="button"
+    class="mobile-header__button"
+    aria-label="باز کردن منو"
+    :aria-expanded="isMobileMenuOpen"
+    aria-controls="mobile-drawer"
+    @click.stop="openMobileMenu"
+  >
+    <Menu :size="25" />
+  </button>
 
-        <router-link
-          to="/"
-          class="mobile-header__logo"
-          aria-label="صفحه اصلی بازبیا"
-          @click="closeAll"
-        >
-          <img
-            :src="logoUrl"
-            alt="بازبیا"
-            class="mobile-header__logo-image"
-            @error="handleLogoError"
-          >
-        </router-link>
+  <!-- لوگو -->
+  <router-link
+    to="/"
+    class="mobile-header__logo"
+    aria-label="صفحه اصلی بازبیا"
+    @click="closeAll"
+  >
+    <img
+      :src="logoUrl"
+      alt="بازبیا"
+      class="mobile-header__logo-image"
+      @error="handleLogoError"
+    >
+  </router-link>
 
-        <div class="mobile-header__actions">
-          <button
-            type="button"
-            class="mobile-header__button"
-            aria-label="جستجو"
-            :aria-expanded="isMobileSearchOpen"
-            @click.stop="toggleMobileSearch"
-          >
-            <X
-              v-if="isMobileSearchOpen"
-              :size="22"
-            />
+  <!-- جستجو -->
+  <div class="mobile-header__actions">
+    <button
+      type="button"
+      class="mobile-header__button"
+      aria-label="جستجو"
+      :aria-expanded="isMobileSearchOpen"
+      @click.stop="toggleMobileSearch"
+    >
+      <X
+        v-if="isMobileSearchOpen"
+        :size="22"
+      />
 
-            <Search
-              v-else
-              :size="22"
-            />
-          </button>
+      <Search
+        v-else
+        :size="22"
+      />
+    </button>
+  </div>
+</div>
 
-          <router-link
-            to="/cart"
-            class="mobile-header__button"
-            aria-label="سبد خرید"
-            @click="closeAll"
-          >
-            <ShoppingBag :size="22" />
+<!-- جستجوی موبایل -->
+<div
+  v-if="isMobileSearchOpen"
+  class="mobile-search"
+>
+  <form
+    role="search"
+    @submit.prevent="handleSearch"
+  >
+    <input
+      ref="mobileSearchInput"
+      v-model="searchQuery"
+      type="search"
+      class="mobile-search__input"
+      placeholder="جستجوی محصولات..."
+      aria-label="جستجوی محصولات"
+      autocomplete="off"
+    >
 
-            <span
-              v-if="cartTotalItems"
-              class="header-counter"
-            >
-              {{ cartTotalItems }}
-            </span>
-          </router-link>
-        </div>
-      </div>
-
+    <button
+      type="submit"
+      class="mobile-search__button"
+      aria-label="جستجو"
+    >
+      <Search :size="20" />
+    </button>
+  </form>
+</div>
       <div
         v-if="isMobileSearchOpen"
         class="mobile-search"

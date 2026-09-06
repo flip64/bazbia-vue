@@ -26,24 +26,6 @@
       </div>
     </section>
 
-    <!-- ================= Intro / SEO ================= -->
-    <section class="px-4">
-      <div class="mx-auto max-w-4xl text-center">
-        <h1
-          class="text-lg font-bold text-gray-800 md:text-xl"
-        >
-          فروشگاه اینترنتی بازبیا
-        </h1>
-
-        <p
-          class="mt-2 text-sm leading-7 text-gray-500"
-        >
-          انتخاب و خرید آسان کالاهای کاربردی با امکان
-          بررسی محصولات و مقایسه بهتر برای یک خرید مطمئن
-        </p>
-      </div>
-    </section>
-
     <!-- ================= Categories ================= -->
     <section class="px-4">
       <h2
@@ -89,6 +71,32 @@
         :products="cheapestProducts"
         :loading="cheapestLoading"
       />
+    </section>
+
+    <!-- ================= SEO / About ================= -->
+    <section class="px-4">
+      <div
+        class="mx-auto max-w-5xl rounded-2xl bg-white
+               px-5 py-6 text-center"
+      >
+        <h1
+          class="text-lg font-bold text-gray-800
+                 md:text-xl"
+        >
+          فروشگاه اینترنتی بازبیا
+        </h1>
+
+        <p
+          class="mx-auto mt-3 max-w-3xl text-sm
+                 leading-7 text-gray-500"
+        >
+          در بازبیا می‌توانید محصولات مورد نیاز خود را
+          ساده‌تر پیدا کنید، مشخصات و قیمت‌ها را بررسی
+          کنید و با انتخابی آگاهانه خرید کنید. تلاش ما
+          ارائه تجربه‌ای ساده، مطمئن و کاربردی برای
+          خرید اینترنتی است.
+        </p>
+      </div>
     </section>
 
     <!-- ================= Trust ================= -->

@@ -280,7 +280,7 @@ const isAccountActive = computed(() => {
   ===================================== */
 
   .mobile-bottom-nav__item--active {
-    color: #dc2626;
+    color: #15803d;
 
     font-weight: 700;
   }
@@ -299,7 +299,7 @@ const isAccountActive = computed(() => {
 
     border-radius: 0 0 999px 999px;
 
-    background: #dc2626;
+    background: #15803d;
 
     transform: translateX(-50%);
   }

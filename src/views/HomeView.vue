@@ -36,7 +36,7 @@
 
         <span
           class="absolute -bottom-1 left-0 h-1 w-12
-                 rounded-full bg-blue-500"
+                 rounded-full bg-green-700"
         />
       </h2>
 

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex min-h-screen flex-col gap-10 bg-gray-50 py-8"
+    class="flex min-h-screen flex-col gap-7 bg-gray-50 py-8 md:gap-10"
   >
     <!-- ================= Banner ================= -->
     <section class="px-4">
@@ -30,7 +30,7 @@
     <section class="px-4">
       <h2
         class="relative mb-4 inline-block text-base
-               font-bold text-gray-800"
+               font-bold text-gray-800 md:text-lg"
       >
         دسته‌بندی‌ها
 
@@ -58,11 +58,6 @@
         :products="latestProducts"
         :loading="latestLoading"
       />
-    </section>
-
-    <!-- ================= Promotion ================= -->
-    <section class="px-4">
-      <PromoBanner />
     </section>
 
     <!-- ================= Cheapest ================= -->
@@ -114,7 +109,6 @@ import CategoryGrid from '@/components/home/CategoryGrid.vue'
 import CheapestProductsCarouel from '@/components/home/CheapestProductsCarousel.vue'
 import FeaturedProductsSwiper from '@/components/home/FeaturedProductsSwiper.vue'
 import LatestProductsCarousel from '@/components/home/LatestProductsCarousel.vue'
-import PromoBanner from '@/components/home/PromoBanner.vue'
 import WhyBazbia from '@/components/home/WhyBazbia.vue'
 
 import { useBannerStore } from '@/core/store/bannerStore'
@@ -123,6 +117,7 @@ import { useFeaturedProductStore } from '@/core/store/featuredProductStore'
 
 import { productService } from '@/services/product.service'
 import type { Product } from '@/types/product.types'
+
 
 const categoryStore = useCategoryStore()
 const bannerStore = useBannerStore()
@@ -133,6 +128,7 @@ const cheapestProducts = ref<Product[]>([])
 
 const latestLoading = ref(false)
 const cheapestLoading = ref(false)
+
 
 async function fetchLatestProducts() {
   latestLoading.value = true
@@ -152,6 +148,7 @@ async function fetchLatestProducts() {
   }
 }
 
+
 async function fetchCheapestProducts() {
   cheapestLoading.value = true
 
@@ -169,6 +166,7 @@ async function fetchCheapestProducts() {
     cheapestLoading.value = false
   }
 }
+
 
 onMounted(() => {
   bannerStore.fetchBanners()

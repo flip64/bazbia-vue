@@ -2,6 +2,21 @@
   <div
     class="flex min-h-screen flex-col gap-10 bg-gray-50 py-8"
   >
+    <!-- ================= Intro / SEO ================= -->
+    <section class="px-4 text-center">
+      <h1 class="text-2xl font-bold text-gray-900 md:text-3xl">
+        فروشگاه اینترنتی بازبیا
+      </h1>
+
+      <p
+        class="mx-auto mt-2 max-w-2xl text-sm
+               leading-7 text-gray-600"
+      >
+        خرید آنلاین کالاهای کاربردی خانه، ابزار
+        و محصولات مورد نیاز روزمره
+      </p>
+    </section>
+
     <!-- ================= Banner ================= -->
     <section class="px-4">
       <div

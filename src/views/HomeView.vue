@@ -8,7 +8,7 @@
         class="text-2xl font-bold leading-relaxed
                text-gray-900 md:text-3xl"
       >
-        بازبیا؛ انتخابی که دوباره به آن برمی‌گردید
+        بازبیا؛ انتخابی که آنرا تکرار خواهید کرد 
       </h1>
 
       <p

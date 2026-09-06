@@ -2,26 +2,6 @@
   <div
     class="flex min-h-screen flex-col gap-10 bg-gray-50 py-8"
   >
-    <!-- ================= Intro / SEO ================= -->
-    <section class="px-4 text-center">
-      <h1
-        class="text-2xl font-bold leading-relaxed
-               text-gray-900 md:text-3xl"
-      >
-        بازبیا؛ انتخابی که آنرا تکرار خواهید کرد 
-      </h1>
-
-      <p
-        class="mx-auto mt-3 max-w-2xl text-sm
-               leading-7 text-gray-600 md:text-base"
-      >
-        فروشگاه اینترنتی بازبیا، جایی برای پیدا کردن
-        کالاهای کاربردی و انتخاب‌های به‌صرفه؛
-        ساده‌تر جستجو کنید، بهتر مقایسه کنید
-        و با اطمینان خرید کنید.
-      </p>
-    </section>
-
     <!-- ================= Banner ================= -->
     <section class="px-4">
       <div
@@ -43,6 +23,24 @@
                rounded-2xl bg-white text-gray-400"
       >
         بنری موجود نیست
+      </div>
+    </section>
+
+    <!-- ================= Intro / SEO ================= -->
+    <section class="px-4">
+      <div class="mx-auto max-w-4xl text-center">
+        <h1
+          class="text-lg font-bold text-gray-800 md:text-xl"
+        >
+          فروشگاه اینترنتی بازبیا
+        </h1>
+
+        <p
+          class="mt-2 text-sm leading-7 text-gray-500"
+        >
+          انتخاب و خرید آسان کالاهای کاربردی با امکان
+          بررسی محصولات و مقایسه بهتر برای یک خرید مطمئن
+        </p>
       </div>
     </section>
 

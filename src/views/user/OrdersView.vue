@@ -1,301 +1,840 @@
 <template>
-  <div class="orders-page">
-    <div class="orders-container">
-      <h1 class="orders-title">سفارش‌های من</h1>
+  <div class="account-page">
+    <div class="account-container">
+      <!-- ================= Header ================= -->
+      <section class="account-header">
+        <div class="account-avatar">
+          {{ userInitials }}
+        </div>
 
-      <div v-if="orders.length === 0" class="orders-empty">
-        <p>شما هنوز سفارشی ثبت نکرده‌اید</p>
-        <router-link to="/products" class="shop-link">
-          شروع خرید
-        </router-link>
-      </div>
+        <div class="account-user">
+          <p class="account-eyebrow">
+            حساب کاربری
+          </p>
 
-      <div v-else class="orders-list">
-        <div v-for="order in orders" :key="order.id" class="order-card">
-          <div class="order-header">
-            <div class="order-info">
-              <span class="order-id">سفارش #{{ order.id }}</span>
-              <span class="order-date">{{ order.date }}</span>
-            </div>
-            <span class="order-status" :class="`order-status--${order.status}`">
-              {{ getStatusText(order.status) }}
+          <h1 class="account-name">
+            {{ userName }}
+          </h1>
+
+          <p
+            v-if="user?.phone"
+            class="account-phone"
+            dir="ltr"
+          >
+            {{ user.phone }}
+          </p>
+        </div>
+      </section>
+
+
+      <!-- ================= User Info ================= -->
+      <section class="account-card">
+        <div class="section-heading">
+          <div>
+            <h2>اطلاعات حساب</h2>
+
+            <p>
+              اطلاعات ثبت‌شده برای حساب کاربری شما
+            </p>
+          </div>
+
+          <UserRound
+            :size="22"
+            :stroke-width="1.8"
+          />
+        </div>
+
+        <div
+          v-if="user"
+          class="info-grid"
+        >
+          <div class="info-item">
+            <span class="info-label">
+              نام
+            </span>
+
+            <strong>
+              {{ firstName || 'ثبت نشده' }}
+            </strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              نام خانوادگی
+            </span>
+
+            <strong>
+              {{ lastName || 'ثبت نشده' }}
+            </strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              شماره موبایل
+            </span>
+
+            <strong
+              dir="ltr"
+              class="ltr-value"
+            >
+              {{ user.phone || 'ثبت نشده' }}
+            </strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">
+              ایمیل
+            </span>
+
+            <strong
+              dir="ltr"
+              class="ltr-value"
+            >
+              {{ user.email || 'ثبت نشده' }}
+            </strong>
+          </div>
+        </div>
+
+        <div
+          v-else-if="loadingProfile"
+          class="account-status"
+        >
+          در حال دریافت اطلاعات حساب...
+        </div>
+
+        <div
+          v-else
+          class="account-status account-status--error"
+        >
+          اطلاعات حساب در دسترس نیست.
+        </div>
+      </section>
+
+
+      <!-- ================= Account Menu ================= -->
+      <section class="account-card">
+        <div class="section-heading">
+          <div>
+            <h2>مدیریت حساب</h2>
+
+            <p>
+              دسترسی سریع به بخش‌های حساب کاربری
+            </p>
+          </div>
+        </div>
+
+        <div class="account-menu">
+          <!-- Orders -->
+          <RouterLink
+            :to="{ name: 'orders' }"
+            class="account-menu__item"
+          >
+            <span class="account-menu__icon">
+              <Package
+                :size="22"
+                :stroke-width="1.8"
+              />
+            </span>
+
+            <span class="account-menu__content">
+              <strong>
+                سفارش‌های من
+              </strong>
+
+              <small>
+                مشاهده سفارش‌ها و وضعیت خریدها
+              </small>
+            </span>
+
+            <ChevronLeft
+              class="account-menu__arrow"
+              :size="20"
+            />
+          </RouterLink>
+
+
+          <!-- Wishlist -->
+          <RouterLink
+            :to="{ name: 'wishlist' }"
+            class="account-menu__item"
+          >
+            <span class="account-menu__icon">
+              <Heart
+                :size="22"
+                :stroke-width="1.8"
+              />
+            </span>
+
+            <span class="account-menu__content">
+              <strong>
+                علاقه‌مندی‌ها
+              </strong>
+
+              <small>
+                محصولاتی که برای بعد ذخیره کرده‌اید
+              </small>
+            </span>
+
+            <ChevronLeft
+              class="account-menu__arrow"
+              :size="20"
+            />
+          </RouterLink>
+
+
+          <!-- Address -->
+          <div
+            class="
+              account-menu__item
+              account-menu__item--disabled
+            "
+          >
+            <span class="account-menu__icon">
+              <MapPin
+                :size="22"
+                :stroke-width="1.8"
+              />
+            </span>
+
+            <span class="account-menu__content">
+              <strong>
+                آدرس‌های من
+              </strong>
+
+              <small>
+                مدیریت آدرس‌های تحویل
+              </small>
+            </span>
+
+            <span class="coming-soon">
+              به‌زودی
             </span>
           </div>
 
-          <div class="order-items">
-            <div v-for="item in order.items" :key="item.id" class="order-item">
-              <img :src="item.image" :alt="item.name" class="order-item__image">
-              <div class="order-item__info">
-                <h4>{{ item.name }}</h4>
-                <p>{{ item.price }} تومان x {{ item.quantity }}</p>
-              </div>
-            </div>
-          </div>
 
-          <div class="order-footer">
-            <div class="order-total">
-              <span>مبلغ کل:</span>
-              <strong>{{ order.total }} تومان</strong>
-            </div>
-            <button class="order-details-btn" @click="viewOrderDetails(order.id)">
-              مشاهده جزئیات
-            </button>
+          <!-- Security -->
+          <div
+            class="
+              account-menu__item
+              account-menu__item--disabled
+            "
+          >
+            <span class="account-menu__icon">
+              <ShieldCheck
+                :size="22"
+                :stroke-width="1.8"
+              />
+            </span>
+
+            <span class="account-menu__content">
+              <strong>
+                امنیت حساب
+              </strong>
+
+              <small>
+                مدیریت رمز عبور و امنیت ورود
+              </small>
+            </span>
+
+            <span class="coming-soon">
+              به‌زودی
+            </span>
           </div>
         </div>
-      </div>
+      </section>
+
+
+      <!-- ================= Logout ================= -->
+      <section class="account-card">
+        <button
+          type="button"
+          class="logout-button"
+          :disabled="authStore.loading"
+          @click="handleLogout"
+        >
+          <LogOut
+            :size="20"
+            :stroke-width="1.8"
+          />
+
+          <span>
+            {{
+              authStore.loading
+                ? 'در حال خروج...'
+                : 'خروج از حساب کاربری'
+            }}
+          </span>
+        </button>
+      </section>
     </div>
   </div>
 </template>
 
+
 <script setup lang="ts">
-import { ref } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref
+} from 'vue'
 
-interface Order {
-  id: number
-  date: string
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-  total: string
-  items: {
-    id: number
-    name: string
-    price: string
-    quantity: number
-    image: string
-  }[]
-}
+import {
+  ChevronLeft,
+  Heart,
+  LogOut,
+  MapPin,
+  Package,
+  ShieldCheck,
+  UserRound
+} from 'lucide-vue-next'
 
-const orders = ref<Order[]>([
-  {
-    id: 1234,
-    date: '۱۴۰۴/۱۱/۲۵',
-    status: 'delivered',
-    total: '۸۵۰,۰۰۰',
-    items: [
-      {
-        id: 1,
-        name: 'محصول ۱',
-        price: '۲۵۰,۰۰۰',
-        quantity: 2,
-        image: 'https://via.placeholder.com/80x80?text=محصول+1'
-      },
-      {
-        id: 2,
-        name: 'محصول ۲',
-        price: '۳۵۰,۰۰۰',
-        quantity: 1,
-        image: 'https://via.placeholder.com/80x80?text=محصول+2'
-      }
-    ]
-  },
-  {
-    id: 1235,
-    date: '۱۴۰۴/۱۱/۲۰',
-    status: 'processing',
-    total: '۴۵۰,۰۰۰',
-    items: [
-      {
-        id: 3,
-        name: 'محصول ۳',
-        price: '۴۵۰,۰۰۰',
-        quantity: 1,
-        image: 'https://via.placeholder.com/80x80?text=محصول+3'
-      }
-    ]
+import {
+  RouterLink,
+  useRouter
+} from 'vue-router'
+
+import {
+  storeToRefs
+} from 'pinia'
+
+import {
+  useAuthStore
+} from '@/core/store/authStore'
+
+
+const router = useRouter()
+
+const authStore = useAuthStore()
+
+const {
+  user,
+  userName,
+  userInitials
+} = storeToRefs(authStore)
+
+const loadingProfile = ref(false)
+
+
+/* =========================================
+   User information
+========================================= */
+
+const firstName = computed(() => {
+  if (user.value?.first_name) {
+    return user.value.first_name
   }
-])
 
-const getStatusText = (status: string) => {
-  const statusMap: Record<string, string> = {
-    pending: 'در انتظار پرداخت',
-    processing: 'در حال پردازش',
-    shipped: 'ارسال شده',
-    delivered: 'تحویل شده',
-    cancelled: 'لغو شده'
+  if (user.value?.full_name) {
+    return (
+      user.value.full_name
+        .trim()
+        .split(/\s+/)[0] || ''
+    )
   }
-  return statusMap[status] || status
-}
 
-const viewOrderDetails = (orderId: number) => {
-  console.log('مشاهده جزئیات سفارش:', orderId)
+  return ''
+})
+
+
+const lastName = computed(() => {
+  if (user.value?.last_name) {
+    return user.value.last_name
+  }
+
+  if (user.value?.full_name) {
+    const parts =
+      user.value.full_name
+        .trim()
+        .split(/\s+/)
+
+    if (parts.length > 1) {
+      return parts.slice(1).join(' ')
+    }
+  }
+
+  return ''
+})
+
+
+/* =========================================
+   Profile loading
+========================================= */
+
+onMounted(async () => {
+  if (user.value) {
+    return
+  }
+
+  loadingProfile.value = true
+
+  try {
+    await authStore.fetchUserProfile()
+  } finally {
+    loadingProfile.value = false
+  }
+})
+
+
+/* =========================================
+   Logout
+========================================= */
+
+async function handleLogout() {
+  await authStore.logout()
+
+  await router.replace({
+    name: 'home'
+  })
 }
 </script>
 
+
 <style scoped>
-.orders-page {
-  padding: 2rem;
+.account-page {
   min-height: 70vh;
-  background: #f8f9fa;
+
+  padding: 24px 16px 40px;
+
+  background: #f9fafb;
 }
 
-.orders-container {
-  max-width: 1280px;
+
+.account-container {
+  width: 100%;
+  max-width: 900px;
+
   margin: 0 auto;
-}
 
-.orders-title {
-  font-size: 2rem;
-  color: #374151;
-  margin-bottom: 2rem;
-}
-
-.orders-empty {
-  text-align: center;
-  padding: 4rem;
-  background: white;
-  border-radius: 12px;
-}
-
-.orders-empty p {
-  font-size: 1.2rem;
-  color: #6b7280;
-  margin-bottom: 1.5rem;
-}
-
-.shop-link {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: #667eea;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-}
-
-.orders-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+
+  gap: 18px;
 }
 
-.order-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
 
-.order-header {
+/* =========================================
+   Header
+========================================= */
+
+.account-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  background: #f9fafb;
-  border-bottom: 1px solid #f0f0f0;
-}
 
-.order-info {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
+  gap: 16px;
 
-.order-id {
-  font-weight: bold;
-  color: #374151;
-}
+  padding: 22px;
 
-.order-date {
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-.order-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.order-status--pending {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.order-status--processing {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.order-status--shipped {
-  background: #e0f2fe;
-  color: #0891b2;
-}
-
-.order-status--delivered {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.order-status--cancelled {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.order-items {
-  padding: 1.5rem;
-}
-
-.order-item {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.order-item__image {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.order-item__info h4 {
-  color: #374151;
-  margin-bottom: 0.25rem;
-}
-
-.order-item__info p {
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-.order-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: #f9fafb;
-  border-top: 1px solid #f0f0f0;
-}
-
-.order-total {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.order-total span {
-  color: #6b7280;
-}
-
-.order-total strong {
-  color: #374151;
-  font-size: 1.1rem;
-}
-
-.order-details-btn {
-  padding: 0.5rem 1rem;
-  background: none;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  border-radius: 18px;
+
+  background: #ffffff;
 }
 
-.order-details-btn:hover {
+
+.account-avatar {
+  flex: 0 0 auto;
+
+  width: 64px;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #15803d;
+
+  color: #ffffff;
+
+  font-size: 20px;
+  font-weight: 800;
+}
+
+
+.account-user {
+  min-width: 0;
+}
+
+
+.account-eyebrow {
+  margin: 0 0 3px;
+
+  color: #15803d;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.account-name {
+  margin: 0;
+
+  color: #1f2937;
+
+  font-size: 22px;
+  font-weight: 800;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.account-phone {
+  margin: 5px 0 0;
+
+  color: #6b7280;
+
+  font-size: 13px;
+
+  text-align: right;
+}
+
+
+/* =========================================
+   Cards
+========================================= */
+
+.account-card {
+  padding: 22px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+
+  background: #ffffff;
+}
+
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 20px;
+
+  color: #15803d;
+}
+
+
+.section-heading h2 {
+  margin: 0;
+
+  color: #1f2937;
+
+  font-size: 17px;
+  font-weight: 800;
+}
+
+
+.section-heading p {
+  margin: 5px 0 0;
+
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+
+/* =========================================
+   Information
+========================================= */
+
+.info-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+
+.info-item {
+  min-width: 0;
+
+  padding: 14px 16px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #f9fafb;
+}
+
+
+.info-label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+
+.info-item strong {
+  display: block;
+
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  overflow-wrap: anywhere;
+}
+
+
+.ltr-value {
+  text-align: right;
+}
+
+
+.account-status {
+  padding: 20px;
+
+  border-radius: 12px;
+
+  background: #f9fafb;
+
+  color: #6b7280;
+
+  text-align: center;
+
+  font-size: 14px;
+}
+
+
+.account-status--error {
+  color: #b91c1c;
+
+  background: #fef2f2;
+}
+
+
+/* =========================================
+   Menu
+========================================= */
+
+.account-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.account-menu__item {
+  display: flex;
+  align-items: center;
+
+  min-height: 70px;
+
+  padding: 12px 4px;
+
+  border-bottom: 1px solid #f3f4f6;
+
+  color: inherit;
+
+  text-decoration: none;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+
+.account-menu__item:last-child {
+  border-bottom: 0;
+}
+
+
+a.account-menu__item:hover {
+  color: #15803d;
+}
+
+
+.account-menu__icon {
+  flex: 0 0 auto;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: 12px;
+
+  border-radius: 12px;
+
+  background: #f0fdf4;
+
+  color: #15803d;
+}
+
+
+.account-menu__content {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.account-menu__content strong {
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+.account-menu__content small {
+  color: #9ca3af;
+
+  font-size: 12px;
+}
+
+
+.account-menu__arrow {
+  flex: 0 0 auto;
+
+  color: #9ca3af;
+}
+
+
+.account-menu__item--disabled {
+  opacity: 0.65;
+
+  cursor: default;
+}
+
+
+.coming-soon {
+  flex: 0 0 auto;
+
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
   background: #f3f4f6;
+
+  color: #6b7280;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+
+/* =========================================
+   Logout
+========================================= */
+
+.logout-button {
+  width: 100%;
+
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+
+  background: #fff;
+
+  color: #b91c1c;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+
+.logout-button:hover {
+  background: #fef2f2;
+
+  border-color: #fca5a5;
+}
+
+
+.logout-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   Mobile
+========================================= */
+
+@media (max-width: 640px) {
+  .account-page {
+    padding:
+      12px
+      10px
+      24px;
+  }
+
+
+  .account-container {
+    gap: 12px;
+  }
+
+
+  .account-header {
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+
+  .account-avatar {
+    width: 54px;
+    height: 54px;
+
+    font-size: 17px;
+  }
+
+
+  .account-name {
+    font-size: 18px;
+  }
+
+
+  .account-card {
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .account-menu__item {
+    min-height: 66px;
+  }
+
+
+  .account-menu__content small {
+    font-size: 11px;
+  }
 }
 </style>

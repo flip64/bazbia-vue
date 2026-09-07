@@ -1,359 +1,1232 @@
 <template>
-  <div class="profile-page">
-    <div class="profile-container">
-      <h1 class="profile-title">پروفایل من</h1>
+  <div class="account-page">
+    <div class="account-container">
 
-      <div class="profile-content">
-        <!-- سایدبار -->
-        <div class="profile-sidebar">
-          <div class="profile-avatar">
-            <div class="avatar">
-              {{ userInitial }}
-            </div>
-            <h3>{{ user.fullName }}</h3>
-            <p>{{ user.email }}</p>
-          </div>
+      <!-- =====================================
+           وضعیت بارگذاری
+      ====================================== -->
+      <div
+        v-if="loadingProfile"
+        class="account-loading"
+      >
+        <div class="loading-spinner"></div>
 
-          <nav class="profile-nav">
-            <button 
-              v-for="tab in tabs" 
-              :key="tab.id"
-              class="profile-nav__item"
-              :class="{ 'profile-nav__item--active': activeTab === tab.id }"
-              @click="activeTab = tab.id"
-            >
-              {{ tab.name }}
-            </button>
-          </nav>
-        </div>
-
-        <!-- محتوای اصلی -->
-        <div class="profile-main">
-          <!-- اطلاعات شخصی -->
-          <div v-if="activeTab === 'info'" class="profile-section">
-            <h2>اطلاعات شخصی</h2>
-            
-            <div class="form-group">
-              <label>نام</label>
-              <input type="text" v-model="user.firstName">
-            </div>
-
-            <div class="form-group">
-              <label>نام خانوادگی</label>
-              <input type="text" v-model="user.lastName">
-            </div>
-
-            <div class="form-group">
-              <label>ایمیل</label>
-              <input type="email" v-model="user.email" disabled>
-            </div>
-
-            <div class="form-group">
-              <label>شماره موبایل</label>
-              <input type="tel" v-model="user.phone">
-            </div>
-
-            <button class="save-btn" @click="saveProfile">ذخیره تغییرات</button>
-          </div>
-
-          <!-- آدرس‌ها -->
-          <div v-else-if="activeTab === 'addresses'" class="profile-section">
-            <h2>آدرس‌های من</h2>
-            
-            <div v-for="address in addresses" :key="address.id" class="address-card">
-              <p>{{ address.fullAddress }}</p>
-              <p>{{ address.city }}، {{ address.postalCode }}</p>
-              <div class="address-actions">
-                <button @click="editAddress(address)">ویرایش</button>
-                <button @click="deleteAddress(address.id)">حذف</button>
-              </div>
-            </div>
-
-            <button class="add-btn" @click="showAddressForm = true">
-              + افزودن آدرس جدید
-            </button>
-          </div>
-
-          <!-- تغییر رمز -->
-          <div v-else-if="activeTab === 'security'" class="profile-section">
-            <h2>تغییر رمز عبور</h2>
-            
-            <div class="form-group">
-              <label>رمز فعلی</label>
-              <input type="password" v-model="passwords.current">
-            </div>
-
-            <div class="form-group">
-              <label>رمز جدید</label>
-              <input type="password" v-model="passwords.new">
-            </div>
-
-            <div class="form-group">
-              <label>تکرار رمز جدید</label>
-              <input type="password" v-model="passwords.confirm">
-            </div>
-
-            <button class="save-btn" @click="changePassword">تغییر رمز</button>
-          </div>
-        </div>
+        <span>
+          در حال دریافت اطلاعات حساب...
+        </span>
       </div>
+
+
+      <!-- =====================================
+           خطا
+      ====================================== -->
+      <div
+        v-else-if="profileError"
+        class="account-error"
+      >
+        <CircleAlert
+          :size="28"
+          :stroke-width="1.8"
+        />
+
+        <div>
+          <strong>
+            دریافت اطلاعات حساب انجام نشد
+          </strong>
+
+          <p>
+            {{ profileError }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="retry-button"
+          @click="loadProfile"
+        >
+          تلاش دوباره
+        </button>
+      </div>
+
+
+      <template v-else>
+
+        <!-- =====================================
+             Header
+        ====================================== -->
+        <section class="account-header">
+
+          <div class="account-avatar">
+            <img
+              v-if="user?.avatar"
+              :src="user.avatar"
+              :alt="displayName"
+              class="account-avatar__image"
+            >
+
+            <span v-else>
+              {{ userInitials }}
+            </span>
+          </div>
+
+
+          <div class="account-user">
+
+            <p class="account-eyebrow">
+              حساب کاربری
+            </p>
+
+            <h1 class="account-name">
+              {{ displayName }}
+            </h1>
+
+            <p
+              v-if="user?.phone"
+              class="account-phone"
+              dir="ltr"
+            >
+              {{ user.phone }}
+            </p>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================
+             اطلاعات حساب
+        ====================================== -->
+        <section class="account-card">
+
+          <div class="section-heading">
+
+            <div>
+              <h2>
+                اطلاعات حساب
+              </h2>
+
+              <p>
+                اطلاعات ثبت‌شده در حساب کاربری شما
+              </p>
+            </div>
+
+            <UserRound
+              :size="22"
+              :stroke-width="1.8"
+            />
+
+          </div>
+
+
+          <div
+            v-if="user"
+            class="info-grid"
+          >
+
+            <!-- نام -->
+            <div class="info-item">
+
+              <span class="info-label">
+                نام
+              </span>
+
+              <strong>
+                {{ firstName || 'ثبت نشده' }}
+              </strong>
+
+            </div>
+
+
+            <!-- نام خانوادگی -->
+            <div class="info-item">
+
+              <span class="info-label">
+                نام خانوادگی
+              </span>
+
+              <strong>
+                {{ lastName || 'ثبت نشده' }}
+              </strong>
+
+            </div>
+
+
+            <!-- شماره موبایل -->
+            <div class="info-item">
+
+              <span class="info-label">
+                شماره موبایل
+              </span>
+
+              <strong
+                class="ltr-value"
+                dir="ltr"
+              >
+                {{ user.phone || 'ثبت نشده' }}
+              </strong>
+
+            </div>
+
+
+            <!-- ایمیل -->
+            <div class="info-item">
+
+              <span class="info-label">
+                ایمیل
+              </span>
+
+              <strong
+                class="ltr-value"
+                dir="ltr"
+              >
+                {{ user.email || 'ثبت نشده' }}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================
+             مدیریت حساب
+        ====================================== -->
+        <section class="account-card">
+
+          <div class="section-heading">
+
+            <div>
+              <h2>
+                مدیریت حساب
+              </h2>
+
+              <p>
+                دسترسی سریع به بخش‌های حساب کاربری
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="account-menu">
+
+            <!-- ================= سفارش‌ها ================= -->
+            <RouterLink
+              :to="{ name: 'orders' }"
+              class="account-menu__item"
+            >
+
+              <span class="account-menu__icon">
+                <Package
+                  :size="22"
+                  :stroke-width="1.8"
+                />
+              </span>
+
+
+              <span class="account-menu__content">
+
+                <strong>
+                  سفارش‌های من
+                </strong>
+
+                <small>
+                  مشاهده سفارش‌ها و وضعیت خریدها
+                </small>
+
+              </span>
+
+
+              <ChevronLeft
+                class="account-menu__arrow"
+                :size="20"
+              />
+
+            </RouterLink>
+
+
+            <!-- ================= علاقه‌مندی‌ها ================= -->
+            <RouterLink
+              :to="{ name: 'wishlist' }"
+              class="account-menu__item"
+            >
+
+              <span class="account-menu__icon">
+                <Heart
+                  :size="22"
+                  :stroke-width="1.8"
+                />
+              </span>
+
+
+              <span class="account-menu__content">
+
+                <strong>
+                  علاقه‌مندی‌ها
+                </strong>
+
+                <small>
+                  محصولاتی که برای بعد ذخیره کرده‌اید
+                </small>
+
+              </span>
+
+
+              <ChevronLeft
+                class="account-menu__arrow"
+                :size="20"
+              />
+
+            </RouterLink>
+
+
+            <!-- ================= آدرس‌ها ================= -->
+            <div
+              class="
+                account-menu__item
+                account-menu__item--disabled
+              "
+            >
+
+              <span class="account-menu__icon">
+                <MapPin
+                  :size="22"
+                  :stroke-width="1.8"
+                />
+              </span>
+
+
+              <span class="account-menu__content">
+
+                <strong>
+                  آدرس‌های من
+                </strong>
+
+                <small>
+                  مدیریت آدرس‌های تحویل
+                </small>
+
+              </span>
+
+
+              <span class="coming-soon">
+                به‌زودی
+              </span>
+
+            </div>
+
+
+            <!-- ================= امنیت ================= -->
+            <div
+              class="
+                account-menu__item
+                account-menu__item--disabled
+              "
+            >
+
+              <span class="account-menu__icon">
+                <ShieldCheck
+                  :size="22"
+                  :stroke-width="1.8"
+                />
+              </span>
+
+
+              <span class="account-menu__content">
+
+                <strong>
+                  امنیت حساب
+                </strong>
+
+                <small>
+                  مدیریت رمز عبور و امنیت ورود
+                </small>
+
+              </span>
+
+
+              <span class="coming-soon">
+                به‌زودی
+              </span>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================
+             خروج
+        ====================================== -->
+        <section class="account-card">
+
+          <button
+            type="button"
+            class="logout-button"
+            :disabled="authStore.loading"
+            @click="handleLogout"
+          >
+
+            <LogOut
+              :size="20"
+              :stroke-width="1.8"
+            />
+
+            <span>
+              {{
+                authStore.loading
+                  ? 'در حال خروج...'
+                  : 'خروج از حساب کاربری'
+              }}
+            </span>
+
+          </button>
+
+        </section>
+
+      </template>
+
     </div>
   </div>
 </template>
 
+
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import {
+  computed,
+  onMounted,
+  ref
+} from 'vue'
 
-const activeTab = ref('info')
+import {
+  ChevronLeft,
+  CircleAlert,
+  Heart,
+  LogOut,
+  MapPin,
+  Package,
+  ShieldCheck,
+  UserRound
+} from 'lucide-vue-next'
 
-const tabs = [
-  { id: 'info', name: 'اطلاعات شخصی' },
-  { id: 'addresses', name: 'آدرس‌ها' },
-  { id: 'orders', name: 'سفارش‌ها' },
-  { id: 'security', name: 'امنیت' }
-]
+import {
+  RouterLink,
+  useRouter
+} from 'vue-router'
 
-const user = ref({
-  firstName: 'علی',
-  lastName: 'رضایی',
-  email: 'ali@example.com',
-  phone: '۰۹۱۲۳۴۵۶۷۸۹'
-})
+import {
+  storeToRefs
+} from 'pinia'
 
-const userInitial = computed(() => {
-  return (user.value.firstName[0] || '').toUpperCase()
-})
+import {
+  useAuthStore
+} from '@/core/store/authStore'
 
-const addresses = ref([
-  {
-    id: 1,
-    fullAddress: 'تهران، خیابان ولیعصر، کوچه ۱۲، پلاک ۳۴',
-    city: 'تهران',
-    postalCode: '۱۲۳۴۵۶۷۸۹۰'
+
+/* =========================================
+   Store / Router
+========================================= */
+
+const router = useRouter()
+
+const authStore = useAuthStore()
+
+
+const {
+  user,
+  userName,
+  userInitials
+} = storeToRefs(authStore)
+
+
+/* =========================================
+   State
+========================================= */
+
+const loadingProfile = ref(true)
+
+const profileError = ref('')
+
+
+/* =========================================
+   Display name
+========================================= */
+
+const displayName = computed(() => {
+
+  if (user.value?.full_name?.trim()) {
+    return user.value.full_name.trim()
   }
-])
 
-const passwords = ref({
-  current: '',
-  new: '',
-  confirm: ''
+  const fullName = [
+    user.value?.first_name,
+    user.value?.last_name
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+
+
+  if (fullName) {
+    return fullName
+  }
+
+
+  return userName.value || 'کاربر بازبیا'
 })
 
-const saveProfile = () => {
-  alert('اطلاعات با موفقیت ذخیره شد (نمونه)')
-}
 
-const changePassword = () => {
-  if (passwords.value.new !== passwords.value.confirm) {
-    alert('رمز جدید و تکرار آن یکسان نیستند')
-    return
+/* =========================================
+   First name
+========================================= */
+
+const firstName = computed(() => {
+
+  if (user.value?.first_name?.trim()) {
+    return user.value.first_name.trim()
   }
-  alert('رمز عبور با موفقیت تغییر کرد (نمونه)')
+
+
+  if (user.value?.full_name?.trim()) {
+
+    const parts =
+      user.value.full_name
+        .trim()
+        .split(/\s+/)
+
+
+    return parts[0] || ''
+  }
+
+
+  return ''
+})
+
+
+/* =========================================
+   Last name
+========================================= */
+
+const lastName = computed(() => {
+
+  if (user.value?.last_name?.trim()) {
+    return user.value.last_name.trim()
+  }
+
+
+  if (user.value?.full_name?.trim()) {
+
+    const parts =
+      user.value.full_name
+        .trim()
+        .split(/\s+/)
+
+
+    if (parts.length > 1) {
+      return parts.slice(1).join(' ')
+    }
+  }
+
+
+  return ''
+})
+
+
+/* =========================================
+   Load profile from backend
+========================================= */
+
+async function loadProfile() {
+
+  loadingProfile.value = true
+
+  profileError.value = ''
+
+
+  try {
+
+    const profile =
+      await authStore.fetchUserProfile()
+
+
+    if (!profile) {
+
+      profileError.value =
+        'اطلاعات پروفایل از سرور دریافت نشد.'
+
+      return
+    }
+
+
+    console.log(
+      '✅ پروفایل از بک‌اند دریافت شد:',
+      profile
+    )
+
+  } catch (error) {
+
+    console.error(
+      '❌ خطا در دریافت پروفایل:',
+      error
+    )
+
+
+    profileError.value =
+      'ارتباط با سرور برای دریافت اطلاعات حساب برقرار نشد.'
+
+  } finally {
+
+    loadingProfile.value = false
+
+  }
 }
 
-const editAddress = (address: any) => {
-  console.log('ویرایش آدرس:', address)
-}
 
-const deleteAddress = (id: number) => {
-  addresses.value = addresses.value.filter(a => a.id !== id)
+/* =========================================
+   Mount
+========================================= */
+
+onMounted(async () => {
+
+  /*
+   * عمداً شرط
+   *
+   * if (user.value) return
+   *
+   * اینجا وجود ندارد.
+   *
+   * بنابراین هر بار صفحه پروفایل باز شود
+   * اطلاعات تازه از بک‌اند دریافت می‌شود.
+   */
+
+  await loadProfile()
+
+})
+
+
+/* =========================================
+   Logout
+========================================= */
+
+async function handleLogout() {
+
+  await authStore.logout()
+
+
+  await router.replace({
+    name: 'home'
+  })
+
 }
 </script>
 
+
 <style scoped>
-.profile-page {
-  padding: 2rem;
+
+/* =========================================
+   Page
+========================================= */
+
+.account-page {
   min-height: 70vh;
-  background: #f8f9fa;
+
+  padding:
+    24px
+    16px
+    40px;
+
+  background: #f9fafb;
 }
 
-.profile-container {
-  max-width: 1280px;
+
+.account-container {
+  width: 100%;
+  max-width: 900px;
+
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
 }
 
-.profile-title {
-  font-size: 2rem;
-  color: #374151;
-  margin-bottom: 2rem;
+
+/* =========================================
+   Loading
+========================================= */
+
+.account-loading {
+  min-height: 250px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  color: #6b7280;
+
+  font-size: 14px;
 }
 
-.profile-content {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 2rem;
-}
 
-.profile-sidebar {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  height: fit-content;
-}
+.loading-spinner {
+  width: 36px;
+  height: 36px;
 
-.profile-avatar {
-  text-align: center;
-  margin-bottom: 2rem;
-}
+  border:
+    3px solid
+    #dcfce7;
 
-.avatar {
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  border-top-color:
+    #15803d;
+
   border-radius: 50%;
+
+  animation:
+    account-spin
+    0.8s
+    linear
+    infinite;
+}
+
+
+@keyframes account-spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+/* =========================================
+   Error
+========================================= */
+
+.account-error {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 20px;
+
+  border:
+    1px solid
+    #fecaca;
+
+  border-radius: 14px;
+
+  background: #fef2f2;
+
+  color: #b91c1c;
+}
+
+
+.account-error div {
+  flex: 1;
+}
+
+
+.account-error strong {
+  display: block;
+
+  margin-bottom: 4px;
+}
+
+
+.account-error p {
+  margin: 0;
+
+  color: #7f1d1d;
+
+  font-size: 13px;
+}
+
+
+.retry-button {
+  flex: 0 0 auto;
+
+  padding:
+    8px
+    14px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #b91c1c;
+
+  color: #fff;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   Header
+========================================= */
+
+.account-header {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 22px;
+
+  border:
+    1px solid
+    #e5e7eb;
+
+  border-radius: 18px;
+
+  background: #ffffff;
+}
+
+
+.account-avatar {
+  flex: 0 0 auto;
+
+  width: 64px;
+  height: 64px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin: 0 auto 1rem;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: #15803d;
+
+  color: #ffffff;
+
+  font-size: 20px;
+  font-weight: 800;
 }
 
-.profile-avatar h3 {
-  color: #374151;
-  margin-bottom: 0.25rem;
+
+.account-avatar__image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
 }
 
-.profile-avatar p {
+
+.account-user {
+  min-width: 0;
+}
+
+
+.account-eyebrow {
+  margin:
+    0
+    0
+    3px;
+
+  color: #15803d;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.account-name {
+  margin: 0;
+
+  color: #1f2937;
+
+  font-size: 22px;
+  font-weight: 800;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.account-phone {
+  margin:
+    5px
+    0
+    0;
+
   color: #6b7280;
-  font-size: 0.9rem;
+
+  font-size: 13px;
+
+  text-align: right;
 }
 
-.profile-nav {
+
+/* =========================================
+   Cards
+========================================= */
+
+.account-card {
+  padding: 22px;
+
+  border:
+    1px solid
+    #e5e7eb;
+
+  border-radius: 18px;
+
+  background: #ffffff;
+}
+
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 20px;
+
+  color: #15803d;
+}
+
+
+.section-heading h2 {
+  margin: 0;
+
+  color: #1f2937;
+
+  font-size: 17px;
+  font-weight: 800;
+}
+
+
+.section-heading p {
+  margin:
+    5px
+    0
+    0;
+
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+
+/* =========================================
+   Information
+========================================= */
+
+.info-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 12px;
+}
+
+
+.info-item {
+  min-width: 0;
+
+  padding:
+    14px
+    16px;
+
+  border:
+    1px solid
+    #e5e7eb;
+
+  border-radius: 12px;
+
+  background: #f9fafb;
+}
+
+
+.info-label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+
+.info-item strong {
+  display: block;
+
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  overflow-wrap: anywhere;
+}
+
+
+.ltr-value {
+  text-align: right;
+}
+
+
+/* =========================================
+   Menu
+========================================= */
+
+.account-menu {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
-.profile-nav__item {
-  padding: 0.75rem 1rem;
-  background: none;
-  border: none;
-  border-radius: 8px;
-  text-align: right;
-  font-size: 1rem;
-  color: #4b5563;
-  cursor: pointer;
-  transition: all 0.3s ease;
+
+.account-menu__item {
+  display: flex;
+  align-items: center;
+
+  min-height: 70px;
+
+  padding:
+    12px
+    4px;
+
+  border-bottom:
+    1px solid
+    #f3f4f6;
+
+  color: inherit;
+
+  text-decoration: none;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
-.profile-nav__item:hover {
-  background: #f3f4f6;
+
+.account-menu__item:last-child {
+  border-bottom: 0;
 }
 
-.profile-nav__item--active {
-  background: #667eea;
-  color: white;
+
+a.account-menu__item:hover {
+  color: #15803d;
 }
 
-.profile-main {
-  background: white;
+
+.account-menu__icon {
+  flex: 0 0 auto;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: 12px;
+
   border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+  background: #f0fdf4;
+
+  color: #15803d;
 }
 
-.profile-section h2 {
-  font-size: 1.25rem;
+
+.account-menu__content {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.account-menu__content strong {
   color: #374151;
-  margin-bottom: 1.5rem;
+
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+
+.account-menu__content small {
+  color: #9ca3af;
+
+  font-size: 12px;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #4b5563;
-  font-size: 0.95rem;
+
+.account-menu__arrow {
+  flex: 0 0 auto;
+
+  color: #9ca3af;
 }
 
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 1rem;
+
+.account-menu__item--disabled {
+  opacity: 0.65;
+
+  cursor: default;
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
 
-.form-group input:disabled {
+.coming-soon {
+  flex: 0 0 auto;
+
+  padding:
+    4px
+    8px;
+
+  border-radius: 999px;
+
   background: #f3f4f6;
+
+  color: #6b7280;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+
+/* =========================================
+   Logout
+========================================= */
+
+.logout-button {
+  width: 100%;
+
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    #fecaca;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: #b91c1c;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+
+.logout-button:hover {
+  background: #fef2f2;
+
+  border-color: #fca5a5;
+}
+
+
+.logout-button:disabled {
+  opacity: 0.6;
+
   cursor: not-allowed;
 }
 
-.save-btn {
-  padding: 0.75rem 2rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
 
-.save-btn:hover {
-  background: #5a67d8;
-}
+/* =========================================
+   Mobile
+========================================= */
 
-.address-card {
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
+@media (max-width: 640px) {
 
-.address-card p {
-  margin-bottom: 0.5rem;
-  color: #4b5563;
-}
+  .account-page {
+    padding:
+      12px
+      10px
+      24px;
+  }
 
-.address-actions {
-  display: flex;
-  gap: 1rem;
-}
 
-.address-actions button {
-  padding: 0.25rem 1rem;
-  background: none;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
+  .account-container {
+    gap: 12px;
+  }
 
-.address-actions button:hover {
-  background: #f3f4f6;
-}
 
-.add-btn {
-  width: 100%;
-  padding: 1rem;
-  background: #f3f4f6;
-  color: #4b5563;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
+  .account-header {
+    padding: 16px;
 
-.add-btn:hover {
-  background: #e5e7eb;
-}
+    border-radius: 14px;
+  }
 
-@media (max-width: 768px) {
-  .profile-content {
+
+  .account-avatar {
+    width: 54px;
+    height: 54px;
+
+    font-size: 17px;
+  }
+
+
+  .account-name {
+    font-size: 18px;
+  }
+
+
+  .account-card {
+    padding: 16px;
+
+    border-radius: 14px;
+  }
+
+
+  .info-grid {
     grid-template-columns: 1fr;
   }
+
+
+  .account-menu__item {
+    min-height: 66px;
+  }
+
+
+  .account-menu__content small {
+    font-size: 11px;
+  }
+
+
+  .account-error {
+    flex-wrap: wrap;
+  }
+
+
+  .retry-button {
+    width: 100%;
+  }
+
 }
 </style>

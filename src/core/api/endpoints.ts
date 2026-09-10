@@ -224,20 +224,22 @@ export const API_ENDPOINTS = {
     ): string =>
       `/customers/addresses/${id}/default/`,
 
-    /** فهرست علاقه‌مندی‌ها - GET */
-    WISHLIST:
-      '/customers/wishlist/',
 
-    /** افزودن محصول به علاقه‌مندی‌ها - POST */
-    ADD_TO_WISHLIST:
-      '/customers/wishlist/add/',
+/** دریافت یا افزودن علاقه‌مندی - GET / POST */
+WISHLIST:
+  '/customers/wishlist/',
 
-    /** حذف محصول از علاقه‌مندی‌ها - DELETE */
-    REMOVE_FROM_WISHLIST: (
-      productId: number,
-    ): string =>
-      `/customers/wishlist/${productId}/`,
+/** افزودن محصول به علاقه‌مندی‌ها - POST */
+ADD_TO_WISHLIST:
+  '/customers/wishlist/',
 
+/** حذف محصول از علاقه‌مندی‌ها - DELETE */
+REMOVE_FROM_WISHLIST: (
+  productId: number,
+): string =>
+  `/customers/wishlist/${productId}/`,
+
+    
     /** فهرست دیدگاه‌های کاربر - GET */
     REVIEWS:
       '/customers/reviews/',

@@ -332,6 +332,20 @@ const routes: RouteRecordRaw[] = [
       title: 'علاقه‌مندی‌ها',
     },
   },
+    {
+    path: '/addresses',
+    name: 'addresses',
+
+    component: () =>
+      import(
+        '@/views/user/AddressesView.vue'
+      ),
+
+    meta: {
+      requiresAuth: true,
+      title: 'آدرس‌های من',
+    },
+  },
 
   // =================================================
   // جستجو و تخفیف‌ها

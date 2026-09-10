@@ -281,14 +281,12 @@
             </RouterLink>
 
 
+        
             <!-- ================= آدرس‌ها ================= -->
-            <div
-              class="
-                account-menu__item
-                account-menu__item--disabled
-              "
+            <RouterLink
+              :to="{ name: 'addresses' }"
+              class="account-menu__item"
             >
-
               <span class="account-menu__icon">
                 <MapPin
                   :size="22"
@@ -296,9 +294,7 @@
                 />
               </span>
 
-
               <span class="account-menu__content">
-
                 <strong>
                   آدرس‌های من
                 </strong>
@@ -306,15 +302,13 @@
                 <small>
                   مدیریت آدرس‌های تحویل
                 </small>
-
               </span>
 
-
-              <span class="coming-soon">
-                به‌زودی
-              </span>
-
-            </div>
+              <ChevronLeft
+                class="account-menu__arrow"
+                :size="20"
+              />
+            </RouterLink>
 
 
             <!-- ================= امنیت ================= -->

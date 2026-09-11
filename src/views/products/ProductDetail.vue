@@ -469,6 +469,12 @@
 
           </div>
         </div>
+
+        <!-- ======================================
+             Reviews / Questions
+        ======================================= -->
+        <ProductCommunity v-if="product?.slug" :slug="product.slug" />
+
       </div>
     </div>
 
@@ -478,38 +484,14 @@
 
 <script setup lang="ts">
 
-import {
-  computed,
-  ref,
-  watch,
-} from 'vue'
-
-import {
-  useRoute,
-  useRouter,
-} from 'vue-router'
-
-import {
-  useCartStore,
-} from '@/core/store/cartStore'
-
-import {
-  useWishlistStore,
-} from '@/core/store/wishlistStore'
-
-import {
-  useAuthStore,
-} from '@/core/store/authStore'
-
-import {
-  productService,
-} from '@/services/product.service'
-
-import type {
-  ProductDetail,
-  ProductImage,
-  Variant,
-} from '@/types/product.types'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useCartStore } from '@/core/store/cartStore'
+import { useWishlistStore } from '@/core/store/wishlistStore'
+import { useAuthStore } from '@/core/store/authStore'
+import { productService } from '@/services/product.service'
+import ProductCommunity from '@/components/product/ProductCommunity.vue'
+import type { ProductDetail, ProductImage, Variant } from '@/types/product.types'
 
 
 // ==========================================

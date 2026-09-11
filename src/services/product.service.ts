@@ -39,12 +39,11 @@ export const productService = {
   async getProducts(params: ProductsQueryParams = {}) {
     try {
       const response = await axios.get<ProductsResponse>(`${API_BASE_URL}/products/`, {
-        params: {
-          page: params.page || 1,
-          category: params.category,
-          search: params.search,
-          ordering: params.ordering
-        }
+            params: {
+                  ...params,
+                  page: params.page || 1,
+                }
+
       })
 
       // نرمالایز کردن هر محصول در لیست

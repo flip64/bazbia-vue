@@ -490,7 +490,7 @@ import { useCartStore } from '@/core/store/cartStore'
 import { useWishlistStore } from '@/core/store/wishlistStore'
 import { useAuthStore } from '@/core/store/authStore'
 import { productService } from '@/services/product.service'
-import ProductCommunity from '@/components/product/ProductCommunity.vue'
+import ProductCommunity from '@/components/products/ProductCommunity.vue'
 import type { ProductDetail, ProductImage, Variant } from '@/types/product.types'
 
 

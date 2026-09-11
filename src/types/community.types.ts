@@ -4,6 +4,13 @@ export type CommunityStatus =
   | 'rejected'
 
 
+export interface HelpfulVoteResponse {
+  helpful: boolean
+  helpful_count: number
+}
+
+
+
 // =========================================================
 // Review
 // =========================================================
@@ -22,6 +29,9 @@ export interface ProductReview {
 
   created_at: string
   updated_at: string
+  helpful_count: number
+  user_found_helpful: boolean
+
 }
 
 
@@ -50,6 +60,8 @@ export interface ProductAnswer {
 
   created_at: string
   updated_at: string
+  helpful_count: number
+  user_found_helpful: boolean
 }
 
 

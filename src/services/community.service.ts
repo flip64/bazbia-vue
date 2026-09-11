@@ -1,10 +1,14 @@
 import apiClient from '@/core/api/client'
 
+
+
 import type {
   CommunityList,
   CreateAnswerPayload,
   CreateQuestionPayload,
   CreateReviewPayload,
+  HelpfulVoteResponse,
+
   PaginatedResponse,
   ProductAnswer,
   ProductQuestion,
@@ -47,6 +51,16 @@ export const communityService = {
   // =======================================================
   // Reviews
   // =======================================================
+  async toggleReviewHelpful(reviewId: number): Promise<HelpfulVoteResponse> {
+   const response = await apiClient.post<HelpfulVoteResponse>(`/reviews/${reviewId}/helpful/`)
+   return response.data
+  },
+
+  async toggleAnswerHelpful(answerId: number): Promise<HelpfulVoteResponse> {
+    const response = await apiClient.post<HelpfulVoteResponse>(`/answers/${answerId}/helpful/`)
+    return response.data
+  },
+
 
   async getReviews(
     slug: string,

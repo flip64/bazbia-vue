@@ -1,5 +1,6 @@
 <template>
   <section class="community">
+
     <!-- ==========================================
          Header / Tabs
     =========================================== -->
@@ -7,10 +8,7 @@
       <button
         type="button"
         class="community__tab"
-        :class="{
-          'community__tab--active':
-            activeTab === 'reviews',
-        }"
+        :class="{ 'community__tab--active': activeTab === 'reviews' }"
         @click="activeTab = 'reviews'"
       >
         <span>دیدگاه کاربران</span>
@@ -23,10 +21,7 @@
       <button
         type="button"
         class="community__tab"
-        :class="{
-          'community__tab--active':
-            activeTab === 'questions',
-        }"
+        :class="{ 'community__tab--active': activeTab === 'questions' }"
         @click="activeTab = 'questions'"
       >
         <span>پرسش و پاسخ</span>
@@ -39,19 +34,12 @@
 
 
     <!-- ==========================================
-         Global loading / error
+         Global error
     =========================================== -->
-    <div
-      v-if="loadError"
-      class="community-message community-message--error"
-    >
+    <div v-if="loadError" class="community-message community-message--error">
       {{ loadError }}
 
-      <button
-        type="button"
-        class="text-button"
-        @click="loadCommunity"
-      >
+      <button type="button" class="text-button" @click="loadCommunity">
         تلاش دوباره
       </button>
     </div>
@@ -60,40 +48,25 @@
     <!-- ==========================================
          Reviews
     =========================================== -->
-    <div
-      v-if="activeTab === 'reviews'"
-      class="community__content"
-    >
+    <div v-if="activeTab === 'reviews'" class="community__content">
+
       <!-- Summary -->
       <div class="review-summary">
         <div class="review-summary__info">
-          <h2>
-            دیدگاه کاربران
-          </h2>
+          <h2>دیدگاه کاربران</h2>
 
           <template v-if="reviews.length">
             <div class="review-summary__rating">
-              <strong>
-                {{ averageRating.toLocaleString('fa-IR') }}
-              </strong>
-
-              <span>
-                از ۵
-              </span>
+              <strong>{{ averageRating.toLocaleString('fa-IR') }}</strong>
+              <span>از ۵</span>
             </div>
 
-            <div
-              class="stars"
-              aria-label="میانگین امتیاز کاربران"
-            >
+            <div class="stars" aria-label="میانگین امتیاز کاربران">
               <span
                 v-for="star in 5"
                 :key="star"
                 class="star"
-                :class="{
-                  'star--filled':
-                    star <= roundedAverageRating,
-                }"
+                :class="{ 'star--filled': star <= roundedAverageRating }"
               >
                 ★
               </span>
@@ -101,8 +74,7 @@
           </template>
 
           <p class="review-summary__description">
-            تجربه واقعی خود از این محصول را با دیگران
-            به اشتراک بگذارید.
+            تجربه واقعی خود از این محصول را با دیگران به اشتراک بگذارید.
           </p>
         </div>
 
@@ -117,7 +89,9 @@
       </div>
 
 
-      <!-- Review form -->
+      <!-- ======================================
+           Review form
+      ======================================= -->
       <form
         v-if="showReviewForm"
         class="community-form"
@@ -125,9 +99,7 @@
       >
         <div class="community-form__header">
           <div>
-            <h3>
-              دیدگاه شما
-            </h3>
+            <h3>دیدگاه شما</h3>
 
             <p>
               دیدگاه پس از بررسی در سایت نمایش داده می‌شود.
@@ -146,9 +118,7 @@
 
 
         <div class="form-group">
-          <label>
-            امتیاز شما
-          </label>
+          <label>امتیاز شما</label>
 
           <div class="rating-input">
             <button
@@ -156,10 +126,7 @@
               :key="star"
               type="button"
               class="rating-star"
-              :class="{
-                'rating-star--active':
-                  star <= reviewRating,
-              }"
+              :class="{ 'rating-star--active': star <= reviewRating }"
               :aria-label="`${star} ستاره`"
               @click="reviewRating = star"
             >
@@ -172,9 +139,7 @@
         <div class="form-group">
           <label for="review-title">
             عنوان دیدگاه
-            <span class="optional">
-              اختیاری
-            </span>
+            <span class="optional">اختیاری</span>
           </label>
 
           <input
@@ -201,17 +166,11 @@
         </div>
 
 
-        <div
-          v-if="reviewError"
-          class="form-message form-message--error"
-        >
+        <div v-if="reviewError" class="form-message form-message--error">
           {{ reviewError }}
         </div>
 
-        <div
-          v-if="reviewSuccess"
-          class="form-message form-message--success"
-        >
+        <div v-if="reviewSuccess" class="form-message form-message--success">
           {{ reviewSuccess }}
         </div>
 
@@ -222,11 +181,7 @@
             class="primary-button"
             :disabled="submittingReview"
           >
-            {{
-              submittingReview
-                ? 'در حال ارسال...'
-                : 'ارسال دیدگاه'
-            }}
+            {{ submittingReview ? 'در حال ارسال...' : 'ارسال دیدگاه' }}
           </button>
 
           <button
@@ -241,22 +196,19 @@
       </form>
 
 
-      <!-- Reviews loading -->
-      <div
-        v-if="loadingReviews"
-        class="community-loading"
-      >
+      <!-- ======================================
+           Reviews loading
+      ======================================= -->
+      <div v-if="loadingReviews" class="community-loading">
         <span class="community-spinner"></span>
-
         در حال دریافت دیدگاه‌ها...
       </div>
 
 
-      <!-- Reviews list -->
-      <div
-        v-else-if="reviews.length"
-        class="review-list"
-      >
+      <!-- ======================================
+           Reviews list
+      ======================================= -->
+      <div v-else-if="reviews.length" class="review-list">
         <article
           v-for="review in reviews"
           :key="review.id"
@@ -292,46 +244,55 @@
               v-for="star in 5"
               :key="star"
               class="star"
-              :class="{
-                'star--filled':
-                  star <= review.rating,
-              }"
+              :class="{ 'star--filled': star <= review.rating }"
             >
               ★
             </span>
           </div>
 
 
-          <h3
-            v-if="review.title"
-            class="review-card__title"
-          >
+          <h3 v-if="review.title" class="review-card__title">
             {{ review.title }}
           </h3>
 
           <p class="review-card__body">
             {{ review.body }}
           </p>
+
+
+          <!-- Helpful review -->
+          <div class="helpful-row">
+            <span>این دیدگاه مفید بود؟</span>
+
+            <button
+              type="button"
+              class="helpful-button"
+              :class="{ 'helpful-button--active': review.user_found_helpful }"
+              :disabled="votingReviewId === review.id"
+              :aria-pressed="review.user_found_helpful"
+              @click="toggleReviewHelpful(review)"
+            >
+              <span>👍</span>
+
+              <span>
+                {{ review.helpful_count.toLocaleString('fa-IR') }}
+              </span>
+            </button>
+          </div>
         </article>
       </div>
 
 
       <!-- Reviews empty -->
-      <div
-        v-else
-        class="community-empty"
-      >
-        <div class="community-empty__icon">
-          ☆
-        </div>
+      <div v-else class="community-empty">
+        <div class="community-empty__icon">☆</div>
 
         <strong>
           هنوز دیدگاهی ثبت نشده است
         </strong>
 
         <p>
-          اولین نفری باشید که تجربه خود را درباره این
-          محصول به اشتراک می‌گذارد.
+          اولین نفری باشید که تجربه خود را درباره این محصول به اشتراک می‌گذارد.
         </p>
 
         <button
@@ -348,19 +309,14 @@
     <!-- ==========================================
          Questions
     =========================================== -->
-    <div
-      v-else
-      class="community__content"
-    >
+    <div v-else class="community__content">
+
       <div class="question-summary">
         <div>
-          <h2>
-            پرسش و پاسخ
-          </h2>
+          <h2>پرسش و پاسخ</h2>
 
           <p>
-            درباره این محصول سؤال دارید؟ از بازبیا و
-            کاربران دیگر بپرسید.
+            درباره این محصول سؤال دارید؟ از بازبیا و کاربران دیگر بپرسید.
           </p>
         </div>
 
@@ -375,7 +331,9 @@
       </div>
 
 
-      <!-- Question form -->
+      <!-- ======================================
+           Question form
+      ======================================= -->
       <form
         v-if="showQuestionForm"
         class="community-form"
@@ -383,9 +341,7 @@
       >
         <div class="community-form__header">
           <div>
-            <h3>
-              پرسش شما
-            </h3>
+            <h3>پرسش شما</h3>
 
             <p>
               پرسش پس از بررسی در سایت منتشر می‌شود.
@@ -417,17 +373,11 @@
         </div>
 
 
-        <div
-          v-if="questionError"
-          class="form-message form-message--error"
-        >
+        <div v-if="questionError" class="form-message form-message--error">
           {{ questionError }}
         </div>
 
-        <div
-          v-if="questionSuccess"
-          class="form-message form-message--success"
-        >
+        <div v-if="questionSuccess" class="form-message form-message--success">
           {{ questionSuccess }}
         </div>
 
@@ -438,11 +388,7 @@
             class="primary-button"
             :disabled="submittingQuestion"
           >
-            {{
-              submittingQuestion
-                ? 'در حال ارسال...'
-                : 'ارسال پرسش'
-            }}
+            {{ submittingQuestion ? 'در حال ارسال...' : 'ارسال پرسش' }}
           </button>
 
           <button
@@ -457,22 +403,19 @@
       </form>
 
 
-      <!-- Questions loading -->
-      <div
-        v-if="loadingQuestions"
-        class="community-loading"
-      >
+      <!-- ======================================
+           Questions loading
+      ======================================= -->
+      <div v-if="loadingQuestions" class="community-loading">
         <span class="community-spinner"></span>
-
         در حال دریافت پرسش‌ها...
       </div>
 
 
-      <!-- Question list -->
-      <div
-        v-else-if="questions.length"
-        class="question-list"
-      >
+      <!-- ======================================
+           Questions list
+      ======================================= -->
+      <div v-else-if="questions.length" class="question-list">
         <article
           v-for="question in questions"
           :key="question.id"
@@ -504,9 +447,7 @@
 
           <div class="question-card__meta">
             <span>
-              {{
-                question.answer_count.toLocaleString('fa-IR')
-              }}
+              {{ question.answer_count.toLocaleString('fa-IR') }}
               پاسخ
             </span>
 
@@ -520,7 +461,9 @@
           </div>
 
 
-          <!-- Answer form -->
+          <!-- ====================================
+               Answer form
+          ===================================== -->
           <form
             v-if="answeringQuestionId === question.id"
             class="answer-form"
@@ -532,19 +475,14 @@
               placeholder="پاسخ خود را بنویسید..."
             ></textarea>
 
-            <div
-              v-if="answerError"
-              class="form-message form-message--error"
-            >
+            <div v-if="answerError" class="form-message form-message--error">
               {{ answerError }}
             </div>
 
-            <div
-              v-if="answerSuccess"
-              class="form-message form-message--success"
-            >
+            <div v-if="answerSuccess" class="form-message form-message--success">
               {{ answerSuccess }}
             </div>
+
 
             <div class="community-form__actions">
               <button
@@ -552,11 +490,7 @@
                 class="primary-button primary-button--small"
                 :disabled="submittingAnswer"
               >
-                {{
-                  submittingAnswer
-                    ? 'در حال ارسال...'
-                    : 'ارسال پاسخ'
-                }}
+                {{ submittingAnswer ? 'در حال ارسال...' : 'ارسال پاسخ' }}
               </button>
 
               <button
@@ -571,19 +505,15 @@
           </form>
 
 
-          <!-- Answers -->
-          <div
-            v-if="question.answers.length"
-            class="answer-list"
-          >
+          <!-- ====================================
+               Answers
+          ===================================== -->
+          <div v-if="question.answers.length" class="answer-list">
             <article
               v-for="answer in question.answers"
               :key="answer.id"
               class="answer-card"
-              :class="{
-                'answer-card--official':
-                  answer.is_official,
-              }"
+              :class="{ 'answer-card--official': answer.is_official }"
             >
               <div class="answer-card__header">
                 <div>
@@ -613,16 +543,36 @@
                 </time>
               </div>
 
+
               <p class="answer-card__body">
                 {{ answer.body }}
               </p>
+
+
+              <!-- Helpful answer -->
+              <div class="helpful-row">
+                <span>این پاسخ مفید بود؟</span>
+
+                <button
+                  type="button"
+                  class="helpful-button"
+                  :class="{ 'helpful-button--active': answer.user_found_helpful }"
+                  :disabled="votingAnswerId === answer.id"
+                  :aria-pressed="answer.user_found_helpful"
+                  @click="toggleAnswerHelpful(answer)"
+                >
+                  <span>👍</span>
+
+                  <span>
+                    {{ answer.helpful_count.toLocaleString('fa-IR') }}
+                  </span>
+                </button>
+              </div>
             </article>
           </div>
 
-          <p
-            v-else
-            class="no-answer"
-          >
+
+          <p v-else class="no-answer">
             هنوز پاسخی برای این پرسش ثبت نشده است.
           </p>
         </article>
@@ -630,13 +580,8 @@
 
 
       <!-- Questions empty -->
-      <div
-        v-else
-        class="community-empty"
-      >
-        <div class="community-empty__icon">
-          ؟
-        </div>
+      <div v-else class="community-empty">
+        <div class="community-empty__icon">؟</div>
 
         <strong>
           هنوز پرسشی ثبت نشده است
@@ -655,44 +600,24 @@
         </button>
       </div>
     </div>
+
   </section>
 </template>
 
-
 <script setup lang="ts">
-import {
-  computed,
-  ref,
-  watch,
-} from 'vue'
 
-import {
-  useRoute,
-  useRouter,
-} from 'vue-router'
 
-import {
-  useAuthStore,
-} from '@/core/store/authStore'
-
-import {
-  communityService,
-} from '@/services/community.service'
-
-import type {
-  ProductQuestion,
-  ProductReview,
-} from '@/types/community.types'
-
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/core/store/authStore'
+import { communityService } from '@/services/community.service'
+import type { ProductQuestion, ProductReview } from '@/types/community.types'
 
 // ==========================================
 // Props
 // ==========================================
 
-const props = defineProps<{
-  slug: string
-}>()
-
+const props = defineProps<{slug: string }>()
 
 // ==========================================
 // Router / Auth
@@ -719,18 +644,12 @@ const activeTab =
 // Data
 // ==========================================
 
-const reviews =
-  ref<ProductReview[]>([])
-
-const questions =
-  ref<ProductQuestion[]>([])
-
-const reviewCount =
-  ref(0)
-
-const questionCount =
-  ref(0)
-
+const reviews = ref<ProductReview[]>([])
+const questions = ref<ProductQuestion[]>([])
+const reviewCount = ref(0)
+const questionCount = ref(0)
+const votingReviewId = ref<number | null>(null)
+const votingAnswerId = ref<number | null>(null)
 
 // ==========================================
 // Loading
@@ -750,46 +669,24 @@ const loadError =
 // Review form
 // ==========================================
 
-const showReviewForm =
-  ref(false)
-
-const reviewRating =
-  ref(0)
-
-const reviewTitle =
-  ref('')
-
-const reviewBody =
-  ref('')
-
-const submittingReview =
-  ref(false)
-
-const reviewError =
-  ref<string | null>(null)
-
-const reviewSuccess =
-  ref<string | null>(null)
+const showReviewForm =ref(false)
+const reviewRating = ref(0)
+const reviewTitle = ref('')
+const reviewBody = ref('')
+const submittingReview = ref(false)
+const reviewError = ref<string | null>(null)
+const reviewSuccess = ref<string | null>(null)
 
 
 // ==========================================
 // Question form
 // ==========================================
 
-const showQuestionForm =
-  ref(false)
-
-const questionBody =
-  ref('')
-
-const submittingQuestion =
-  ref(false)
-
-const questionError =
-  ref<string | null>(null)
-
-const questionSuccess =
-  ref<string | null>(null)
+const showQuestionForm = ref(false)
+const questionBody = ref('')
+const submittingQuestion = ref(false)
+const questionError = ref<string | null>(null)
+const questionSuccess = ref<string | null>(null)
 
 
 // ==========================================
@@ -1041,6 +938,48 @@ async function loadReviews():
       false
   }
 }
+
+
+async function toggleReviewHelpful(review: ProductReview): Promise<void> {
+  if (!await ensureAuthenticated()) return
+
+  if (votingReviewId.value === review.id) return
+
+  votingReviewId.value = review.id
+
+  try {
+    const result = await communityService.toggleReviewHelpful(review.id)
+
+    review.helpful_count = result.helpful_count
+    review.user_found_helpful = result.helpful
+  } catch (error) {
+    loadError.value = getErrorMessage(error, 'ثبت رأی دیدگاه انجام نشد.')
+  } finally {
+    votingReviewId.value = null
+  }
+}
+
+
+async function toggleAnswerHelpful(answer: ProductQuestion['answers'][number]): Promise<void> {
+  if (!await ensureAuthenticated()) return
+
+  if (votingAnswerId.value === answer.id) return
+
+  votingAnswerId.value = answer.id
+
+  try {
+    const result = await communityService.toggleAnswerHelpful(answer.id)
+
+    answer.helpful_count = result.helpful_count
+    answer.user_found_helpful = result.helpful
+  } catch (error) {
+    loadError.value = getErrorMessage(error, 'ثبت رأی پاسخ انجام نشد.')
+  } finally {
+    votingAnswerId.value = null
+  }
+}
+
+
 
 
 // ==========================================
@@ -1479,15 +1418,10 @@ watch(
 <style scoped>
 .community {
   direction: rtl;
-
   margin-top: 2.5rem;
-
-  border-top:
-    1px solid #e5e7eb;
-
+  border-top: 1px solid #e5e7eb;
   padding-top: 2rem;
 }
-
 
 /* ==========================================
    Tabs
@@ -1495,11 +1429,8 @@ watch(
 
 .community__header {
   display: flex;
-
   gap: 0.5rem;
-
   margin-bottom: 1.5rem;
-
   border-bottom:
     1px solid #e5e7eb;
 }
@@ -1507,30 +1438,17 @@ watch(
 .community__tab {
   display: flex;
   align-items: center;
-
   gap: 0.5rem;
-
-  padding:
-    0.85rem
-    1rem;
-
+  padding:0.85rem 1rem;
   border: 0;
-  border-bottom:
-    3px solid transparent;
-
+  border-bottom:3px solid transparent;
   background: transparent;
-
   color: #64748b;
-
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 700;
-
   cursor: pointer;
-
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .community__tab:hover {
@@ -1538,36 +1456,21 @@ watch(
 }
 
 .community__tab--active {
-  border-bottom-color:
-    #15803d;
-
+  border-bottom-color: #15803d;
   color: #15803d;
 }
 
 .community__count {
   display: inline-flex;
-
   align-items: center;
   justify-content: center;
-
   min-width: 1.6rem;
   height: 1.6rem;
-
-  padding:
-    0
-    0.4rem;
-
-  border-radius:
-    999px;
-
-  background:
-    #f1f5f9;
-
-  color:
-    #475569;
-
-  font-size:
-    0.75rem;
+  padding:0 0.4rem;
+  border-radius: 999px;
+  background:  #f1f5f9;
+  color:   #475569;
+  font-size:  0.75rem;
 }
 
 
@@ -2563,21 +2466,58 @@ watch(
   }
 
   .community-form__actions {
-    align-items:
-      stretch;
-
-    flex-direction:
-      column;
+    align-items:stretch;
+    flex-direction: column;
   }
 
   .community-form__actions button {
-    width:
-      100%;
+    width: 100%;
   }
 
   .answer-list {
-    padding-right:
-      0.6rem;
+    padding-right: 0.6rem;
   }
+}
+
+.helpful-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+.helpful-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.helpful-btn:hover:not(:disabled) {
+  border-color: #86efac;
+  background: #f0fdf4;
+  color: #15803d;
+}
+.helpful-btn.active {
+  border-color: #86efac;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.helpful-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 </style>

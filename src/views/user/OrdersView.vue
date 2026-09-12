@@ -1,10 +1,6 @@
 <template>
   <div class="orders-page">
     <div class="orders-container">
-
-      <!-- =========================================
-           Header
-      ========================================== -->
       <header class="orders-header">
         <RouterLink
           :to="{ name: 'profile' }"
@@ -16,50 +12,27 @@
 
         <div>
           <h1>سفارش‌های من</h1>
-
-          <p>
-            مشاهده وضعیت و جزئیات سفارش‌های ثبت‌شده
-          </p>
+          <p>مشاهده وضعیت و جزئیات سفارش‌های ثبت‌شده</p>
         </div>
       </header>
 
-
-      <!-- =========================================
-           Loading
-      ========================================== -->
-      <section
-        v-if="loading"
-        class="state-card"
-      >
+      <!-- Loading -->
+      <section v-if="loading" class="state-card">
         <div class="loader"></div>
-
-        <p>
-          در حال دریافت سفارش‌ها...
-        </p>
+        <p>در حال دریافت سفارش‌ها...</p>
       </section>
 
-
-      <!-- =========================================
-           Error
-      ========================================== -->
+      <!-- Error -->
       <section
         v-else-if="errorMessage"
         class="state-card state-card--error"
       >
         <div class="state-icon state-icon--error">
-          <CircleAlert
-            :size="32"
-            :stroke-width="1.7"
-          />
+          <CircleAlert :size="32" :stroke-width="1.7" />
         </div>
 
-        <h2>
-          دریافت سفارش‌ها انجام نشد
-        </h2>
-
-        <p>
-          {{ errorMessage }}
-        </p>
+        <h2>دریافت سفارش‌ها انجام نشد</h2>
+        <p>{{ errorMessage }}</p>
 
         <button
           type="button"
@@ -70,28 +43,20 @@
         </button>
       </section>
 
-
-      <!-- =========================================
-           Empty
-      ========================================== -->
+      <!-- Empty -->
       <section
         v-else-if="orders.length === 0"
         class="state-card"
       >
         <div class="state-icon">
-          <PackageOpen
-            :size="38"
-            :stroke-width="1.6"
-          />
+          <PackageOpen :size="38" :stroke-width="1.6" />
         </div>
 
-        <h2>
-          هنوز سفارشی ثبت نکرده‌اید
-        </h2>
+        <h2>هنوز سفارشی ثبت نکرده‌اید</h2>
 
         <p>
-          بعد از ثبت اولین سفارش،
-          اطلاعات آن در این قسمت نمایش داده می‌شود.
+          بعد از ثبت اولین سفارش، اطلاعات آن در این قسمت
+          نمایش داده می‌شود.
         </p>
 
         <RouterLink
@@ -102,33 +67,19 @@
         </RouterLink>
       </section>
 
-
-      <!-- =========================================
-           Orders
-      ========================================== -->
-      <div
-        v-else
-        class="orders-list"
-      >
+      <!-- Orders -->
+      <div v-else class="orders-list">
         <article
           v-for="order in orders"
           :key="order.id"
           class="order-card"
         >
-
-          <!-- =====================================
-               Order Header
-          ====================================== -->
+          <!-- Order Header -->
           <div class="order-card__header">
-
             <div class="order-code">
               <span>شماره سفارش</span>
-
-              <strong>
-                #{{ persianNumber(order.id) }}
-              </strong>
+              <strong>#{{ persianNumber(order.id) }}</strong>
             </div>
-
 
             <span
               class="status-badge"
@@ -136,47 +87,28 @@
             >
               {{ getStatusLabel(order) }}
             </span>
-
           </div>
 
-
-          <!-- =====================================
-               Summary
-          ====================================== -->
+          <!-- Summary -->
           <div class="order-summary">
-
             <div class="summary-item">
               <div class="summary-icon">
-                <CalendarDays
-                  :size="19"
-                  :stroke-width="1.7"
-                />
+                <CalendarDays :size="19" :stroke-width="1.7" />
               </div>
 
               <div>
-                <span>
-                  تاریخ سفارش
-                </span>
-
-                <strong>
-                  {{ formatDate(order.created_at) }}
-                </strong>
+                <span>تاریخ سفارش</span>
+                <strong>{{ formatDate(order.created_at) }}</strong>
               </div>
             </div>
 
-
             <div class="summary-item">
               <div class="summary-icon">
-                <Package
-                  :size="19"
-                  :stroke-width="1.7"
-                />
+                <Package :size="19" :stroke-width="1.7" />
               </div>
 
               <div>
-                <span>
-                  تعداد کالا
-                </span>
+                <span>تعداد کالا</span>
 
                 <strong>
                   {{ persianNumber(getItemsCount(order)) }}
@@ -185,52 +117,30 @@
               </div>
             </div>
 
-
             <div class="summary-item">
               <div class="summary-icon">
-                <CreditCard
-                  :size="19"
-                  :stroke-width="1.7"
-                />
+                <CreditCard :size="19" :stroke-width="1.7" />
               </div>
 
               <div>
-                <span>
-                  روش پرداخت
-                </span>
-
-                <strong>
-                  {{ getPaymentLabel(order) }}
-                </strong>
+                <span>روش پرداخت</span>
+                <strong>{{ getPaymentLabel(order) }}</strong>
               </div>
             </div>
-
           </div>
 
-
-          <!-- =====================================
-               Total
-          ====================================== -->
+          <!-- Total -->
           <div class="order-total">
-            <span>
-              مبلغ سفارش
-            </span>
+            <span>مبلغ سفارش</span>
 
             <strong>
               {{ formatPrice(order.total_price) }}
-
-              <small>
-                تومان
-              </small>
+              <small>تومان</small>
             </strong>
           </div>
 
-
-          <!-- =====================================
-               Actions
-          ====================================== -->
+          <!-- Actions -->
           <div class="order-actions">
-
             <button
               type="button"
               class="details-button"
@@ -247,12 +157,10 @@
               <ChevronDown
                 :size="19"
                 :class="{
-                  'chevron-open':
-                    expandedOrderId === order.id
+                  'chevron-open': expandedOrderId === order.id,
                 }"
               />
             </button>
-
 
             <button
               v-if="order.status === 'pending'"
@@ -274,31 +182,19 @@
                 }}
               </span>
             </button>
-
           </div>
 
-
-          <!-- =====================================
-               Expanded Details
-          ====================================== -->
+          <!-- Expanded Details -->
           <div
             v-if="expandedOrderId === order.id"
             class="order-details"
           >
-
-            <!-- =================================
-                 Items
-            ================================== -->
+            <!-- Items -->
             <section class="details-section">
-
               <div class="details-title">
                 <ShoppingBag :size="18" />
-
-                <h3>
-                  کالاهای سفارش
-                </h3>
+                <h3>کالاهای سفارش</h3>
               </div>
-
 
               <div
                 v-if="order.items?.length"
@@ -309,10 +205,7 @@
                   :key="item.id"
                   class="order-item"
                 >
-
-                  <!-- تصویر -->
                   <div class="item-image">
-
                     <img
                       v-if="item.image"
                       :src="item.image"
@@ -324,20 +217,12 @@
                       :size="25"
                       :stroke-width="1.5"
                     />
-
                   </div>
 
-
-                  <!-- اطلاعات محصول -->
                   <div class="item-content">
-
                     <strong class="item-name">
-                      {{
-                        item.product_name ||
-                        'محصول'
-                      }}
+                      {{ item.product_name || 'محصول' }}
                     </strong>
-
 
                     <span
                       v-if="item.variant_name"
@@ -346,75 +231,45 @@
                       {{ item.variant_name }}
                     </span>
 
-
                     <div class="item-meta">
-
                       <span>
                         تعداد:
                         {{ persianNumber(item.quantity) }}
                       </span>
-
 
                       <span>
                         قیمت واحد:
                         {{ formatPrice(item.price) }}
                         تومان
                       </span>
-
                     </div>
-
                   </div>
 
-
-                  <!-- مبلغ ردیف -->
                   <div class="item-total">
                     <strong>
-                      {{
-                        formatPrice(
-                          getItemTotal(item)
-                        )
-                      }}
+                      {{ formatPrice(getItemTotal(item)) }}
                     </strong>
 
-                    <span>
-                      تومان
-                    </span>
+                    <span>تومان</span>
                   </div>
-
                 </div>
               </div>
 
-
-              <div
-                v-else
-                class="empty-items"
-              >
+              <div v-else class="empty-items">
                 اطلاعات کالاهای این سفارش موجود نیست.
               </div>
-
             </section>
 
-
-            <!-- =================================
-                 Price Details
-            ================================== -->
+            <!-- Price Details -->
             <section class="details-section">
-
               <div class="details-title">
                 <ReceiptText :size="18" />
-
-                <h3>
-                  جزئیات پرداخت
-                </h3>
+                <h3>جزئیات پرداخت</h3>
               </div>
 
-
               <div class="price-box">
-
                 <div class="price-row">
-                  <span>
-                    مجموع کالاها
-                  </span>
+                  <span>مجموع کالاها</span>
 
                   <strong>
                     {{ formatPrice(order.items_total) }}
@@ -422,11 +277,8 @@
                   </strong>
                 </div>
 
-
                 <div class="price-row">
-                  <span>
-                    هزینه ارسال
-                  </span>
+                  <span>هزینه ارسال</span>
 
                   <strong>
                     {{
@@ -437,14 +289,11 @@
                   </strong>
                 </div>
 
-
                 <div
                   v-if="Number(order.discount_amount) > 0"
                   class="price-row price-row--discount"
                 >
-                  <span>
-                    تخفیف
-                  </span>
+                  <span>تخفیف</span>
 
                   <strong>
                     -
@@ -453,42 +302,28 @@
                   </strong>
                 </div>
 
-
                 <div class="price-row price-row--total">
-                  <span>
-                    مبلغ نهایی
-                  </span>
+                  <span>مبلغ نهایی</span>
 
                   <strong>
                     {{ formatPrice(order.total_price) }}
                     تومان
                   </strong>
                 </div>
-
               </div>
-
             </section>
 
-
-            <!-- =================================
-                 Shipping
-            ================================== -->
+            <!-- Shipping -->
             <section
               v-if="hasShippingInfo(order)"
               class="details-section"
             >
-
               <div class="details-title">
                 <Truck :size="18" />
-
-                <h3>
-                  اطلاعات ارسال
-                </h3>
+                <h3>اطلاعات ارسال</h3>
               </div>
 
-
               <div class="shipping-box">
-
                 <div
                   v-if="order.shipping_method_title"
                   class="shipping-row"
@@ -498,16 +333,10 @@
                   </div>
 
                   <div>
-                    <span>
-                      روش ارسال
-                    </span>
-
-                    <strong>
-                      {{ order.shipping_method_title }}
-                    </strong>
+                    <span>روش ارسال</span>
+                    <strong>{{ order.shipping_method_title }}</strong>
                   </div>
                 </div>
-
 
                 <div
                   v-if="hasAddress(order)"
@@ -518,19 +347,15 @@
                   </div>
 
                   <div>
-                    <span>
-                      آدرس تحویل
-                    </span>
-
-                    <strong>
-                      {{ formatAddress(order) }}
-                    </strong>
+                    <span>آدرس تحویل</span>
+                    <strong>{{ formatAddress(order) }}</strong>
                   </div>
                 </div>
 
-
                 <div
-                  v-if="order.shipping_address_snapshot?.recipient_name"
+                  v-if="
+                    order.shipping_address_snapshot?.recipient_name
+                  "
                   class="shipping-row"
                 >
                   <div class="shipping-icon">
@@ -538,9 +363,7 @@
                   </div>
 
                   <div>
-                    <span>
-                      تحویل گیرنده
-                    </span>
+                    <span>تحویل گیرنده</span>
 
                     <strong>
                       {{
@@ -551,9 +374,10 @@
                   </div>
                 </div>
 
-
                 <div
-                  v-if="order.shipping_address_snapshot?.recipient_phone"
+                  v-if="
+                    order.shipping_address_snapshot?.recipient_phone
+                  "
                   class="shipping-row"
                 >
                   <div class="shipping-icon">
@@ -561,9 +385,7 @@
                   </div>
 
                   <div>
-                    <span>
-                      شماره تماس
-                    </span>
+                    <span>شماره تماس</span>
 
                     <strong dir="ltr">
                       {{
@@ -574,19 +396,84 @@
                   </div>
                 </div>
 
+                <!-- کد رهگیری -->
+                <div
+                  v-if="shouldShowTracking(order)"
+                  class="tracking-box"
+                >
+                  <div class="tracking-header">
+                    <div class="shipping-icon tracking-icon">
+                      <ScanLine :size="19" />
+                    </div>
+
+                    <div class="tracking-content">
+                      <span>کد رهگیری مرسوله</span>
+
+                      <strong dir="ltr">
+                        {{ getTrackingCode(order) }}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <button
+                    v-if="isPostShipping(order)"
+                    type="button"
+                    class="tracking-button tracking-button--post"
+                    @click="openPostTracking(order)"
+                  >
+                    <ExternalLink :size="17" />
+
+                    <span>
+                      {{
+                        copiedOrderId === order.id
+                          ? 'کد کپی شد؛ ورود به سامانه پست'
+                          : 'رهگیری در سامانه پست'
+                      }}
+                    </span>
+                  </button>
+
+                  <button
+                    v-else
+                    type="button"
+                    class="tracking-button tracking-button--copy"
+                    @click="copyTrackingCode(order)"
+                  >
+                    <Check
+                      v-if="copiedOrderId === order.id"
+                      :size="17"
+                    />
+
+                    <Copy v-else :size="17" />
+
+                    <span>
+                      {{
+                        copiedOrderId === order.id
+                          ? 'کد رهگیری کپی شد'
+                          : 'کپی کد رهگیری'
+                      }}
+                    </span>
+                  </button>
+                </div>
+
+                <div
+                  v-else-if="isSentOrder(order)"
+                  class="tracking-pending"
+                >
+                  <ScanLine :size="18" />
+
+                  <span>
+                    سفارش ارسال شده است؛ کد رهگیری هنوز ثبت
+                    نشده است.
+                  </span>
+                </div>
               </div>
-
             </section>
-
           </div>
-
         </article>
       </div>
-
     </div>
   </div>
 </template>
-
 
 <script setup lang="ts">
 import {
@@ -597,14 +484,18 @@ import {
 import {
   ArrowRight,
   CalendarDays,
+  Check,
   ChevronDown,
   CircleAlert,
+  Copy,
   CreditCard,
+  ExternalLink,
   MapPin,
   Package,
   PackageOpen,
   Phone,
   ReceiptText,
+  ScanLine,
   ShoppingBag,
   Truck,
   UserRound,
@@ -625,15 +516,21 @@ import type {
   OrderStatus,
 } from '@/types/order.types'
 
+/* =========================================
+   Types
+========================================= */
+
+type OrderWithTracking = Order & {
+  tracking_code?: string | null
+  postal_tracking_code?: string | null
+}
 
 /* =========================================
    State
 ========================================= */
 
 const orders = ref<Order[]>([])
-
 const loading = ref(true)
-
 const errorMessage = ref('')
 
 const expandedOrderId =
@@ -642,6 +539,11 @@ const expandedOrderId =
 const cancellingOrderId =
   ref<number | null>(null)
 
+const copiedOrderId =
+  ref<number | null>(null)
+
+let copiedResetTimer:
+  ReturnType<typeof setTimeout> | null = null
 
 /* =========================================
    دریافت سفارش‌ها
@@ -679,7 +581,6 @@ async function loadOrders() {
   }
 }
 
-
 /* =========================================
    باز کردن جزئیات
 ========================================= */
@@ -692,7 +593,6 @@ function toggleDetails(
       ? null
       : orderId
 }
-
 
 /* =========================================
    لغو سفارش
@@ -758,6 +658,181 @@ async function handleCancelOrder(
   }
 }
 
+/* =========================================
+   کد رهگیری
+========================================= */
+
+function getTrackingCode(
+  order: Order,
+): string {
+  const trackedOrder =
+    order as OrderWithTracking
+
+  return String(
+    trackedOrder.tracking_code ??
+    trackedOrder.postal_tracking_code ??
+    '',
+  ).trim()
+}
+
+function isSentOrder(
+  order: Order,
+): boolean {
+  return (
+    order.status === 'shipped' ||
+    order.status === 'completed'
+  )
+}
+
+function shouldShowTracking(
+  order: Order,
+): boolean {
+  return (
+    isSentOrder(order) &&
+    Boolean(getTrackingCode(order))
+  )
+}
+
+function isPostShipping(
+  order: Order,
+): boolean {
+  const shippingMethod =
+    String(
+      order.shipping_method_title ?? '',
+    )
+      .trim()
+      .toLowerCase()
+
+  return (
+    shippingMethod.includes('پست') ||
+    shippingMethod.includes('پیشتاز') ||
+    shippingMethod.includes('سفارشی') ||
+    shippingMethod.includes('post')
+  )
+}
+
+function showCopiedState(
+  orderId: number,
+) {
+  copiedOrderId.value = orderId
+
+  if (copiedResetTimer) {
+    clearTimeout(copiedResetTimer)
+  }
+
+  copiedResetTimer =
+    setTimeout(() => {
+      copiedOrderId.value = null
+    }, 3000)
+}
+
+async function writeToClipboard(
+  value: string,
+): Promise<boolean> {
+  try {
+    if (
+      navigator.clipboard &&
+      window.isSecureContext
+    ) {
+      await navigator.clipboard.writeText(
+        value,
+      )
+
+      return true
+    }
+
+    const textArea =
+      document.createElement('textarea')
+
+    textArea.value = value
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    textArea.style.pointerEvents = 'none'
+
+    document.body.appendChild(
+      textArea,
+    )
+
+    textArea.focus()
+    textArea.select()
+
+    const copied =
+      document.execCommand('copy')
+
+    document.body.removeChild(
+      textArea,
+    )
+
+    return copied
+  } catch (error) {
+    console.error(
+      'خطا در کپی کد رهگیری:',
+      error,
+    )
+
+    return false
+  }
+}
+
+async function copyTrackingCode(
+  order: Order,
+) {
+  const trackingCode =
+    getTrackingCode(order)
+
+  if (!trackingCode) {
+    return
+  }
+
+  const copied =
+    await writeToClipboard(
+      trackingCode,
+    )
+
+  if (copied) {
+    showCopiedState(order.id)
+  } else {
+    window.prompt(
+      'کد رهگیری را کپی کنید:',
+      trackingCode,
+    )
+  }
+}
+
+function openPostTracking(
+  order: Order,
+) {
+  const trackingCode =
+    getTrackingCode(order)
+
+  if (!trackingCode) {
+    return
+  }
+
+  /*
+   * بازکردن صفحه قبل از عملیات asynchronous انجام می‌شود
+   * تا مرورگر آن را به‌عنوان popup مسدود نکند.
+   */
+  const postWindow =
+    window.open(
+      'https://tracking.post.ir/',
+      '_blank',
+      'noopener,noreferrer',
+    )
+
+  writeToClipboard(
+    trackingCode,
+  ).then(copied => {
+    if (copied) {
+      showCopiedState(order.id)
+    }
+  })
+
+  if (!postWindow) {
+    window.location.href =
+      'https://tracking.post.ir/'
+  }
+}
 
 /* =========================================
    تعداد کالا
@@ -783,7 +858,6 @@ function getItemsCount(
   )
 }
 
-
 /* =========================================
    قیمت ردیف
 ========================================= */
@@ -802,7 +876,6 @@ function getItemTotal(
     Number(item.quantity || 0)
   )
 }
-
 
 /* =========================================
    فرمت قیمت
@@ -823,7 +896,6 @@ function formatPrice(
   ).format(numberValue)
 }
 
-
 /* =========================================
    عدد فارسی
 ========================================= */
@@ -835,7 +907,6 @@ function persianNumber(
     'fa-IR',
   ).format(value)
 }
-
 
 /* =========================================
    تاریخ
@@ -869,7 +940,6 @@ function formatDate(
   ).format(date)
 }
 
-
 /* =========================================
    وضعیت سفارش
 ========================================= */
@@ -895,13 +965,11 @@ function getStatusLabel(
   return labels[order.status]
 }
 
-
 function getStatusClass(
   status: OrderStatus,
 ): string {
   return `status-badge--${status}`
 }
-
 
 /* =========================================
    روش پرداخت
@@ -931,7 +999,6 @@ function getPaymentLabel(
   return '—'
 }
 
-
 /* =========================================
    آدرس
 ========================================= */
@@ -952,7 +1019,6 @@ function hasAddress(
     address.address,
   )
 }
-
 
 function formatAddress(
   order: Order,
@@ -976,7 +1042,6 @@ function formatAddress(
     .join('، ')
 }
 
-
 function hasShippingInfo(
   order: Order,
 ): boolean {
@@ -986,10 +1051,11 @@ function hasShippingInfo(
     order.shipping_address_snapshot
       ?.recipient_name ||
     order.shipping_address_snapshot
-      ?.recipient_phone,
+      ?.recipient_phone ||
+    getTrackingCode(order) ||
+    isSentOrder(order),
   )
 }
-
 
 /* =========================================
    Mount
@@ -1000,12 +1066,7 @@ onMounted(() => {
 })
 </script>
 
-
 <style scoped>
-/* =========================================
-   Page
-========================================= */
-
 .orders-page {
   min-height: 70vh;
   padding: 24px 16px 40px;
@@ -1017,11 +1078,6 @@ onMounted(() => {
   max-width: 920px;
   margin: 0 auto;
 }
-
-
-/* =========================================
-   Header
-========================================= */
 
 .orders-header {
   display: flex;
@@ -1046,21 +1102,15 @@ onMounted(() => {
 .back-button {
   width: 44px;
   height: 44px;
-
   flex: 0 0 auto;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border: 1px solid #e5e7eb;
   border-radius: 13px;
-
   background: #ffffff;
   color: #374151;
-
   text-decoration: none;
-
   transition:
     border-color 0.2s ease,
     color 0.2s ease,
@@ -1073,45 +1123,30 @@ onMounted(() => {
   color: #15803d;
 }
 
-
-/* =========================================
-   State
-========================================= */
-
 .state-card {
   min-height: 300px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   padding: 32px 20px;
-
   border: 1px solid #e5e7eb;
   border-radius: 18px;
-
   background: #ffffff;
-
   text-align: center;
 }
 
 .state-card h2 {
   margin: 15px 0 7px;
-
   color: #1f2937;
-
   font-size: 17px;
   font-weight: 800;
 }
 
 .state-card p {
   max-width: 420px;
-
   margin: 0;
-
   color: #6b7280;
-
   font-size: 13px;
   line-height: 1.9;
 }
@@ -1119,13 +1154,10 @@ onMounted(() => {
 .state-icon {
   width: 72px;
   height: 72px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 50%;
-
   background: #f0fdf4;
   color: #15803d;
 }
@@ -1139,22 +1171,13 @@ onMounted(() => {
   color: #991b1b;
 }
 
-
-/* =========================================
-   Loader
-========================================= */
-
 .loader {
   width: 38px;
   height: 38px;
-
   margin-bottom: 15px;
-
   border: 3px solid #dcfce7;
   border-top-color: #15803d;
-
   border-radius: 50%;
-
   animation: orders-spin 0.8s linear infinite;
 }
 
@@ -1164,38 +1187,22 @@ onMounted(() => {
   }
 }
 
-
-/* =========================================
-   Primary button
-========================================= */
-
 .primary-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   min-height: 42px;
-
   margin-top: 18px;
   padding: 0 18px;
-
   border: 0;
   border-radius: 10px;
-
   background: #15803d;
   color: #ffffff;
-
   font-size: 13px;
   font-weight: 700;
-
   text-decoration: none;
   cursor: pointer;
 }
-
-
-/* =========================================
-   Orders list
-========================================= */
 
 .orders-list {
   display: flex;
@@ -1205,31 +1212,18 @@ onMounted(() => {
 
 .order-card {
   overflow: hidden;
-
   border: 1px solid #e5e7eb;
   border-radius: 18px;
-
   background: #ffffff;
-
-  box-shadow:
-    0 1px 2px
-    rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
-
-
-/* =========================================
-   Order header
-========================================= */
 
 .order-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 12px;
-
   padding: 18px 20px;
-
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -1246,28 +1240,18 @@ onMounted(() => {
 
 .order-code strong {
   color: #1f2937;
-
   font-size: 16px;
   font-weight: 800;
 }
-
-
-/* =========================================
-   Status
-========================================= */
 
 .status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   padding: 6px 10px;
-
   border-radius: 999px;
-
   font-size: 11px;
   font-weight: 700;
-
   white-space: nowrap;
 }
 
@@ -1296,50 +1280,34 @@ onMounted(() => {
   color: #b91c1c;
 }
 
-
-/* =========================================
-   Summary
-========================================= */
-
 .order-summary {
   display: grid;
-
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
-
   padding: 18px 20px;
 }
 
 .summary-item {
   min-width: 0;
-
   display: flex;
   align-items: center;
-
   gap: 10px;
 }
 
 .summary-icon {
   width: 38px;
   height: 38px;
-
   flex: 0 0 auto;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 10px;
-
   background: #f0fdf4;
   color: #15803d;
 }
 
 .summary-item > div:last-child {
   min-width: 0;
-
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1352,33 +1320,21 @@ onMounted(() => {
 
 .summary-item strong {
   overflow: hidden;
-
   color: #374151;
-
   font-size: 12px;
   font-weight: 700;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-
-/* =========================================
-   Order total
-========================================= */
 
 .order-total {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 12px;
-
   padding: 15px 20px;
-
   border-top: 1px solid #f3f4f6;
   border-bottom: 1px solid #f3f4f6;
-
   background: #f9fafb;
 }
 
@@ -1389,55 +1345,39 @@ onMounted(() => {
 
 .order-total strong {
   color: #15803d;
-
   font-size: 18px;
   font-weight: 800;
 }
 
 .order-total small {
   margin-right: 3px;
-
   font-size: 11px;
   font-weight: 600;
 }
 
-
-/* =========================================
-   Actions
-========================================= */
-
 .order-actions {
   display: flex;
   align-items: center;
-
   gap: 10px;
-
   padding: 14px 20px;
 }
 
 .details-button,
 .cancel-button {
   min-height: 42px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   gap: 6px;
-
   border-radius: 10px;
-
   font-size: 12px;
   font-weight: 700;
-
   cursor: pointer;
 }
 
 .details-button {
   flex: 1;
-
   border: 1px solid #bbf7d0;
-
   background: #f0fdf4;
   color: #15803d;
 }
@@ -1452,9 +1392,7 @@ onMounted(() => {
 
 .cancel-button {
   padding: 0 16px;
-
   border: 1px solid #fecaca;
-
   background: #ffffff;
   color: #b91c1c;
 }
@@ -1468,16 +1406,9 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-
-/* =========================================
-   Details
-========================================= */
-
 .order-details {
   padding: 0 20px 22px;
-
   border-top: 1px solid #f3f4f6;
-
   background: #ffffff;
 }
 
@@ -1487,70 +1418,49 @@ onMounted(() => {
 
 .details-section + .details-section {
   margin-top: 20px;
-
   border-top: 1px solid #f3f4f6;
 }
 
 .details-title {
   display: flex;
   align-items: center;
-
   gap: 8px;
-
   margin-bottom: 14px;
-
   color: #15803d;
 }
 
 .details-title h3 {
   margin: 0;
-
   color: #1f2937;
-
   font-size: 14px;
   font-weight: 800;
 }
 
-
-/* =========================================
-   Items
-========================================= */
-
 .items-list {
   display: flex;
   flex-direction: column;
-
   gap: 10px;
 }
 
 .order-item {
   display: flex;
   align-items: center;
-
   gap: 12px;
-
   padding: 12px;
-
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-
   background: #f9fafb;
 }
 
 .item-image {
   width: 58px;
   height: 58px;
-
   flex: 0 0 auto;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   overflow: hidden;
-
   border-radius: 10px;
-
   background: #f0fdf4;
   color: #15803d;
 }
@@ -1558,26 +1468,21 @@ onMounted(() => {
 .item-image img {
   width: 100%;
   height: 100%;
-
   object-fit: cover;
 }
 
 .item-content {
   min-width: 0;
   flex: 1;
-
   display: flex;
   flex-direction: column;
-
   gap: 4px;
 }
 
 .item-name {
   color: #374151;
-
   font-size: 13px;
   font-weight: 700;
-
   line-height: 1.7;
 }
 
@@ -1589,29 +1494,22 @@ onMounted(() => {
 .item-meta {
   display: flex;
   flex-wrap: wrap;
-
   gap: 12px;
-
   margin-top: 2px;
-
   color: #9ca3af;
   font-size: 11px;
 }
 
 .item-total {
   flex: 0 0 auto;
-
   display: flex;
   flex-direction: column;
-
   align-items: flex-end;
-
   gap: 2px;
 }
 
 .item-total strong {
   color: #15803d;
-
   font-size: 13px;
   font-weight: 800;
 }
@@ -1623,26 +1521,16 @@ onMounted(() => {
 
 .empty-items {
   padding: 16px;
-
   border-radius: 10px;
-
   background: #f9fafb;
-
   color: #6b7280;
-
   font-size: 12px;
   text-align: center;
 }
 
-
-/* =========================================
-   Price
-========================================= */
-
 .price-box {
   display: flex;
   flex-direction: column;
-
   gap: 12px;
 }
 
@@ -1650,9 +1538,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 14px;
-
   color: #6b7280;
   font-size: 12px;
 }
@@ -1669,59 +1555,44 @@ onMounted(() => {
 .price-row--total {
   margin-top: 3px;
   padding-top: 14px;
-
   border-top: 1px dashed #d1d5db;
 }
 
 .price-row--total span,
 .price-row--total strong {
   color: #15803d;
-
   font-size: 14px;
   font-weight: 800;
 }
 
-
-/* =========================================
-   Shipping
-========================================= */
-
 .shipping-box {
   display: flex;
   flex-direction: column;
-
   gap: 12px;
 }
 
 .shipping-row {
   display: flex;
   align-items: flex-start;
-
   gap: 11px;
 }
 
 .shipping-icon {
   width: 38px;
   height: 38px;
-
   flex: 0 0 auto;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 10px;
-
   background: #f0fdf4;
   color: #15803d;
 }
 
 .shipping-row > div:last-child {
   min-width: 0;
-
   display: flex;
   flex-direction: column;
-
   gap: 4px;
 }
 
@@ -1732,24 +1603,116 @@ onMounted(() => {
 
 .shipping-row strong {
   color: #374151;
-
   font-size: 12px;
   font-weight: 600;
-
   line-height: 1.9;
 }
 
+/* Tracking */
 
-/* =========================================
-   Mobile
-========================================= */
+.tracking-box {
+  margin-top: 4px;
+  padding: 14px;
+  border: 1px solid #ddd6fe;
+  border-radius: 13px;
+  background: #faf9ff;
+}
+
+.tracking-header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.tracking-icon {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.tracking-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tracking-content span {
+  color: #8b5cf6;
+  font-size: 11px;
+}
+
+.tracking-content strong {
+  color: #4c1d95;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  word-break: break-all;
+}
+
+.tracking-button {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 13px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.tracking-button--post {
+  border: 1px solid #6d28d9;
+  background: #6d28d9;
+  color: #ffffff;
+}
+
+.tracking-button--post:hover {
+  border-color: #5b21b6;
+  background: #5b21b6;
+}
+
+.tracking-button--copy {
+  border: 1px solid #c4b5fd;
+  background: #ffffff;
+  color: #6d28d9;
+}
+
+.tracking-button--copy:hover {
+  border-color: #8b5cf6;
+  background: #f5f3ff;
+}
+
+.tracking-pending {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px dashed #d1d5db;
+  border-radius: 11px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.tracking-pending svg {
+  flex: 0 0 auto;
+  color: #9ca3af;
+}
 
 @media (max-width: 640px) {
   .orders-page {
-    padding:
-      12px
-      10px
-      28px;
+    padding: 12px 10px 28px;
   }
 
   .orders-header {
@@ -1778,11 +1741,8 @@ onMounted(() => {
   }
 
   .order-summary {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-
     padding: 14px;
   }
 
@@ -1800,7 +1760,6 @@ onMounted(() => {
 
   .order-actions {
     flex-direction: column;
-
     padding: 12px 14px;
   }
 
@@ -1810,10 +1769,7 @@ onMounted(() => {
   }
 
   .order-details {
-    padding:
-      0
-      14px
-      16px;
+    padding: 0 14px 16px;
   }
 
   .order-item {
@@ -1836,6 +1792,10 @@ onMounted(() => {
 
   .state-card {
     min-height: 250px;
+  }
+
+  .tracking-content strong {
+    font-size: 12px;
   }
 }
 </style>

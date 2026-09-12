@@ -219,15 +219,24 @@
               <strong class="user-name">
                 {{ review.user_name }}
               </strong>
+               <div class="community-badges">
+                 <span v-if="review.is_verified_purchase" class="community-badge community-badge--verified" >
+                 ✓ خریدار تأییدشده
+                 این کاربر این محصول را از بازبیا خریداری کرده است           .  
 
-              <div class="community-badges">
-                <span
-                  v-if="review.is_verified_purchase"
-                  class="community-badge community-badge--verified"
-                >
-                  ✓ خریدار محصول
+
                 </span>
-              </div>
+
+                <span v-else class="community-badge community-badge--unverified" >
+                 
+                    کاربر این محصول را از بازبیا خرید نکرده 
+                </span>
+               </div>
+              
+            
+            
+            
+            
             </div>
 
             <time class="community-date">
@@ -2032,112 +2041,66 @@ watch(
 }
 
 .community-badge--verified {
-  background:
-    #ecfdf5;
-
-  color:
-    #047857;
+  background:  #ecfdf5;
+  color:  #047857;
 }
 
-.community-badge--official {
-  background:
-    #eff6ff;
+.community-badge--unverified {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
-  color:
-    #1d4ed8;
+
+.community-badge--official {
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 
 /* ==========================================
    Questions
 ========================================== */
-
 .question-card {
-  padding:
-    1.25rem;
-
-  border:
-    1px solid #e5e7eb;
-
-  border-radius:
-    0.9rem;
-
-  background:
-    #ffffff;
+  padding: 1.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.9rem;
+  background: #ffffff;
 }
 
 .question-card__author {
   display: flex;
-
   align-items: center;
-
-  gap:
-    0.7rem;
+  gap:  0.7rem;
 }
 
 .question-card__author strong {
-  display:
-    block;
-
-  color:
-    #1f2937;
-
-  font-size:
-    0.88rem;
+  display: block;
+  color: #1f2937;
+  font-size: 0.88rem;
 }
 
 .question-mark {
-  display:
-    inline-flex;
-
-  align-items:
-    center;
-  justify-content:
-    center;
-
-  width:
-    2.2rem;
-  height:
-    2.2rem;
-
-  border-radius:
-    50%;
-
-  background:
-    #f0fdf4;
-
-  color:
-    #15803d;
-
-  font-size:
-    1rem;
-
-  font-weight:
-    900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background:  #f0fdf4;
+  color:  #15803d;
+  font-size: 1rem;
+  font-weight: 900;
 }
 
 .question-card__meta {
   display: flex;
-
-  align-items:
-    center;
-  justify-content:
-    space-between;
-
-  margin-top:
-    1rem;
-
-  padding-top:
-    0.8rem;
-
-  border-top:
-    1px solid #f1f5f9;
-
-  color:
-    #64748b;
-
-  font-size:
-    0.78rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top:  1px solid #f1f5f9;
+  color: #64748b;
+  font-size: 0.78rem;
 }
 
 
@@ -2336,73 +2299,36 @@ watch(
 /* ==========================================
    Empty
 ========================================== */
-
 .community-empty {
   display: flex;
-
-  flex-direction:
-    column;
-
-  align-items:
-    center;
-
-  padding:
-    2.5rem
-    1rem;
-
-  text-align:
-    center;
-
-  color:
-    #64748b;
+  flex-direction: column;
+  align-items:  center;
+  padding:  2.5rem 1rem;
+  text-align:  center;
+  color: #64748b;
 }
 
 .community-empty__icon {
-  display:
-    flex;
-
-  align-items:
-    center;
-  justify-content:
-    center;
-
-  width:
-    3.5rem;
-  height:
-    3.5rem;
-
-  margin-bottom:
-    0.8rem;
-
-  border-radius:
-    50%;
-
-  background:
-    #f0fdf4;
-
-  color:
-    #15803d;
-
-  font-size:
-    1.8rem;
+  display: flex;
+  align-items:center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 0.8rem;
+  border-radius: 50%;
+  background: #f0fdf4;
+  color:  #15803d;
+  font-size:  1.8rem;
 }
 
 .community-empty strong {
-  color:
-    #374151;
+  color: #374151;
 }
 
 .community-empty p {
-  margin:
-    0.4rem
-    0
-    1rem;
-
-  font-size:
-    0.82rem;
-
-  line-height:
-    1.8;
+  margin: 0.4rem 0 1rem;
+  font-size: 0.82rem;
+  line-height: 1.8;
 }
 
 
@@ -2412,57 +2338,40 @@ watch(
 
 @media (max-width: 600px) {
   .community {
-    margin-top:
-      1.5rem;
-
-    padding-top:
-      1.25rem;
+    margin-top:  1.5rem;
+    padding-top:  1.25rem;
   }
 
   .community__header {
-    width:
-      100%;
+    width: 100%;
   }
 
   .community__tab {
-    flex:
-      1;
-
-    justify-content:
-      center;
-
-    padding:
-      0.8rem
-      0.4rem;
-
-    font-size:
-      0.82rem;
+    flex: 1;
+    justify-content:  center;
+    padding:  0.8rem  0.4rem;
+    font-size:  0.82rem;
   }
 
   .review-summary,
   .question-summary {
-    flex-direction:
-      column;
+
+    flex-direction:  column;
   }
 
   .review-summary > .primary-button,
   .question-summary > .primary-button {
-    width:
-      100%;
+    width: 100%;
   }
 
   .review-card__header,
   .answer-card__header {
-    flex-direction:
-      column;
-
-    gap:
-      0.4rem;
+    flex-direction:  column;
+    gap: 0.4rem;
   }
 
   .community-form {
-    padding:
-      1rem;
+    padding: 1rem;
   }
 
   .community-form__actions {

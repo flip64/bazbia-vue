@@ -412,6 +412,10 @@
                       <strong dir="ltr">
                         {{ getTrackingCode(order) }}
                       </strong>
+                     <p class="tracking-help">
+                         پس از ورود به سامانه پست، کد کپی‌شده را در کادر
+                          رهگیری جای‌گذاری کنید.
+                     </p>
                     </div>
                   </div>
 
@@ -799,7 +803,7 @@ async function copyTrackingCode(
   }
 }
 
-function openPostTracking(
+async function openPostTracking(
   order: Order,
 ) {
   const trackingCode =
@@ -809,31 +813,33 @@ function openPostTracking(
     return
   }
 
-  /*
-   * بازکردن صفحه قبل از عملیات asynchronous انجام می‌شود
-   * تا مرورگر آن را به‌عنوان popup مسدود نکند.
-   */
-  const postWindow =
-    window.open(
-      'https://tracking.post.ir/',
-      '_blank',
-      'noopener,noreferrer',
+  // ابتدا در حالی که صفحه بازبیا فعال است، کد کپی می‌شود
+  const copied =
+    await writeToClipboard(
+      trackingCode,
     )
 
-  writeToClipboard(
-    trackingCode,
-  ).then(copied => {
-    if (copied) {
-      showCopiedState(order.id)
-    }
-  })
+  if (copied) {
+    showCopiedState(order.id)
 
-  if (!postWindow) {
-    window.location.href =
-      'https://tracking.post.ir/'
+    // کمی فرصت برای نمایش پیام «کپی شد»
+    window.setTimeout(() => {
+      window.location.href =
+        'https://tracking.post.ir/'
+    }, 600)
+
+    return
   }
-}
 
+  // اگر مرورگر اجازه کپی خودکار نداد
+  window.prompt(
+    'کد رهگیری را کپی کنید و سپس وارد سامانه پست شوید:',
+    trackingCode,
+  )
+
+  window.location.href =
+    'https://tracking.post.ir/'
+}
 /* =========================================
    تعداد کالا
 ========================================= */
@@ -1793,9 +1799,17 @@ onMounted(() => {
   .state-card {
     min-height: 250px;
   }
-
   .tracking-content strong {
     font-size: 12px;
   }
 }
+
+.tracking-help {
+  margin: 9px 0 0;
+  color: #6b7280;
+  font-size: 10px;
+  line-height: 1.8;
+  text-align: center;
+}
+
 </style>

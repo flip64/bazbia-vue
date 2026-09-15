@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://bazbia.ir/sitemap.xml

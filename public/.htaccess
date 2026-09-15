@@ -1,0 +1,41 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # حفظ Authorization Header
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # فایل‌ها و پوشه‌های واقعی مستقیماً نمایش داده شوند
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # نمایش HTML از پیش ساخته‌شده محصولات
+    # بدون تغییر آدرس عمومی صفحه
+    RewriteCond %{DOCUMENT_ROOT}/seo-pages/product-$1.html -f
+    RewriteRule ^product/([^/]+)/?$ seo-pages/product-$1.html [L]
+
+    # سایر مسیرها توسط Vue Router مدیریت شوند
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+    AddType text/css .css
+    AddType application/json .json
+    AddType application/xml .xml
+    AddType image/svg+xml .svg
+    AddType font/woff2 .woff2
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>

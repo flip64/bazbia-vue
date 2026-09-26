@@ -412,10 +412,6 @@
                       <strong dir="ltr">
                         {{ getTrackingCode(order) }}
                       </strong>
-                     <p class="tracking-help">
-                         پس از ورود به سامانه پست، کد کپی‌شده را در کادر
-                          رهگیری جای‌گذاری کنید.
-                     </p>
                     </div>
                   </div>
 
@@ -427,13 +423,7 @@
                   >
                     <ExternalLink :size="17" />
 
-                    <span>
-                      {{
-                        copiedOrderId === order.id
-                          ? 'کد کپی شد؛ ورود به سامانه پست'
-                          : 'رهگیری در سامانه پست'
-                      }}
-                    </span>
+                    <span>رهگیری در سامانه پست</span>
                   </button>
 
                   <button
@@ -803,7 +793,7 @@ async function copyTrackingCode(
   }
 }
 
-async function openPostTracking(
+function openPostTracking(
   order: Order,
 ) {
   const trackingCode =
@@ -813,32 +803,19 @@ async function openPostTracking(
     return
   }
 
-  // ابتدا در حالی که صفحه بازبیا فعال است، کد کپی می‌شود
-  const copied =
-    await writeToClipboard(
-      trackingCode,
-    )
+  const trackingUrl =
+    `https://tracking.post.ir/?id=${encodeURIComponent(trackingCode)}`
 
-  if (copied) {
-    showCopiedState(order.id)
-
-    // کمی فرصت برای نمایش پیام «کپی شد»
-    window.setTimeout(() => {
-      window.location.href =
-        'https://tracking.post.ir/'
-    }, 600)
-
-    return
-  }
-
-  // اگر مرورگر اجازه کپی خودکار نداد
-  window.prompt(
-    'کد رهگیری را کپی کنید و سپس وارد سامانه پست شوید:',
-    trackingCode,
+  const trackingWindow = window.open(
+    trackingUrl,
+    '_blank',
+    'noopener,noreferrer',
   )
 
-  window.location.href =
-    'https://tracking.post.ir/'
+  // اگر مرورگر تب جدید را مسدود کرد، در همان تب باز شود.
+  if (!trackingWindow) {
+    window.location.href = trackingUrl
+  }
 }
 /* =========================================
    تعداد کالا

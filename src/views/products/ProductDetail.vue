@@ -351,13 +351,42 @@
               v-if="product.description"
               class="product-info__description"
             >
-              <h3>
+              <h3 class="product-info__description-title">
                 توضیحات
               </h3>
 
-              <p>
-                {{ product.description }}
-              </p>
+              <div class="product-description">
+                <template
+                  v-for="(block, index) in descriptionBlocks"
+                  :key="`${block.type}-${index}`"
+                >
+                  <h4
+                    v-if="block.type === 'heading'"
+                    class="product-description__heading"
+                  >
+                    {{ block.text }}
+                  </h4>
+
+                  <ul
+                    v-else-if="block.type === 'list'"
+                    class="product-description__list"
+                  >
+                    <li
+                      v-for="(item, itemIndex) in block.items"
+                      :key="itemIndex"
+                    >
+                      {{ item }}
+                    </li>
+                  </ul>
+
+                  <p
+                    v-else
+                    class="product-description__paragraph"
+                  >
+                    {{ block.text }}
+                  </p>
+                </template>
+              </div>
             </div>
 
 
@@ -494,6 +523,17 @@ import ProductCommunity from '@/components/products/ProductCommunity.vue'
 import type { ProductDetail, ProductImage, Variant } from '@/types/product.types'
 
 
+type DescriptionBlock =
+  | {
+      type: 'heading' | 'paragraph'
+      text: string
+    }
+  | {
+      type: 'list'
+      items: string[]
+    }
+
+
 // ==========================================
 // Router
 // ==========================================
@@ -531,6 +571,90 @@ const error =
 
 const product =
   ref<ProductDetail | null>(null)
+
+
+const descriptionBlocks =
+  computed<DescriptionBlock[]>(() => {
+    const description =
+      product.value?.description
+        ?.replace(/\r\n?/g, '\n')
+        .trim()
+
+    if (!description) {
+      return []
+    }
+
+    const blocks: DescriptionBlock[] = []
+    let paragraphLines: string[] = []
+    let listItems: string[] = []
+
+    const flushParagraph = () => {
+      if (!paragraphLines.length) return
+
+      blocks.push({
+        type: 'paragraph',
+        text: paragraphLines.join('\n'),
+      })
+
+      paragraphLines = []
+    }
+
+    const flushList = () => {
+      if (!listItems.length) return
+
+      blocks.push({
+        type: 'list',
+        items: [...listItems],
+      })
+
+      listItems = []
+    }
+
+    for (const rawLine of description.split('\n')) {
+      const line = rawLine.trim()
+
+      if (!line) {
+        flushParagraph()
+        flushList()
+        continue
+      }
+
+      const listMatch = line.match(
+        /^(?:[-–—•▪◦✓✔]|\d+[.)])\s+(.+)$/,
+      )
+
+      if (listMatch?.[1]) {
+        flushParagraph()
+        listItems.push(listMatch[1].trim())
+        continue
+      }
+
+      flushList()
+
+      const headingMatch = line.match(/^#{1,3}\s+(.+)$/)
+      const isShortHeading =
+        line.length <= 70 &&
+        /[:：]$/.test(line)
+
+      if (headingMatch?.[1] || isShortHeading) {
+        flushParagraph()
+        blocks.push({
+          type: 'heading',
+          text: (headingMatch?.[1] ?? line)
+            .replace(/[:：]$/, '')
+            .trim(),
+        })
+        continue
+      }
+
+      paragraphLines.push(line)
+    }
+
+    flushParagraph()
+    flushList()
+
+    return blocks
+  })
 
 const currentImage =
   ref('')
@@ -2146,17 +2270,107 @@ watch(
 
 .product-info__description {
   margin-top: 1.5rem;
+
+  padding: 1.25rem;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+
+  background: #ffffff;
 }
 
 
-.product-info__description p {
-  margin: 0;
+.product-info__description-title {
+  padding-bottom: 0.75rem;
 
+  border-bottom: 1px solid #f0f1f3;
+}
+
+
+.product-description {
   color: #4b5563;
 
-  line-height: 2;
+  font-size: 0.95rem;
+  line-height: 2.05;
+}
+
+
+.product-description__paragraph {
+  margin: 0;
 
   white-space: pre-line;
+}
+
+
+.product-description__paragraph +
+.product-description__paragraph,
+.product-description__list +
+.product-description__paragraph,
+.product-description__paragraph +
+.product-description__list {
+  margin-top: 1rem;
+}
+
+
+.product-description__heading {
+  margin: 1.25rem 0 0.55rem;
+
+  color: #1f2937;
+
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+
+.product-description__heading:first-child {
+  margin-top: 0;
+}
+
+
+.product-description__list {
+  display: grid;
+
+  gap: 0.45rem;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+
+.product-description__list li {
+  position: relative;
+
+  padding-right: 1.4rem;
+}
+
+
+.product-description__list li::before {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.15rem;
+
+  width: 0.45rem;
+  height: 0.45rem;
+
+  border-radius: 999px;
+
+  background: #16a34a;
+
+  content: '';
+}
+
+
+@media (max-width: 640px) {
+  .product-info__description {
+    padding: 1rem;
+  }
+
+  .product-description {
+    font-size: 0.9rem;
+    line-height: 2;
+  }
 }
 
 

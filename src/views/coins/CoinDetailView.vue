@@ -8,6 +8,7 @@ import {
   Package,
   Coins,
 } from "lucide-vue-next";
+import CoinStory from "@/components/coins/CoinStory.vue";
 import CoinGallery from "@/components/coins/CoinGallery.vue";
 import { calendars, money, number, safeURL } from "@/components/coins/format";
 import { coinService, coinError } from "@/services/coin.service";
@@ -156,66 +157,17 @@ const specs = computed(() => {
     i = activeIssue.value;
   if (!c) return [];
   return [
-    ["کشور یا قلمرو", c.issuer.name],
-    ["دوره تاریخی", c.period?.name],
-    ["حاکم", c.ruler?.name],
-    ["واحد پول", c.currency?.name],
-    [
-      "ارزش اسمی",
-      c.denomination_label || (c.face_value ? number(c.face_value) : ""),
-    ],
-    [
-      "سال روی سکه",
-      i?.date_inscription ||
-        (i?.year == null ? i?.date_status_label : number(i.year)),
-    ],
+    ["کشور", c.issuer.name],
+    ["دوره", c.period?.name],
+    ["ارزش اسمی", c.denomination_label || c.face_value],
+    ["سال ضرب", i?.date_inscription || (i?.year == null ? i?.date_status_label : number(i.year))],
     ["تقویم", calendars[i?.calendar || c.calendar]],
-    ["توضیح تقویم", c.calendar_notes],
-    [
-      "بازه تولید",
-      c.year_start == null && c.year_end == null
-        ? ""
-        : `${number(c.year_start)} تا ${number(c.year_end)} ${calendars[c.calendar] || ""}`,
-    ],
-    [
-      "معادل میلادی سال ضرب",
-      i?.gregorian_year_start == null
-        ? ""
-        : `${number(i.gregorian_year_start)}${i.gregorian_year_end != null && i.gregorian_year_end !== i.gregorian_year_start ? ` تا ${number(i.gregorian_year_end)}` : ""}`,
-    ],
-    ["ساختار فلزی", c.construction_label],
     ["شکل", c.shape_label],
-    ["توضیح شکل", c.shape_notes],
-    ["تعداد ضلع", c.side_count == null ? "" : number(c.side_count)],
-    [
-      "سوراخ در طرح اصلی",
-      c.has_hole == null ? "" : c.has_hole ? "دارد" : "ندارد",
-    ],
     ["وزن استاندارد", c.weight_g ? `${number(c.weight_g)} گرم` : ""],
-    ["قطر استاندارد", c.diameter_mm ? `${number(c.diameter_mm)} میلی‌متر` : ""],
-    ["عرض", c.width_mm ? `${number(c.width_mm)} میلی‌متر` : ""],
-    ["طول", c.height_mm ? `${number(c.height_mm)} میلی‌متر` : ""],
-    [
-      "ضخامت استاندارد",
-      c.thickness_mm ? `${number(c.thickness_mm)} میلی‌متر` : "",
-    ],
-    ["لبه", c.edge_label],
-    ["شرح لبه", c.edge_notes],
-    ["نوشته لبه", c.edge_inscription],
-    [
-      "زاویه دو رو",
-      c.alignment_degrees == null ? "" : `${number(c.alignment_degrees)} درجه`,
-    ],
+    ["قطر", c.diameter_mm ? `${number(c.diameter_mm)} میلی‌متر` : ""],
     ["ضرابخانه", i?.mint?.name],
-    ["علامت ضرابخانه", i?.mint_mark],
-    ["گونه ضرب", i?.variety_code],
-    ["پرداخت ضرب", i?.finish_label],
-    ["تیراژ", i?.mintage == null ? "" : money(i.mintage)],
-    ["زبان نوشته‌ها", c.languages],
-    ["سری", c.series_name],
-    ["موضوع‌ها", c.themes.map((t) => t.name).join("، ")],
-    ["طراح رو", c.obverse_designer],
-    ["طراح پشت", c.reverse_designer],
+    ["نوع ضرب", i?.finish_label],
+    ["لبه", c.edge_label],
   ].filter((row) => row[1] != null && row[1] !== "");
 });
 const damage = computed(() => {
@@ -313,7 +265,7 @@ onBeforeUnmount(() => controller?.abort());
             تعریف مجموعه: {{ pack.completeness_scope }}
           </p>
           <p class="coin-description">
-            {{ coin?.description || pack?.description }}
+            {{ coin?.introduction || coin?.description || pack?.description }}
           </p>
           <label v-if="coin" class="coin-field"
             ><span>سال و نوبت ضرب</span
@@ -425,6 +377,10 @@ onBeforeUnmount(() => controller?.abort());
           </template>
         </section>
       </div>
+      <section v-if="coin?.story || activeIssue?.description" class="coin-panel">
+        <h2>درباره این سکه</h2><CoinStory v-if="coin?.story" :text="coin.story" />
+        <CoinStory v-if="activeIssue?.description" :text="activeIssue.description" />
+      </section>
       <section v-if="selected && kind === 'coin'" class="coin-panel">
         <h2>وضعیت همین نمونه</h2>
         <div class="coin-tags">

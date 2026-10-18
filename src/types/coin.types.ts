@@ -122,6 +122,7 @@ export interface CoinReference {
   url: string;
 }
 export interface CoinIssue {
+  description: string;
   id: number;
   year: number | null;
   calendar: string;
@@ -141,6 +142,9 @@ export interface CoinIssue {
   specimens: CoinSale[];
 }
 export interface CoinDetail {
+  introduction: string;
+  story: string;
+  story_sources: string;
   id: number;
   name: string;
   slug: string;

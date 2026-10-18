@@ -1,6 +1,6 @@
 .coin-page {
   --coin-ink: #233b38;
-  --coin-gold: #9a6b32;
+  --coin-gold: #059669;
   --coin-line: #e5e6df;
   --coin-soft: #f6f4ee;
   color: var(--coin-ink);
@@ -30,7 +30,7 @@
   opacity: 0.5;
 }
 .coin-page :focus-visible {
-  outline: 3px solid #b88d4a;
+  outline: 3px solid #16a34a;
   outline-offset: 3px;
 }
 .coin-breadcrumb {
@@ -46,7 +46,7 @@
 }
 .coin-hero {
   padding: 36px 42px;
-  background: linear-gradient(120deg, #f6f2e8, #e9eee7);
+  background: linear-gradient(120deg, #ecfdf5, #dcfce7);
   border: 1px solid #dedfd4;
   border-radius: 20px;
   display: flex;
@@ -825,3 +825,6 @@
     transition: none;
   }
 }
+
+.coin-story { max-width: 78ch; line-height: 2.1; }
+.coin-story p { white-space: pre-line; overflow-wrap: anywhere; }

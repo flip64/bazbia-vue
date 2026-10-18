@@ -616,6 +616,8 @@ const menuItems = [
     title: 'محصولات',
     path: '/products'
   },
+  { id: 7, title: 'سکه و کلکسیون', path: '/coins' },
+
   {
     id: 3,
     title: 'دسته‌بندی‌ها',
@@ -675,6 +677,7 @@ const userAvatar = computed(() => {
 
 // Helpers
 const isActiveRoute = (path: string) => {
+  if (path === '/coins' && route.path.startsWith('/coin-packs')) return true
   if (path === '/') {
     return route.path === '/'
   }

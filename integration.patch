@@ -1,0 +1,66 @@
+diff --git a/src/components/layout/header/Header.vue b/src/components/layout/header/Header.vue
+index 3bfd657..1580caf 100644
+--- a/src/components/layout/header/Header.vue
++++ b/src/components/layout/header/Header.vue
+@@ -616,6 +616,8 @@ const menuItems = [
+     title: 'محصولات',
+     path: '/products'
+   },
++  { id: 7, title: 'سکه و کلکسیون', path: '/coins' },
++
+   {
+     id: 3,
+     title: 'دسته‌بندی‌ها',
+@@ -675,6 +677,7 @@ const userAvatar = computed(() => {
+ 
+ // Helpers
+ const isActiveRoute = (path: string) => {
++  if (path === '/coins' && route.path.startsWith('/coin-packs')) return true
+   if (path === '/') {
+     return route.path === '/'
+   }
+diff --git a/src/core/router/index.ts b/src/core/router/index.ts
+index 2ef1f6f..c46e663 100644
+--- a/src/core/router/index.ts
++++ b/src/core/router/index.ts
+@@ -13,6 +13,11 @@ import { trackPageView } from '@/services/analytics'
+ 
+ 
+ const routes: RouteRecordRaw[] = [
++  { path: '/coins', name: 'coins', component: () => import('@/views/coins/CoinsView.vue'), meta: { title: 'سکه و کلکسیون', requiresAuth: false, coinKind: 'coin' } },
++  { path: '/coin-packs', name: 'coin-packs', component: () => import('@/views/coins/CoinsView.vue'), meta: { title: 'پک سکه', requiresAuth: false, coinKind: 'pack' } },
++  { path: '/coins/year/:calendar/:year', redirect: to => ({ name: 'coins', query: { calendar: String(to.params.calendar), year: String(to.params.year) } }) },
++  { path: '/coins/:slug', name: 'coin-detail', component: () => import('@/views/coins/CoinDetailView.vue'), meta: { title: 'جزئیات سکه', requiresAuth: false, coinKind: 'coin' } },
++  { path: '/coin-packs/:slug', name: 'coin-pack-detail', component: () => import('@/views/coins/CoinDetailView.vue'), meta: { title: 'جزئیات پک سکه', requiresAuth: false, coinKind: 'pack' } },
+   // =================================================
+   // صفحه اصلی
+   // =================================================
+diff --git a/src/types/payment.types.ts b/src/types/payment.types.ts
+index 967e8f5..7a473cb 100644
+--- a/src/types/payment.types.ts
++++ b/src/types/payment.types.ts
+@@ -17,6 +17,7 @@ export type PaymentMethod =
+ 
+ 
+ export interface Payment {
++  requires_review?: boolean
+   id: number
+   order: number
+ 
+diff --git a/src/views/payment/PaymentVerifyView.vue b/src/views/payment/PaymentVerifyView.vue
+index 103688a..3b30dc8 100644
+--- a/src/views/payment/PaymentVerifyView.vue
++++ b/src/views/payment/PaymentVerifyView.vue
+@@ -18,6 +18,12 @@
+       </p>
+     </section>
+ 
++    <section v-else-if="payment?.requires_review" class="payment-result-card">
++      <h1>پرداخت ثبت شد و نیاز به بررسی دارد</h1>
++      <p>سفارش پیش از تأیید پرداخت لغو شده است. این پرداخت به معنای تأیید سفارش نیست؛ برای بررسی و استرداد وجه با پشتیبانی تماس بگیرید.</p>
++      <p v-if="payment.reference_id">شماره مرجع: {{ payment.reference_id }}</p>
++      <router-link to="/contact">تماس با پشتیبانی</router-link>
++    </section>
+     <!-- پرداخت موفق -->
+     <section
+       v-else-if="isSuccessful"

@@ -17,6 +17,7 @@ export type PaymentMethod =
 
 
 export interface Payment {
+  requires_review?: boolean
   id: number
   order: number
 

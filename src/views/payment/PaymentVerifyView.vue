@@ -18,6 +18,12 @@
       </p>
     </section>
 
+    <section v-else-if="payment?.requires_review" class="payment-result-card">
+      <h1>پرداخت ثبت شد و نیاز به بررسی دارد</h1>
+      <p>سفارش پیش از تأیید پرداخت لغو شده است. این پرداخت به معنای تأیید سفارش نیست؛ برای بررسی و استرداد وجه با پشتیبانی تماس بگیرید.</p>
+      <p v-if="payment.reference_id">شماره مرجع: {{ payment.reference_id }}</p>
+      <router-link to="/contact">تماس با پشتیبانی</router-link>
+    </section>
     <!-- پرداخت موفق -->
     <section
       v-else-if="isSuccessful"

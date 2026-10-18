@@ -1,5 +1,9 @@
-# Vue 3 + TypeScript + Vite
+# فرانت سکه و کلکسیون بازبیا
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+راهنمای نصب و آزمون‌ها: docs/coins-frontend.md
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+فایل‌های src را با مخزن bazbia-vue ادغام کنید؛ نیازمند نصب آخرین بک‌اند سکه و انتشار نمونه‌هاست.
+ساخت با npm ci و npm run build طبق روش قبلی پروژه انجام می‌شود.
+
+ساخت SPA و آزمون مرورگر با API واقعی محلی پاس شدند. روی سرور یا GitHub اعمال نشده است.
+بسته شامل سورس است و dist یا داده و تصاویر آزمایشی ندارد.

@@ -183,7 +183,7 @@
                 <template v-else>
                   {{
                     isProductInStock(product)
-                      ? 'افزودن به سبد'
+                      ? (coinDestination(product) ? 'انتخاب نمونه و خرید' : 'افزودن به سبد')
                       : 'ناموجود'
                   }}
                 </template>
@@ -208,6 +208,7 @@
 </template>
 
 <script setup lang="ts">
+import { coinDestination, productDestination } from "@/services/productDestination";
 import {
   computed,
   onMounted,
@@ -406,11 +407,7 @@ function getDiscountPercent(
 function goToProduct(
   product: LatestProduct,
 ) {
-  router.push(
-    `/product/${
-      product.slug || product.id
-    }`,
-  )
+  router.push(productDestination(product))
 }
 
 function goToAll() {
@@ -420,6 +417,12 @@ function goToAll() {
 async function addToCart(
   product: LatestProduct,
 ) {
+  const destination = coinDestination(product);
+  if (destination) {
+    await router.push(destination);
+    return;
+  }
+
   if (
     !isProductInStock(product) ||
     addingProductId.value !== null

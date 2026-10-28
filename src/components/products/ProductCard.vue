@@ -3,7 +3,8 @@ import {
   computed,
   ref,
 } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+import { coinDestination, productDestination } from '@/services/productDestination'
 
 import { useCartStore } from '@/core/store/cartStore'
 
@@ -14,6 +15,7 @@ const props = defineProps<{
 }>()
 
 const cartStore = useCartStore()
+const router = useRouter()
 
 const isAdding = ref(false)
 const addSuccess = ref(false)
@@ -118,6 +120,11 @@ const formatPrice = (
 
 const handleAddToCart =
   async () => {
+    const destination = coinDestination(props.product);
+    if (destination) {
+      await router.push(destination);
+      return;
+    }
     if (
       !mainVariant.value ||
       !isInStock.value ||
@@ -161,7 +168,7 @@ const handleAddToCart =
     }"
   >
     <RouterLink
-      :to="`/product/${product.slug}`"
+      :to="productDestination(product)"
       class="product-image"
     >
       <img
@@ -205,7 +212,7 @@ const handleAddToCart =
 
     <div class="product-content">
       <RouterLink
-        :to="`/product/${product.slug}`"
+        :to="productDestination(product)"
         class="product-name"
       >
         {{ product.name }}
@@ -277,7 +284,7 @@ const handleAddToCart =
         </template>
 
         <template v-else>
-          افزودن به سبد
+          {{ coinDestination(product) ? "انتخاب نمونه و خرید" : "افزودن به سبد" }}
         </template>
       </button>
     </div>

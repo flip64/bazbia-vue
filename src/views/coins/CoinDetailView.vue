@@ -10,6 +10,7 @@ import {
 } from "lucide-vue-next";
 import CoinStory from "@/components/coins/CoinStory.vue";
 import CoinGallery from "@/components/coins/CoinGallery.vue";
+import ProductCommunity from "@/components/products/ProductCommunity.vue";
 import { calendars, money, number, safeURL } from "@/components/coins/format";
 import { coinService, coinError } from "@/services/coin.service";
 import { useCartStore } from "@/core/store/cartStore";
@@ -52,6 +53,9 @@ const sales = computed<CoinSale[]>(() =>
 const selected = computed(() =>
   sales.value.find((v) => v.variant_id === variantId.value),
 );
+// Community belongs to the store product, not the catalog type or issue.
+// Remount on product changes so drafts and replies cannot carry to another product.
+const communitySlug = computed(() => selected.value?.product_slug || "");
 const maxQuantity = computed(() =>
   selected.value?.sale_mode === "unique"
     ? Math.min(1, selected.value.available_stock)
@@ -535,6 +539,13 @@ onBeforeUnmount(() => controller?.abort());
             ><bdi v-else>{{ reference.catalog }} #{{ reference.number }}</bdi>
           </li>
         </ul>
+      </section>
+      <section v-if="communitySlug" class="coin-panel">
+        <p class="coin-note">
+          دیدگاه‌ها و پرسش‌ها مربوط به محصول فروشگاهی نمونهٔ انتخاب‌شده هستند و
+          با صفحهٔ همان محصول مشترک‌اند.
+        </p>
+        <ProductCommunity :key="communitySlug" :slug="communitySlug" />
       </section>
       <RouterLink
         :to="{ name: kind === 'pack' ? 'coin-packs' : 'coins' }"

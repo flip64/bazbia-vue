@@ -162,28 +162,23 @@ const loadCategories = async () => {
   }
 }
 
-const loadCategoryPath = async (
-  slug: string,
-) => {
-  if (!slug) {
-    categoryPath.value = []
-    return
+const loadCategoryPath = async (slug: string) => {
+  const findPath = (items: Category[], path: Category[] = []): Category[] | null => {
+    for (const category of items) {
+      const nextPath = [...path, category]
+      if (category.slug === slug) return nextPath
+      const found = findPath(category.subcategories ?? [], nextPath)
+      if (found) return found
+    }
+    return null
   }
-
-  try {
-    categoryPath.value =
-      await categoryService.getCategoryPath(
-        slug,
-      )
-  } catch (err) {
-    console.error(
-      'خطا در دریافت مسیر دسته‌بندی:',
-      err,
-    )
-
-    categoryPath.value = []
-  }
+  categoryPath.value = slug ? findPath(categories.value) ?? [] : []
 }
+
+const visibleSubcategories = computed(() => {
+  const current = categoryPath.value[categoryPath.value.length - 1]
+  return current ? current.subcategories ?? [] : categories.value
+})
 
 const loadProducts = async (
   page: number = 1,
@@ -539,11 +534,14 @@ onBeforeUnmount(() => {
             /
           </span>
 
-          <span
-            class="breadcrumb__current"
+          <button
+            type="button"
+            class="breadcrumb__link"
+            :aria-current="category.slug === filters.category ? 'page' : undefined"
+            @click="selectCategory(category.slug)"
           >
             {{ category.name }}
-          </span>
+          </button>
         </template>
       </nav>
 
@@ -608,6 +606,22 @@ onBeforeUnmount(() => {
               showMobileFilters = true
             "
           />
+
+          <section v-if="visibleSubcategories.length" class="subcategory-panel" aria-label="زیر‌دسته‌ها">
+            <h2>{{ activeCategoryName ? 'زیر‌دسته‌های ' + activeCategoryName : 'دسته‌بندی محصولات' }}</h2>
+            <div class="subcategory-links">
+              <button v-for="category in visibleSubcategories" :key="category.id"
+                type="button" class="subcategory-link" :disabled="loading"
+                @click="selectCategory(category.slug)">
+                <span class="subcategory-image">
+                  <img v-if="category.image" :src="category.image" :alt="category.name"
+                    loading="lazy" @error="($event.target as HTMLImageElement).style.visibility = 'hidden'" />
+                  <span v-else aria-hidden="true">📂</span>
+                </span>
+                <span class="subcategory-name">{{ category.name }}</span>
+              </button>
+            </div>
+          </section>
 
           <!-- Loading -->
           <div
@@ -756,6 +770,21 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.subcategory-panel { margin: 1rem 0; }
+.subcategory-panel h2 { margin: 0 0 1rem; font-size: 1rem; }
+.subcategory-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.subcategory-link { display: flex; flex-direction: column; align-items: center; padding: .75rem; border: 1px solid transparent; border-radius: 1rem; background: rgb(249 250 251 / .6); color: #374151; cursor: pointer; font: inherit; transition: border-color .2s, box-shadow .2s; }
+.subcategory-link:hover, .subcategory-link:focus-visible { border-color: #e5e7eb; box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
+.subcategory-link:disabled { opacity: .6; cursor: wait; }
+.subcategory-image { display: flex; align-items: center; justify-content: center; width: 5rem; height: 5rem; border-radius: 1rem; overflow: hidden; font-size: 2rem; }
+.subcategory-image img { width: 100%; height: 100%; object-fit: contain; transition: transform .2s; }
+.subcategory-link:hover img { transform: scale(1.05); }
+.subcategory-name { margin-top: .75rem; min-height: 42px; text-align: center; font-size: .75rem; font-weight: 500; overflow-wrap: anywhere; }
+@media (min-width: 640px) { .subcategory-links { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 768px) { .subcategory-links { grid-template-columns: repeat(5, minmax(0, 1fr)); } .subcategory-image { width: 6rem; height: 6rem; } .subcategory-name { font-size: .875rem; } }
+@media (min-width: 1024px) { .subcategory-links { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+
 .products-page {
   min-height: 100vh;
   background:

@@ -83,7 +83,7 @@
             }"
           >
             <!-- Image -->
-            <div class="relative aspect-square overflow-hidden bg-gray-50">
+            <RouterLink :to="productDestination(product)" class="relative aspect-square overflow-hidden bg-gray-50">
               <span
                 v-if="
                   isProductInStock(product) &&
@@ -126,7 +126,7 @@
               >
                 تصویر موجود نیست
               </div>
-            </div>
+            </RouterLink>
 
             <!-- Content -->
             <div class="flex flex-1 flex-col p-4">
@@ -134,7 +134,7 @@
                 class="line-clamp-2 min-h-11 text-center text-sm
                        font-medium leading-6 text-gray-800"
               >
-                {{ product.name }}
+                <RouterLink :to="productDestination(product)">{{ product.name }}</RouterLink>
               </h3>
 
               <!-- Price -->
@@ -199,7 +199,7 @@
                 <template v-else>
                   {{
                     isProductInStock(product)
-                      ? 'افزودن به سبد خرید'
+                      ? (coinDestination(product) ? 'انتخاب نمونه و خرید' : 'افزودن به سبد خرید')
                       : 'ناموجود'
                   }}
                 </template>
@@ -213,6 +213,8 @@
 </template>
 
 <script setup lang="ts">
+import { RouterLink, useRouter } from "vue-router";
+import { coinDestination, productDestination } from "@/services/productDestination";
 import {
   computed,
   ref,
@@ -231,6 +233,7 @@ import { useCartStore } from '@/core/store/cartStore'
 import type { Product } from '@/types/product.types'
 
 const modules = [Navigation]
+const router = useRouter()
 
 const props = defineProps<{
   products: Product[]
@@ -368,6 +371,12 @@ function getDiscountPercent(
 async function addToCart(
   product: Product,
 ) {
+  const destination = coinDestination(product);
+  if (destination) {
+    await router.push(destination);
+    return;
+  }
+
   if (
     !isProductInStock(product) ||
     addingProductId.value !== null

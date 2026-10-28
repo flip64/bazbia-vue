@@ -513,6 +513,7 @@
 <script setup lang="ts">
 
 import { computed, ref, watch } from 'vue'
+import { coinDestination } from '@/services/productDestination'
 import { useRoute, useRouter } from 'vue-router'
 import { useCartStore } from '@/core/store/cartStore'
 import { useWishlistStore } from '@/core/store/wishlistStore'
@@ -1382,6 +1383,12 @@ async function fetchProduct():
           slug,
         )
 
+
+    const destination = coinDestination(product.value!, route.query.variant);
+    if (destination) {
+      await router.replace(destination);
+      return;
+    }
 
     chooseInitialVariant()
 

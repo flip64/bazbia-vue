@@ -354,39 +354,38 @@
               <h3 class="product-info__description-title">
                 توضیحات
               </h3>
+<div class="product-description">
+  <template
+    v-for="(block, index) in descriptionBlocks"
+    :key="`${block.type}-${index}`"
+  >
+    <h4
+      v-if="block.type === 'heading'"
+      class="product-description__heading"
+    >
+      <DescriptionInline :text="block.text" />
+    </h4>
 
-              <div class="product-description">
-                <template
-                  v-for="(block, index) in descriptionBlocks"
-                  :key="`${block.type}-${index}`"
-                >
-                  <h4
-                    v-if="block.type === 'heading'"
-                    class="product-description__heading"
-                  >
-                    {{ block.text }}
-                  </h4>
+    <ul
+      v-else-if="block.type === 'list'"
+      class="product-description__list"
+    >
+      <li
+        v-for="(item, itemIndex) in block.items"
+        :key="itemIndex"
+      >
+        <DescriptionInline :text="item" />
+      </li>
+    </ul>
 
-                  <ul
-                    v-else-if="block.type === 'list'"
-                    class="product-description__list"
-                  >
-                    <li
-                      v-for="(item, itemIndex) in block.items"
-                      :key="itemIndex"
-                    >
-                      {{ item }}
-                    </li>
-                  </ul>
-
-                  <p
-                    v-else
-                    class="product-description__paragraph"
-                  >
-                    {{ block.text }}
-                  </p>
-                </template>
-              </div>
+    <p
+      v-else
+      class="product-description__paragraph"
+    >
+      <DescriptionInline :text="block.text" />
+    </p>
+  </template>
+</div>
             </div>
 
 

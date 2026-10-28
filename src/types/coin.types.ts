@@ -76,6 +76,7 @@ export interface PackItem {
   position: number;
 }
 export interface CoinSale {
+  variant_label?: string;
   id: number;
   variant_id: number;
   product_id: number;

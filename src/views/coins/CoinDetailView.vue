@@ -10,7 +10,6 @@ import {
 } from "lucide-vue-next";
 import CoinStory from "@/components/coins/CoinStory.vue";
 import CoinGallery from "@/components/coins/CoinGallery.vue";
-import ProductCommunity from "@/components/products/ProductCommunity.vue";
 import { calendars, money, number, safeURL } from "@/components/coins/format";
 import { coinService, coinError } from "@/services/coin.service";
 import { useCartStore } from "@/core/store/cartStore";
@@ -53,15 +52,12 @@ const sales = computed<CoinSale[]>(() =>
 const selected = computed(() =>
   sales.value.find((v) => v.variant_id === variantId.value),
 );
-// Community belongs to the store product, not the catalog type or issue.
-// Remount on product changes so drafts and replies cannot carry to another product.
-const communitySlug = computed(() => selected.value?.product_slug || "");
 const maxQuantity = computed(() =>
   selected.value?.sale_mode === "unique"
     ? Math.min(1, selected.value.available_stock)
     : Math.min(100, selected.value?.available_stock || 0),
 );
-const photos = computed(() => selected.value?.images || []);
+const photos = computed(() => selected.value?.images?.length ? selected.value.images : activeIssue.value?.images?.length ? activeIssue.value.images : coin.value?.images || []);
 const itemNames = computed(() =>
   Object.fromEntries(
     (selected.value?.items || []).map((item) => [item.id, item.coin_name]),
@@ -75,7 +71,7 @@ function issueLabel(issue: CoinIssue) {
   return `${issue.year == null ? issue.date_status_label : number(issue.year)} · ${calendars[issue.calendar] || issue.calendar}${issue.mint_mark ? ` · ${issue.mint_mark}` : ""}${issue.variety_code ? ` · ${issue.variety_code}` : ""} · ${issue.finish_label}`;
 }
 function saleLabel(sale: CoinSale) {
-  return `${sale.sku} · ${sale.condition_label || (sale.sale_mode === "unique" ? "پک اختصاصی" : "پک مشابه")} · ${money(sale.effective_price)} تومان${sale.can_purchase ? "" : " · ناموجود"}`;
+  return `${sale.variant_label || sale.sku} · ${money(sale.effective_price)} تومان${sale.can_purchase ? "" : " · ناموجود"}`;
 }
 function syncSelection() {
   const requestedIssue = Number(route.query.issue);
@@ -284,14 +280,14 @@ onBeforeUnmount(() => controller?.abort());
             </select></label
           >
           <label class="coin-field"
-            ><span>{{ kind === "pack" ? "نسخه پک" : "نمونه قابل خرید" }}</span
+            ><span>{{ kind === "pack" ? "نسخه پک" : "انتخاب مدل برای خرید" }}</span
             ><select
               v-model="variantId"
               :disabled="!sales.length || adding"
               @change="updateQuery"
             >
               <option v-if="!sales.length" :value="undefined">
-                برای این نوبت، نمونه‌ای عرضه نشده است
+                برای این سال و نوع ضرب، گزینه‌ای برای خرید موجود نیست
               </option>
               <option
                 v-for="sale in sales"
@@ -375,7 +371,7 @@ onBeforeUnmount(() => controller?.abort());
               <RouterLink to="/cart">مشاهده سبد خرید ←</RouterLink>
             </p>
             <p class="coin-note">
-              کد نمونه: <bdi>{{ selected.sku }}</bdi> · موجودی هنگام ثبت سفارش
+              کد کالا: <bdi>{{ selected.sku }}</bdi> · موجودی هنگام ثبت سفارش
               دوباره بررسی می‌شود.
             </p>
           </template>
@@ -386,7 +382,7 @@ onBeforeUnmount(() => controller?.abort());
         <CoinStory v-if="activeIssue?.description" :text="activeIssue.description" />
       </section>
       <section v-if="selected && kind === 'coin'" class="coin-panel">
-        <h2>وضعیت همین نمونه</h2>
+        <h2>وضعیت سکه انتخاب‌شده</h2>
         <div class="coin-tags">
           <span>حفظ‌شدگی: {{ selected.condition_label }}</span
           ><span v-if="activeIssue"
@@ -539,13 +535,6 @@ onBeforeUnmount(() => controller?.abort());
             ><bdi v-else>{{ reference.catalog }} #{{ reference.number }}</bdi>
           </li>
         </ul>
-      </section>
-      <section v-if="communitySlug" class="coin-panel">
-        <p class="coin-note">
-          دیدگاه‌ها و پرسش‌ها مربوط به محصول فروشگاهی نمونهٔ انتخاب‌شده هستند و
-          با صفحهٔ همان محصول مشترک‌اند.
-        </p>
-        <ProductCommunity :key="communitySlug" :slug="communitySlug" />
       </section>
       <RouterLink
         :to="{ name: kind === 'pack' ? 'coin-packs' : 'coins' }"

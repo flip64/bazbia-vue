@@ -50,12 +50,12 @@ watch(
         }}
       </p>
       <div class="coin-card__price">
-        <span
+        <span v-if="item.min_price != null"
           ><small>از </small><strong>{{ money(item.min_price) }}</strong>
           <small>تومان</small></span
-        ><ArrowLeft :size="18" />
+        ><span v-else>مشاهده شناسنامه سکه</span><ArrowLeft :size="18" />
       </div>
-      <span v-if="!item.in_stock" class="coin-note"
+      <span v-if="!item.in_stock && item.min_price != null" class="coin-note"
         >قیمت آخرین عرضه · قابل خرید نیست</span
       >
     </div>

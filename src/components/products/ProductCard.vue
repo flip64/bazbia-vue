@@ -12,8 +12,19 @@ import type { Product } from '@/types/product.types'
 
 const props = defineProps<{
   product: Product
+  catalogOnly?: boolean
+  coinMeta?: string
+  priceFrom?: boolean
+  secondaryImage?: string | null
 }>()
 
+const coinTarget = computed(() => (props.product as Product & { storefront?: { catalog_only?: boolean; year?: number | null; issuer?: string; label?: string; is_group?: boolean; in_stock?: boolean; images?: { url: string | null }[] } }).storefront)
+const catalogOnly = computed(() => props.catalogOnly || !!coinTarget.value?.catalog_only)
+const displayName = computed(() => {
+  const target = coinTarget.value
+  return target?.label ? `${target.label}${target.year == null ? '' : ` · ${target.year.toLocaleString('fa-IR', { useGrouping: false })}`}` : props.product.name
+})
+const meta = computed(() => props.coinMeta || coinTarget.value?.issuer || '')
 const cartStore = useCartStore()
 const router = useRouter()
 
@@ -36,6 +47,7 @@ const mainVariant = computed(() => {
 })
 
 const isInStock = computed(() => {
+  if (coinTarget.value?.is_group) return !!coinTarget.value.in_stock;
   return (
     Number(props.product.in_stock) >
       0 &&
@@ -94,8 +106,10 @@ const discountPercent = computed(() => {
 
 const stockLabel = computed(() => {
   if (!isInStock.value) {
-    return 'ناموجود'
+    return catalogOnly.value ? 'فقط معرفی' : 'ناموجود'
   }
+
+  if (coinDestination(props.product)) return 'موجود'
 
   const stock = Number(
     mainVariant.value?.stock ?? 0,
@@ -177,7 +191,7 @@ const handleAddToCart =
           !imageError
         "
         :src="product.thumb"
-        :alt="product.name"
+        :alt="displayName"
         loading="lazy"
         @error="imageError = true"
       />
@@ -188,6 +202,9 @@ const handleAddToCart =
       >
         تصویر موجود نیست
       </div>
+      <img v-if="secondaryImage || coinTarget?.images?.[1]?.url"
+        :src="secondaryImage || coinTarget?.images?.[1]?.url || ''" :alt="`پشت ${displayName}`"
+        class="product-image__back" loading="lazy" />
 
       <span
         v-if="
@@ -215,9 +232,10 @@ const handleAddToCart =
         :to="productDestination(product)"
         class="product-name"
       >
-        {{ product.name }}
+        {{ displayName }}
       </RouterLink>
 
+      <p v-if="meta" class="product-meta">{{ meta }}</p>
       <div class="product-price">
         <template v-if="isInStock">
           <span
@@ -235,6 +253,7 @@ const handleAddToCart =
           <div
             class="product-price__current"
           >
+            <small v-if="priceFrom || coinTarget?.is_group">از </small>
             <strong>
               {{
                 formatPrice(
@@ -251,11 +270,13 @@ const handleAddToCart =
           v-else
           class="product-price__unavailable"
         >
-          ناموجود
+          {{ catalogOnly ? "فقط معرفی" : "ناموجود" }}
         </div>
       </div>
 
+      <RouterLink v-if="catalogOnly" :to="productDestination(product)" class="add-button">مشاهده شناسنامه</RouterLink>
       <button
+        v-else
         type="button"
         class="add-button"
         :class="{
@@ -292,6 +313,9 @@ const handleAddToCart =
 </template>
 
 <style scoped>
+.product-image__back { position: absolute; inset: 0; opacity: 0; background: white; transition: opacity .2s; }
+.product-image:hover .product-image__back { opacity: 1; }
+.product-meta { font-size: .8rem; color: #64748b; margin: 0 0 .5rem; }
 .product-card {
   display: flex;
   height: 100%;

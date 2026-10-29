@@ -52,8 +52,10 @@
               'border-gray-200 opacity-90':
                 !isProductInStock(product),
             }"
-            @click="goToProduct(product)"
+            @click="!coinDestination(product) && goToProduct(product)"
           >
+            <ProductCard v-if="coinDestination(product)" :product="product" />
+            <template v-else>
             <!-- Image -->
             <div class="relative overflow-hidden bg-gray-50">
               <img
@@ -161,6 +163,7 @@
                 </template>
               </button>
             </div>
+            </template>
           </article>
         </template>
 
@@ -180,6 +183,8 @@
 </template>
 
 <script setup lang="ts">
+import ProductCard from '@/components/products/ProductCard.vue';
+
 import { coinDestination, productDestination } from "@/services/productDestination";
 import {
   computed,
@@ -201,7 +206,7 @@ interface CheapestProduct {
   slug?: string
   name: string
   thumb?: string | null
-  price: number | string
+  price?: number | string
   old_price?: number | string | null
   discount?: number | string | null
   discount_price?: number | string | null

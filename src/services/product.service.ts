@@ -5,7 +5,8 @@ const API_BASE_URL = 'https://backend.bazbia.ir/api'
 const PLACEHOLDER_IMAGE = '/images/placeholder.jpg'
 
 // تابع کمکی برای نرمالایز کردن محصول
-const normalizeProduct = (product: any): Product => {
+export const normalizeProduct = (product: any): Product => {
+  const group = product.storefront?.is_group ? product.storefront : null;
   // قیمت از واریانت اول
   const mainVariant = product.variants?.[0]
   const variantPrice = mainVariant ? parseFloat(mainVariant.price) : 0
@@ -13,7 +14,7 @@ const normalizeProduct = (product: any): Product => {
   // **تصویر اصلی - اصلاح شده**
   // اول از thumb مستقیم استفاده کن (برای لیست محصولات)
   // بعد از images (برای صفحه جزئیات)
-  const mainImage = product.thumb ||
+  const mainImage = group ? group.images?.[0]?.url || null : product.thumb ||
                    product.images?.find((img: any) => img.is_main)?.image ||
                    product.images?.[0]?.image ||
                    null
@@ -21,9 +22,9 @@ const normalizeProduct = (product: any): Product => {
   return {
     ...product,
     // فیلدهای computed
-    price: variantPrice,
-    discount_price: mainVariant?.discount_price ? parseFloat(mainVariant.discount_price) : null,
-    in_stock: (mainVariant?.stock || product.quantity || 0) > 0,
+    price: group ? Number(group.min_price || 0) : variantPrice,
+    discount_price: group ? null : mainVariant?.discount_price ? parseFloat(mainVariant.discount_price) : null,
+    in_stock: group ? !!group.in_stock : (mainVariant?.stock || product.quantity || 0) > 0,
     thumb: mainImage,  // <-- حالا مقدار صحیح را دارد
 
     // اطمینان از وجود آرایه‌ها با مقدار پیش‌فرض

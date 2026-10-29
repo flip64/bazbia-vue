@@ -1,63 +1,27 @@
 <script setup lang="ts">
-import { Coins, ArrowLeft, Package } from "lucide-vue-next";
-import { ref, watch } from "vue";
-import type { CoinCard, CoinKind } from "@/types/coin.types";
-import { money, number, calendars, safeURL } from "./format";
+import { computed } from 'vue';
+import ProductCard from '@/components/products/ProductCard.vue';
+import type { Product } from '@/types/product.types';
+import type { CoinCard, CoinKind } from '@/types/coin.types';
+import { number, safeURL } from './format';
 const props = defineProps<{ item: CoinCard; kind: CoinKind }>();
-const broken = ref(false);
-watch(
-  () => props.item.image?.url,
-  () => (broken.value = false),
-);
+// Share the store card and its navigation; catalog cards never add a synthetic variant.
+const product = computed(() => ({
+  id: props.item.id,
+  name: props.item.name + (props.item.mint_year == null ? '' : ` · ${number(props.item.mint_year)}`),
+  slug: props.item.slug,
+  thumb: safeURL(props.item.image?.url),
+  price: props.item.min_price,
+  in_stock: props.item.in_stock,
+  variants: [{ id: 0, stock: props.item.in_stock ? 1 : 0 }],
+  storefront: {
+    kind: props.kind,
+    url: `${props.kind === 'pack' ? '/coin-packs/' : props.item.is_group ? '/coins/groups/' : '/coins/'}${encodeURIComponent(props.item.slug)}`,
+  },
+}) as unknown as Product);
 </script>
 <template>
-  <RouterLink
-    class="coin-card"
-    :to="{
-      name: kind === 'pack' ? 'coin-pack-detail' : 'coin-detail',
-      params: { slug: item.slug },
-    }"
-  >
-    <div class="coin-card__image">
-      <img
-        v-if="safeURL(item.image?.url) && !broken"
-        :src="safeURL(item.image?.url)"
-        :alt="item.image?.alt_text || item.name"
-        loading="lazy"
-        @error="broken = true"
-      />
-      <div v-else class="coin-placeholder">
-        <Package v-if="kind === 'pack'" :size="60" /><Coins
-          v-else
-          :size="60"
-        /><span>تصویر در دسترس نیست</span>
-      </div>
-      <span class="coin-badge" :class="{ muted: !item.in_stock }">{{
-        item.in_stock ? "موجود" : "ناموجود"
-      }}</span>
-    </div>
-    <div class="coin-card__body">
-      <p class="coin-eyebrow">
-        {{ item.issuer?.name || "چند کشور"
-        }}<template v-if="item.period"> · {{ item.period.name }}</template>
-      </p>
-      <h2>{{ item.name }}<template v-if="item.mint_year != null"> · {{ number(item.mint_year) }}</template></h2>
-      <p class="coin-card__meta">
-        {{
-          kind === "pack"
-            ? `${number(item.year)} ${calendars[item.calendar] || ""} · ${item.is_complete ? "مجموعه کامل" : "پک منتخب"}`
-            : item.denomination_label || "سکه کلکسیونی"
-        }}
-      </p>
-      <div class="coin-card__price">
-        <span v-if="item.min_price != null"
-          ><small>از </small><strong>{{ money(item.min_price) }}</strong>
-          <small>تومان</small></span
-        ><span v-else>مشاهده شناسنامه سکه</span><ArrowLeft :size="18" />
-      </div>
-      <span v-if="!item.in_stock && item.min_price != null" class="coin-note"
-        >قیمت آخرین عرضه · قابل خرید نیست</span
-      >
-    </div>
-  </RouterLink>
+  <ProductCard :product="product" :catalog-only="item.min_price == null"
+    :coin-meta="[item.issuer?.name, item.period?.name, item.denomination_label].filter(Boolean).join(' · ')"
+    :secondary-image="safeURL(item.images?.[1]?.url)" :price-from="true" />
 </template>

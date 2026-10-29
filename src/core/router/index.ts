@@ -16,6 +16,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/coins', name: 'coins', component: () => import('@/views/coins/CoinsView.vue'), meta: { title: 'سکه و کلکسیون', requiresAuth: false, coinKind: 'coin' } },
   { path: '/coin-packs', name: 'coin-packs', component: () => import('@/views/coins/CoinsView.vue'), meta: { title: 'پک سکه', requiresAuth: false, coinKind: 'pack' } },
   { path: '/coins/year/:calendar/:year', redirect: to => ({ name: 'coins', query: { calendar: String(to.params.calendar), year: String(to.params.year) } }) },
+  { path: '/coins/groups/:slug', name: 'coin-group-detail', component: () => import('@/views/coins/CoinDetailView.vue'), meta: { title: 'گروه سکه', requiresAuth: false, coinKind: 'coin', coinGroup: true } },
   { path: '/coins/:slug', name: 'coin-detail', component: () => import('@/views/coins/CoinDetailView.vue'), meta: { title: 'جزئیات سکه', requiresAuth: false, coinKind: 'coin' } },
   { path: '/coin-packs/:slug', name: 'coin-pack-detail', component: () => import('@/views/coins/CoinDetailView.vue'), meta: { title: 'جزئیات پک سکه', requiresAuth: false, coinKind: 'pack' } },
   // =================================================

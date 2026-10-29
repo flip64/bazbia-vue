@@ -18,6 +18,8 @@ export interface CoinImage {
   caption: string;
 }
 export interface CoinCard {
+  is_group?: boolean;
+  images?: CoinImage[];
   id: number;
   name: string;
   slug: string;
@@ -124,6 +126,7 @@ export interface CoinReference {
   url: string;
 }
 export interface CoinIssue {
+  images: CoinImage[];
   description: string;
   id: number;
   year: number | null;
@@ -144,6 +147,10 @@ export interface CoinIssue {
   specimens: CoinSale[];
 }
 export interface CoinDetail {
+  year_story?: string;
+  group_slug?: string | null;
+  images: CoinImage[];
+  related_years?: { slug: string; year: number }[];
   mint_year?: number | null;
   introduction: string;
   story: string;
@@ -215,3 +222,9 @@ export interface PackDetail {
   variants: CoinSale[];
 }
 export type CoinKind = "coin" | "pack";
+
+export interface CoinGroupDetail {
+  id: number; slug: string; name: string;
+  introduction: string; story: string; story_sources: string;
+  images: CoinImage[]; years: CoinDetail[];
+}

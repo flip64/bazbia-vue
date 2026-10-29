@@ -2,6 +2,7 @@ import axios from "axios";
 import apiClient from "@/core/api/client";
 import type {
   CoinDetail,
+  CoinGroupDetail,
   CoinFilters,
   CoinKind,
   CoinPage,
@@ -15,13 +16,16 @@ const publicClient = axios.create({
   timeout: 15000,
 });
 export const coinService = {
+  async group(slug: string, signal?: AbortSignal) {
+    return (await publicClient.get<CoinGroupDetail>(`/coins/groups/${encodeURIComponent(slug)}/`, { signal })).data;
+  },
   async list(
     kind: CoinKind,
     params: Record<string, string>,
     signal?: AbortSignal,
   ) {
     const { data } = await publicClient.get<CoinPage>(
-      kind === "pack" ? "/coins/packs/" : "/coins/",
+      kind === "pack" ? "/coins/packs/" : "/coins/groups/",
       { params, signal },
     );
     return data;

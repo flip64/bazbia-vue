@@ -82,6 +82,8 @@
               'opacity-90': !isProductInStock(product),
             }"
           >
+            <ProductCard v-if="coinDestination(product)" :product="product" />
+            <template v-else>
             <!-- Image -->
             <RouterLink :to="productDestination(product)" class="relative aspect-square overflow-hidden bg-gray-50">
               <span
@@ -205,6 +207,7 @@
                 </template>
               </button>
             </div>
+            </template>
           </article>
         </SwiperSlide>
       </Swiper>
@@ -213,6 +216,8 @@
 </template>
 
 <script setup lang="ts">
+import ProductCard from '@/components/products/ProductCard.vue';
+
 import { RouterLink, useRouter } from "vue-router";
 import { coinDestination, productDestination } from "@/services/productDestination";
 import {

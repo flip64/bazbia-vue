@@ -11,10 +11,12 @@ import {
 import CoinStory from "@/components/coins/CoinStory.vue";
 import CoinGallery from "@/components/coins/CoinGallery.vue";
 import { calendars, money, number, safeURL } from "@/components/coins/format";
+import { groupYear, defaultIssue, defaultSale } from "@/services/coinGroupSelection";
 import { coinService, coinError } from "@/services/coin.service";
 import { useCartStore } from "@/core/store/cartStore";
 import type {
   CoinDetail,
+  CoinGroupDetail,
   CoinIssue,
   CoinKind,
   CoinSale,
@@ -27,6 +29,7 @@ const route = useRoute(),
 const kind = computed<CoinKind>(() =>
   route.meta.coinKind === "pack" ? "pack" : "coin",
 );
+const group = ref<CoinGroupDetail | null>(null);
 const coin = ref<CoinDetail | null>(null),
   pack = ref<PackDetail | null>(null);
 const loading = ref(true),
@@ -62,7 +65,13 @@ const maxQuantity = computed(() =>
     ? Math.min(1, selected.value.available_stock)
     : Math.min(100, selected.value?.available_stock || 0),
 );
-const photos = computed(() => selected.value?.images?.length ? selected.value.images : activeIssue.value?.images?.length ? activeIssue.value.images : coin.value?.images || []);
+const photos = computed(() => selected.value?.images?.length ? selected.value.images : activeIssue.value?.images?.length ? activeIssue.value.images : coin.value?.images?.length ? coin.value.images : group.value?.images || []);
+const groupReference = computed(() => !!group.value?.images.length && photos.value === group.value.images);
+const sharedStory = computed(() => group.value?.story || '');
+const annualStory = computed(() => group.value ? coin.value?.year_story || '' : coin.value?.story || coin.value?.year_story || '');
+function selectGroupYear() {
+  if (group.value) coin.value = groupYear(group.value, route.query);
+}
 const itemNames = computed(() =>
   Object.fromEntries(
     (selected.value?.items || []).map((item) => [item.id, item.coin_name]),
@@ -89,9 +98,7 @@ function syncSelection() {
     issueId.value =
       match?.id ||
       variantIssue?.id ||
-      coin.value.issues.find((i) => i.specimens.some((s) => s.can_purchase))
-        ?.id ||
-      coin.value.issues[0]?.id;
+      defaultIssue(coin.value)?.id;
   }
   const choices =
     kind.value === "pack"
@@ -101,10 +108,13 @@ function syncSelection() {
     requestedVariant && !choices.some((s) => s.variant_id === requestedVariant)
       ? "نمونه معرفی‌شده در این لینک در دسترس نیست؛ پیش از خرید، نمونه انتخاب‌شده را بررسی کنید."
       : "";
+  if (requestedVariant && !choices.some(s => s.variant_id === requestedVariant)) {
+    variantId.value = undefined;
+    return;
+  }
   variantId.value =
     choices.find((s) => s.variant_id === requestedVariant)?.variant_id ||
-    choices.find((s) => s.can_purchase)?.variant_id ||
-    choices[0]?.variant_id;
+    defaultSale(choices)?.variant_id;
 }
 async function load() {
   controller?.abort();
@@ -115,14 +125,22 @@ async function load() {
   cartError.value = "";
   added.value = false;
   coin.value = null;
+  group.value = null;
   pack.value = null;
   try {
     const slug = String(route.params.slug);
     if (kind.value === "pack") {
       const data = await coinService.pack(slug, request.signal);
       if (!request.signal.aborted) pack.value = data;
+    } else if (route.meta.coinGroup) {
+      const data = await coinService.group(slug, request.signal);
+      if (!request.signal.aborted) { group.value = data; selectGroupYear(); }
     } else {
       const data = await coinService.coin(slug, request.signal);
+      if (!request.signal.aborted && data.group_slug) {
+        await router.replace({ name: 'coin-group-detail', params: { slug: data.group_slug }, query: { ...route.query, coin: data.slug } });
+        return;
+      }
       if (!request.signal.aborted) coin.value = data;
     }
     if (!request.signal.aborted) {
@@ -137,21 +155,24 @@ async function load() {
 }
 function chooseIssue() {
   variantId.value =
-    activeIssue.value?.specimens.find((s) => s.can_purchase)?.variant_id ||
-    activeIssue.value?.specimens[0]?.variant_id;
+    defaultSale(activeIssue.value?.specimens || [])?.variant_id;
   updateQuery();
 }
 function updateQuery() {
   const query: Record<string, string> = {};
+  if (group.value && coin.value) query.coin = coin.value.slug;
   if (issueId.value && kind.value === "coin")
     query.issue = String(issueId.value);
   if (variantId.value) query.variant = String(variantId.value);
   router.replace({ query });
 }
-watch(() => [route.params.slug, route.meta.coinKind], load, {
+watch(() => [route.params.slug, route.meta.coinKind, route.meta.coinGroup], load, {
   immediate: true,
 });
-watch(() => [route.query.issue, route.query.variant], syncSelection);
+watch(() => [route.query.coin, route.query.issue, route.query.variant], () => {
+  selectGroupYear(); syncSelection();
+  if (coin.value) document.title = `${title.value} | سکه و کلکسیون بازبیا`;
+});
 watch(variantId, () => {
   quantity.value = 1;
   cartError.value = "";
@@ -246,13 +267,29 @@ onBeforeUnmount(() => controller?.abort());
     </section>
     <template v-else>
       <div class="coin-detail-grid">
-        <CoinGallery :images="photos" :title="title" :item-names="itemNames" />
+        <div>
+          <CoinGallery :images="photos" :title="title" :item-names="itemNames" />
+          <p v-if="groupReference" class="coin-callout">تصویر مرجع گروه · برای سال انتخاب‌شده عکس اختصاصی ثبت نشده است.</p>
+        </div>
         <section class="coin-purchase">
           <p class="coin-eyebrow">
             {{ issuer?.name || "چند کشور" }}
             <template v-if="coin?.period"> · {{ coin.period.name }}</template>
           </p>
           <h1>{{ title }}</h1>
+          <nav v-if="group && group.years.length > 1" class="coin-tags" aria-label="انتخاب سال ضرب">
+            <RouterLink v-for="year in group.years" :key="year.slug"
+              :to="{ name: 'coin-group-detail', params: { slug: group.slug }, query: { coin: year.slug } }"
+              :aria-current="year.slug === coin?.slug ? 'page' : undefined" class="coin-year-link">
+              {{ year.mint_year == null ? year.name : number(year.mint_year) }}
+            </RouterLink>
+          </nav>
+          <nav v-if="!group && coin && (coin.related_years?.length || 0) > 1" class="coin-tags" aria-label="سال‌های ضرب این سکه">
+            <RouterLink v-for="year in coin.related_years" :key="year.slug"
+              :to="{ name: 'coin-detail', params: { slug: year.slug } }"
+              :aria-current="year.slug === coin.slug ? 'page' : undefined"
+              class="coin-year-link">{{ number(year.year) }}</RouterLink>
+          </nav>
           <div class="coin-tags">
             <span
               ><Package v-if="kind === 'pack'" :size="15" /><Coins
@@ -270,7 +307,7 @@ onBeforeUnmount(() => controller?.abort());
             تعریف مجموعه: {{ pack.completeness_scope }}
           </p>
           <p class="coin-description">
-            {{ coin?.introduction || coin?.description || pack?.description }}
+            {{ group?.introduction || coin?.introduction || coin?.description || pack?.description }}
           </p>
           <label v-if="coin && coin.issues.length > 1" class="coin-field"
             ><span>سال و نوبت ضرب</span
@@ -284,13 +321,15 @@ onBeforeUnmount(() => controller?.abort());
               </option>
             </select></label
           >
-          <label class="coin-field"
+          <p v-if="!sales.length" class="coin-callout">فقط معرفی · برای این سکه و سال ضرب، عرضه‌ای برای فروش ثبت نشده است.</p>
+          <label v-if="sales.length" class="coin-field"
             ><span>{{ kind === "pack" ? "نسخه پک" : "انتخاب مدل برای خرید" }}</span
             ><select
               v-model="variantId"
               :disabled="!sales.length || adding"
               @change="updateQuery"
             >
+              <option v-if="sales.length && !variantId" :value="undefined">نمونه موردنظر را انتخاب کنید</option>
               <option v-if="!sales.length" :value="undefined">
                 برای این سال و نوع ضرب، گزینه‌ای برای خرید موجود نیست
               </option>
@@ -382,8 +421,10 @@ onBeforeUnmount(() => controller?.abort());
           </template>
         </section>
       </div>
-      <section v-if="coin?.story || activeIssue?.description" class="coin-panel">
-        <h2>درباره این سکه</h2><CoinStory v-if="coin?.story" :text="coin.story" />
+      <section v-if="sharedStory || annualStory || activeIssue?.description" class="coin-panel">
+        <h2>درباره این سکه</h2>
+        <CoinStory v-if="sharedStory" :text="sharedStory" />
+        <template v-if="annualStory"><h3 v-if="sharedStory">داستان و توضیحات این سال</h3><CoinStory :text="annualStory" /></template>
         <CoinStory v-if="activeIssue?.description" :text="activeIssue.description" />
       </section>
       <section v-if="selected && kind === 'coin'" class="coin-panel">
@@ -550,3 +591,8 @@ onBeforeUnmount(() => controller?.abort());
     </template>
   </div>
 </template>
+
+<style scoped>
+.coin-year-link { border: 1px solid #d1e5d8; border-radius: .6rem; padding: .4rem .8rem; color: #166534; }
+.coin-year-link[aria-current="page"] { background: #166534; color: white; }
+</style>

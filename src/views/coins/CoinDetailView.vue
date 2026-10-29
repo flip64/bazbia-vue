@@ -39,7 +39,12 @@ const issueId = ref<number>(),
   variantId = ref<number>(),
   quantity = ref(1);
 let controller: AbortController | undefined;
-const title = computed(() => coin.value?.name || pack.value?.name || "");
+const title = computed(() => {
+  if (coin.value) {
+    return coin.value.mint_year == null ? coin.value.name : `${coin.value.name} · ${number(coin.value.mint_year)}`;
+  }
+  return pack.value?.name || "";
+});
 const issuer = computed(() => coin.value?.issuer || pack.value?.issuer);
 const activeIssue = computed(() =>
   coin.value?.issues.find((v) => v.id === issueId.value),
@@ -267,7 +272,7 @@ onBeforeUnmount(() => controller?.abort());
           <p class="coin-description">
             {{ coin?.introduction || coin?.description || pack?.description }}
           </p>
-          <label v-if="coin" class="coin-field"
+          <label v-if="coin && coin.issues.length > 1" class="coin-field"
             ><span>سال و نوبت ضرب</span
             ><select v-model="issueId" :disabled="adding" @change="chooseIssue">
               <option

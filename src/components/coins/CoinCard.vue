@@ -41,7 +41,7 @@ watch(
         {{ item.issuer?.name || "چند کشور"
         }}<template v-if="item.period"> · {{ item.period.name }}</template>
       </p>
-      <h2>{{ item.name }}</h2>
+      <h2>{{ item.name }}<template v-if="item.mint_year != null"> · {{ number(item.mint_year) }}</template></h2>
       <p class="coin-card__meta">
         {{
           kind === "pack"

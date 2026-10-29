@@ -30,6 +30,7 @@ export interface CoinCard {
   year?: number;
   construction?: string;
   shape?: string;
+  mint_year?: number | null;
   min_price: string | null;
   currency: string;
   in_stock: boolean;
@@ -143,6 +144,7 @@ export interface CoinIssue {
   specimens: CoinSale[];
 }
 export interface CoinDetail {
+  mint_year?: number | null;
   introduction: string;
   story: string;
   story_sources: string;
